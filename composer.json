@@ -3,7 +3,7 @@
     "description": "A project overview for leantime",
     "type": "leantime-plugin",
     "version": "1.0.0",
-    "homepage": "https://github.com/itk-leantime/leantime-dataexport",
+    "homepage": "https://github.com/ITK-Leantime/project-overview",
     "license": "MIT",
     "authors": [
         {

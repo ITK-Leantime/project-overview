@@ -1,6 +1,6 @@
 # Project overview plugin
 
-A plugin for displaying tasks "as in Jira", all tasks regardless of project/user.
+A plugin for displaying tasks, "like in Jira", displaying all tasks regardless of project/user.
 
 ## Development
 
