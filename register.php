@@ -1,5 +1,5 @@
 <?php
-
+use Leantime\Plugins\ProjectOverview\Middleware\GetLanguageAssets;
 use Leantime\Core\Events;
 
 /**
@@ -9,17 +9,23 @@ use Leantime\Core\Events;
 */
 function addProjectOverviewMenuPoint(array $menuStructure): array
 {
-    $menuStructure['default'][10]['submenu'][60] = [
+    $menuStructure['personal'][21] = [
         'type' => 'item',
-        'module' => 'tickets',
-        'title' => '<i class="fa-solid fa-list-check"></i></span> Projektoverblik',
+        'module' => 'dashboard',
+        'title' => '<i class="fa-solid fa-list-check"></i></span> ' . __('projectoverview.menu_title'),
         'icon' => 'fa-solid fa-list-check',
-        'tooltip' => 'Projektoverblik',
+        'tooltip' => __('projectoverview.menu_tooltip'),
         'href' => '/ProjectOverview/projectOverview',
-        'active' => ['settings'],
+        'active' => ['ProjectOverview'],
     ];
-
     return $menuStructure;
 }
 
 Events::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
+
+// https://github.com/Leantime/plugin-template/blob/main/register.php#L43-L46
+// Register Language Assets
+Events::add_filter_listener(
+    'leantime.core.httpkernel.handle.plugins_middleware',
+    fn (array $middleware) => array_merge($middleware, [GetLanguageAssets::class]),
+);
