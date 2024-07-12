@@ -1,0 +1,15 @@
+{
+    "name": "leantime/project-overview",
+    "description": "A project overview for leantime",
+    "type": "leantime-plugin",
+    "version": "1.0.0",
+    "homepage": "https://github.com/itk-leantime/leantime-dataexport",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sine Jespersen",
+            "email": "sinejespersen@gmail.com"
+        }
+    ],
+    "require": {}
+}
