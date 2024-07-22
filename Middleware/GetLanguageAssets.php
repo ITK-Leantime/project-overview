@@ -23,30 +23,29 @@ class GetLanguageAssets
      **/
     public function handle(IncomingRequest $request, Closure $next): Response
     {
-        $languageArrayPrefix = "projectOverview";
-        $languageArray = Cache::get($languageArrayPrefix . '.languageArray', []);
+        $languageArray = Cache::get('projectOverview.languageArray', []);
 
         if (! empty($languageArray)) {
             $this->language->ini_array = array_merge($this->language->ini_array, $languageArray);
             return $next($request);
         }
 
-        if (! Cache::store('installation')->has($languageArrayPrefix . '.language.en-US')) {
+        if (! Cache::store('installation')->has('projectOverview.language.en-US')) {
             $languageArray += parse_ini_file(__DIR__ . '/../Language/en-US.ini', true);
         }
 
         if (($language = $_SESSION["usersettings.language"] ?? $this->config->language) !== 'en-US') {
-            if (! Cache::store('installation')->has($languageArrayPrefix . '.language.' . $language)) {
+            if (! Cache::store('installation')->has('projectOverview.language.' . $language)) {
                 Cache::store('installation')->put(
-                    'plugintemplate.language.' . $language,
+                    'projectOverview.language.' . $language,
                     parse_ini_file(__DIR__ . '/../Language/' . $language . '.ini', true)
                 );
             }
 
-            $languageArray = array_merge($languageArray, Cache::store('installation')->get($languageArrayPrefix . '.language.' . $language));
+            $languageArray = array_merge($languageArray, Cache::store('installation')->get('projectOverview.language.' . $language));
         }
 
-        Cache::put($languageArrayPrefix . '.languageArray', $languageArray);
+        Cache::put('projectOverview.languageArray', $languageArray);
 
         $this->language->ini_array = array_merge($this->language->ini_array, $languageArray);
         return $next($request);
