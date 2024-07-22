@@ -12,11 +12,9 @@ class ProjectOverview
 
     public function install(): void
     {
-        // Repo call to create tables.
     }
 
     public function uninstall(): void
     {
-        // Remove tables
     }
 }
