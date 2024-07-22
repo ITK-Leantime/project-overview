@@ -5,7 +5,7 @@ namespace Leantime\Plugins\ProjectOverview\Services;
 class ProjectOverview {
   private static $assets = [
     // source => target
-    __DIR__. '/../assets/pronject-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
+    __DIR__. '/../assets/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
   ];
 
   /**
