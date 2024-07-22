@@ -9,6 +9,10 @@ use Leantime\Core\Events;
 */
 function addProjectOverviewMenuPoint(array $menuStructure): array
 {
+    // So, why the number 21: In menu.php the menu seem to be ordered by putting menu items into an array by a number
+    // I figure this menu-item should be _after_ the other menu-items, and as the last menu item is "20", I figured 21
+    // would do. But! I have no idea if this will clash with any other plugins hooking into the menu.
+    // https://github.com/ITK-Leantime/leantime/blob/0ff10e759a557af717e905ed5a1d324c9cf8c1d8/app/Domain/Menu/Repositories/Menu.php#L107
     $menuStructure['personal'][21] = [
         'type' => 'item',
         'module' => 'dashboard',
