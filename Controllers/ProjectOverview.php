@@ -41,18 +41,4 @@ class ProjectOverview extends Controller
         $this->tpl->assign('allTickets', $allTickets);
         return $this->tpl->display('ProjectOverview.projectOverview');
     }
-
-    /**
-     * Handles the data submitted.
-     * Reads submitted file, settings and stores data in tmp file.
-     *
-     * @param array<string, string|int> $params
-     *
-     * @return void
-     *
-     * @throws Exception
-     */
-    public function post(array $params): void
-    {
-    }
 }
