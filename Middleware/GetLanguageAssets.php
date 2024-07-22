@@ -18,8 +18,6 @@ class GetLanguageAssets
     ) {}
 
     /**
-     * Install the custom fields plugin DB if necessary.
-     *
      * @param \Closure(IncomingRequest): Response $next
      * @throws BindingResolutionException
      **/
