@@ -19,3 +19,18 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
       });
   }
 }
+
+function changeDueDate(ticketId, newDueDate) {
+  if (newDueDate && ticketId) {
+    const dueDate = jQuery.datepicker.formatDate(leantime.dateHelper.getFormatFromSettings("dateformat", "jquery"), new Date(newDueDate));
+    jQuery
+      .ajax({
+        type: "PATCH",
+        url: leantime.appUrl + "/api/tickets",
+        data: {
+          id: ticketId,
+          dateToFinish: dueDate,
+        },
+      });
+  }
+}

@@ -2,18 +2,19 @@
 
 @section('content')
     <div class="project-overview-container">
-        <h1>{{ __('projectoverview.dashboard_title') }}</h1>
+        <h1>{{ __('projectOverview.dashboard_title') }}</h1>
         <ul>
             @if (count($allTickets) === 0)
-                {{ __('projectoverview.empty_list') }}
+                {{ __('projectOverview.empty_list') }}
             @endif
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th scope="col">{{ __('projectoverview.id_table_header') }}</th>
-                        <th scope="col">{{ __('projectoverview.todo_table_header') }}</th>
-                        <th scope="col">{{ __('projectoverview.status_table_header') }}</th>
-                        <th scope="col">{{ __('projectoverview.parent_todo_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.id_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.todo_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.status_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.parent_todo_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.due_date_table_header') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,6 +52,9 @@
                                         {{ $row['parentHeadline'] }}
                                     </a>
                                 @endif
+                            </td>
+                            <td>
+                                <input type="date" onchange="changeDueDate({{ $row['id'] }}, this.value)" value="{{ format($row['dateToFinish'])->date(__('text.anytime')) }}" />
                             </td>
                         </tr>
                     @endforeach
