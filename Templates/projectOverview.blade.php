@@ -25,9 +25,7 @@
                                     {{ $row['headline'] }}
                                 </a>
                             </td>
-                            {{-- // Todo fix in another place --}}
                             <td>
-
                                 <div class="btn-group">
                                     <button type="button" id="status-ticket-{{ $row['id'] }}"
                                         class="{!! $statusLabels[$row['status']]['class'] !!}" data-toggle="dropdown" aria-haspopup="true"
@@ -45,8 +43,6 @@
                                         @endforeach
                                     </div>
                                 </div>
-
-
                             </td>
                             <td>
                                 {{-- if the ticket does not depend on another ticket, this "id" is set to 0 --}}
