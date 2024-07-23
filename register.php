@@ -15,12 +15,12 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
     // https://github.com/ITK-Leantime/leantime/blob/0ff10e759a557af717e905ed5a1d324c9cf8c1d8/app/Domain/Menu/Repositories/Menu.php#L107
     $menuStructure['personal'][21] = [
         'type' => 'item',
-        'module' => 'dashboard',
         'title' => '<i class="fa-solid fa-list-check"></i></span> ' . __('projectoverview.menu_title'),
         'icon' => 'fa-solid fa-list-check',
         'tooltip' => __('projectoverview.menu_tooltip'),
         'href' => '/ProjectOverview/projectOverview',
         'active' => ['ProjectOverview'],
+        'module' => 'tickets',
     ];
     return $menuStructure;
 }
@@ -36,10 +36,10 @@ Events::add_filter_listener(
 
 Events::add_event_listener(
     "leantime.core.template.tpl.*.afterScriptLibTags",
-
     function () {
         if (isset($_SESSION['userdata']['id']) && !is_null($_SESSION['userdata']['id'])) {
             echo '<link rel="stylesheet" href="/dist/css/project-overview.css"></link>';
+            echo '<script type="text/javascript" src="/dist/js/project-overview.js"></script>';
         }
     },
     5
