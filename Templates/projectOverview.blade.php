@@ -12,9 +12,9 @@
                     <tr>
                         <th scope="col">{{ __('projectOverview.id_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.todo_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.parent_todo_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.status_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.priority_table_header') }}</th>
-                        <th scope="col">{{ __('projectOverview.parent_todo_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.due_date_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.todo_assigned_table_header') }}</th>
                     </tr>
@@ -27,6 +27,14 @@
                                 <a href="#/tickets/showTicket/{{ $row['id'] }}">
                                     {{ $row['headline'] }}
                                 </a>
+                            </td>
+                            <td>
+                                {{-- if the ticket does not depend on another ticket, this "id" is set to 0 --}}
+                                @if ($row['dependingTicketId'] > 0)
+                                    <a href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">
+                                        {{ $row['parentHeadline'] }}
+                                    </a>
+                                @endif
                             </td>
                             <td>
                                 <div class="btn-group">
@@ -76,14 +84,7 @@
 
 
                             </td>
-                            <td>
-                                {{-- if the ticket does not depend on another ticket, this "id" is set to 0 --}}
-                                @if ($row['dependingTicketId'] > 0)
-                                    <a href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">
-                                        {{ $row['parentHeadline'] }}
-                                    </a>
-                                @endif
-                            </td>
+
                             <td>
                                 <input type="date" onchange="changeDueDate({{ $row['id'] }}, this.value)"
                                     value="{{ format($row['dateToFinish'])->date(__('text.anytime')) }}" />
