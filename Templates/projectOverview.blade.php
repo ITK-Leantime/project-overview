@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="project-overview-container">
-        <h1>{{ __('projectOverview.dashboard_title') }}</h1>
+        <h1 class="h1">{{ __('projectOverview.dashboard_title') }}</h1>
         <ul>
             @if (count($allTickets) === 0)
                 {{ __('projectOverview.empty_list') }}
@@ -13,8 +13,10 @@
                         <th scope="col">{{ __('projectOverview.id_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.todo_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.status_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.priority_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.parent_todo_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.due_date_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.todo_assigned_table_header') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -29,14 +31,14 @@
                             <td>
                                 <div class="btn-group">
                                     <button type="button" id="status-ticket-{{ $row['id'] }}"
-                                        class="{!! $statusLabels[$row['status']]['class'] !!}" data-toggle="dropdown" aria-haspopup="true"
-                                        aria-expanded="false">
-                                        {!! $statusLabels[$row['status']]['name'] !!}
+                                        class="table-button {!! $statusLabels[$row['status']]['class'] !!}" data-toggle="dropdown">
+                                        <span id="status-label">{!! $statusLabels[$row['status']]['name'] !!}</span> <i class="fa fa-caret-down"
+                                            aria-hidden="true"></i>
                                     </button>
                                     <div class="dropdown-menu" id="status-dropdown-menu">
                                         @foreach ($statusLabels as $newStatusId => $label)
                                             <li class="dropdown-item">
-                                                <button class="{!! $label['class'] !!}"
+                                                <button class="table-button {!! $label['class'] !!}"
                                                     onclick="changeStatus({{ $row['id'] }}, {{ $newStatusId }}, '{{ $label['class'] }}', '{{ $label['name'] }}')">
                                                     {{ $label['name'] }}
                                                 </button>
@@ -44,6 +46,35 @@
                                         @endforeach
                                     </div>
                                 </div>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" id="priority-ticket-{{ $row['id'] }}"
+                                        class="table-button label-default priority-bg-{!! $row['priority'] !!}"
+                                        data-toggle="dropdown">
+                                        @if (is_numeric($row['priority']))
+                                            <span id="priority-label">{!! $priorities[$row['priority']] !!} </span>
+                                            <i class="fa fa-caret-down" aria-hidden="true"></i>
+                                        @endif
+                                        @if (!is_numeric($row['priority']))
+                                            <span id="priority-label">{{ __('projectOverview.no_priority_label') }}</span>
+                                            <i class="fa fa-caret-down" aria-hidden="true"></i>
+                                        @endif
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        @foreach ($priorities as $newPriorityId => $priorityLabel)
+                                            <li class="dropdown-item">
+                                                <button type="button"
+                                                    onclick="changePriority({{ $row['id'] }}, {{ $newPriorityId }}, '{{ $priorityLabel }}')"
+                                                    class="table-button priority-bg-{!! $newPriorityId !!}">
+                                                    <div> {{ $priorityLabel }}</div>
+                                                </button>
+                                            </li>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+
                             </td>
                             <td>
                                 {{-- if the ticket does not depend on another ticket, this "id" is set to 0 --}}
@@ -54,7 +85,19 @@
                                 @endif
                             </td>
                             <td>
-                                <input type="date" onchange="changeDueDate({{ $row['id'] }}, this.value)" value="{{ format($row['dateToFinish'])->date(__('text.anytime')) }}" />
+                                <input type="date" onchange="changeDueDate({{ $row['id'] }}, this.value)"
+                                    value="{{ format($row['dateToFinish'])->date(__('text.anytime')) }}" />
+                            </td>
+                            <td>
+                                <select onchange="changeAssignedUser({{ $row['id'] }}, this.value)" class="form-select" style="width: 100%;">
+                                    @foreach ($row['projectUsers'] as $projectUser)
+                                        <option value={{ $projectUser['id'] }}
+                                            {{ (int) $row['editorId'] === (int) $projectUser['id'] ? 'selected=true' : 'selected=false' }}>
+                                            {{ $projectUser['firstname'] }}
+                                            {{ $projectUser['lastname'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </td>
                         </tr>
                     @endforeach

@@ -80,76 +80,45 @@ class ProjectOverview extends Controller
             return FrontcontrollerCore::redirect(BASE_URL . "/dashboard/home");
         }
 
-        $project = $this->projectService->getProject($currentProjectId);
-        if (isset($project['id']) === false) {
-            return FrontcontrollerCore::redirect(BASE_URL . "/dashboard/home");
-        }
-
-        $projectRedirectFilter = static::dispatch_filter("dashboardRedirect", "/dashboard/show", array("type" => $project["type"]));
-        if ($projectRedirectFilter != "/dashboard/show") {
-            return FrontcontrollerCore::redirect(BASE_URL . $projectRedirectFilter);
-        }
 
         [$progressSteps, $percentDone] = $this->projectService->getProjectSetupChecklist($currentProjectId);
         $this->tpl->assign("progressSteps", $progressSteps);
         $this->tpl->assign("percentDone", $percentDone);
 
-        $project['assignedUsers'] = $this->projectService->getProjectUserRelation($currentProjectId);
-        $this->tpl->assign('project', $project);
 
-        $userReaction = $this->reactionsService->getUserReactions($_SESSION['userdata']['id'], 'project', $currentProjectId, Reactions::$favorite);
-        if ($userReaction && is_array($userReaction) && count($userReaction) > 0) {
-            $this->tpl->assign("isFavorite", true);
-        } else {
-            $this->tpl->assign("isFavorite", false);
+
+        $allTickets = $this->ticketService->getAll(array(
+            "orderBy" => "priority",
+            "orderDirection" => "ASC"
+        ));
+        $projectIds = array_unique(array_column($allTickets, 'projectId'));
+        $userAndPorject = array();
+        foreach ($projectIds as &$projectId) {
+            $userAndPorject[$projectId] = $this->userService->getUsersWithProjectAccess($_SESSION['userdata']['id'], $projectId);
         }
-
-        $this->tpl->assign('allUsers', $this->userService->getAll());
-
-        //Project Progress
+        foreach ($allTickets as &$ticket) {
+            $ticket['projectUsers'] =$userAndPorject[$ticket["projectId"]];
+        }
+        // Project Progress
         $progress = $this->projectService->getProjectProgress($currentProjectId);
         $this->tpl->assign('projectProgress', $progress);
         $this->tpl->assign("currentProjectName", $this->projectService->getProjectName($currentProjectId));
-
-        //Milestones
+        // Milestones
 
         $allProjectMilestones = $this->ticketService->getAllMilestones(["sprint" => '', "type" => "milestone", "currentProject" => $_SESSION["currentProject"]]);
         $this->tpl->assign('milestones', $allProjectMilestones);
 
-        $comments = app()->make(CommentRepository::class);
-
-        //Delete comment
-        if (isset($_GET['delComment']) === true) {
-            $commentId = (int)($_GET['delComment']);
-
-            $comments->deleteComment($commentId);
-
-            $this->tpl->setNotification($this->language->__("notifications.comment_deleted"), "success", "projectcomment_deleted");
-        }
-
-        // add replies to comments
-        $comment = array_map(function ($comment) use ($comments) {
-            $comment['replies'] = $comments->getReplies($comment['id']);
-            return $comment;
-        }, $comments->getComments('project', $currentProjectId, 0));
-
-
-        $url = parse_url(CURRENT_URL);
-        $this->tpl->assign('delUrlBase', $url['scheme'] . '://' . $url['host'] . $url['path'] . '?delComment='); // for delete comment
-
-        $this->tpl->assign('comments', $comment);
-        $this->tpl->assign('numComments', $comments->countComments('project', $currentProjectId));
 
         $completedOnboarding = $this->settingRepo->getSetting("companysettings.completedOnboarding");
         $this->tpl->assign("completedOnboarding", $completedOnboarding);
 
         // TICKETS
         $this->tpl->assign("onTheClock", $this->timesheetService->isClocked($_SESSION["userdata"]["id"]));
-        $this->tpl->assign('efforts', $this->ticketService->getEffortLabels());
         $this->tpl->assign('priorities', $this->ticketService->getPriorityLabels());
         $this->tpl->assign("types", $this->ticketService->getTicketTypes());
         $this->tpl->assign("statusLabels", $this->ticketService->getStatusLabels());
-        $allTickets = $this->ticketService->getAll();
+
+
         $this->tpl->assign('allTickets', $allTickets);
         return $this->tpl->display('ProjectOverview.projectOverview');
     }
