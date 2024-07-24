@@ -69,3 +69,29 @@ function changeAssignedUser(ticketId, userId){
       });
   }
 }
+function changePlanHours(ticketId, newPlanHours){
+  if (newPlanHours && ticketId) {
+    jQuery
+      .ajax({
+        type: "PATCH",
+        url: leantime.appUrl + "/api/tickets",
+        data: {
+          id: ticketId,
+          planHours: newPlanHours,
+        },
+      });
+  }
+}
+function changeHoursRemaining(ticketId, newHoursRemaining){
+  if (newHoursRemaining && ticketId) {
+    jQuery
+      .ajax({
+        type: "PATCH",
+        url: leantime.appUrl + "/api/tickets",
+        data: {
+          id: ticketId,
+          hourRemaining: newHoursRemaining,
+        },
+      });
+  }
+}

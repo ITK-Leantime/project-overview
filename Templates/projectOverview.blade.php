@@ -3,7 +3,6 @@
 @section('content')
     <div class="project-overview-container">
         <h1 class="h1">{{ __('projectOverview.dashboard_title') }}</h1>
-        <ul>
             @if (count($allTickets) === 0)
                 {{ __('projectOverview.empty_list') }}
             @endif
@@ -17,6 +16,8 @@
                         <th scope="col">{{ __('projectOverview.priority_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.due_date_table_header') }}</th>
                         <th scope="col">{{ __('projectOverview.todo_assigned_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.todo_planned_hours_table_header') }}</th>
+                        <th scope="col">{{ __('projectOverview.todo_remaining_hours_table_header') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,11 +86,11 @@
 
                             </td>
 
-                            <td>
+                            <td class="spacious">
                                 <input type="date" onchange="changeDueDate({{ $row['id'] }}, this.value)"
                                     value="{{ format($row['dateToFinish'])->date(__('text.anytime')) }}" />
                             </td>
-                            <td>
+                            <td class="spacious">
                                 <select onchange="changeAssignedUser({{ $row['id'] }}, this.value)" class="form-select" style="width: 100%;">
                                     @foreach ($row['projectUsers'] as $projectUser)
                                         <option value={{ $projectUser['id'] }}
@@ -100,10 +101,19 @@
                                     @endforeach
                                 </select>
                             </td>
+                            <td class="spacious">
+                                <div class="input-group input-group-sm mb-3">
+                                    <input onchange="changePlanHours({{ $row['id'] }}, this.value)" type="number" class="form-control" value="{{$row['planHours']}}">
+                                  </div>
+                                </td>
+                            <td class="spacious">
+                                <div class="input-group input-group-sm mb-3">
+                                    <input onchange="changeHoursRemaining({{ $row['id'] }}, this.value)" type="number" class="form-control" value="{{$row['hourRemaining']}}">
+                                  </div>
+                                  </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
-        </ul>
     </div>
 @endsection

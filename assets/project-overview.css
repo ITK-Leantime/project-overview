@@ -7,7 +7,55 @@
   padding: 10px;
 }
 .project-overview-container > h1 {
-    margin-bottom: 30px;
+  margin-bottom: 30px;
+}
+.project-overview-container td.spacious {
+  min-width: 100px;
+}
+
+.project-overview-container input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+.project-overview-container input[type="number"] {
+  -moz-appearance: textfield;
+}
+.table td {
+  position: relative;
+}
+
+.table td select {
+  all: unset;
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  border: none;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.table td input {
+  all: unset;
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  border: none;
+  padding: 10px;
+  box-sizing: border-box;
+}
+.project-overview-container > input {
+  border-radius: 3px !important;
 }
 
 .dropdown-item > button {
