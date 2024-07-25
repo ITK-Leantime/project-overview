@@ -39,8 +39,8 @@
                             <div class="btn-group">
                                 <button type="button" id="status-ticket-{{ $row['id'] }}"
                                     class="table-button {!! $statusLabels[$row['status']]['class'] !!}" data-toggle="dropdown">
-                                    <span id="status-label">{!! $statusLabels[$row['status']]['name'] !!}</span> <i class="fa fa-caret-down"
-                                        aria-hidden="true"></i>
+                                    <span id="status-label">{!! $statusLabels[$row['status']]['name'] !!} </span>
+                                    <i class="fa fa-caret-down" aria-hidden="true"></i>
                                 </button>
                                 <div class="dropdown-menu" id="status-dropdown-menu">
                                     @foreach ($statusLabels as $newStatusId => $label)
@@ -64,7 +64,7 @@
                                         <i class="fa fa-caret-down" aria-hidden="true"></i>
                                     @endif
                                     @if (!is_numeric($row['priority']))
-                                        <span id="priority-label">{{ __('projectOverview.no_priority_label') }}</span>
+                                        <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
                                         <i class="fa fa-caret-down" aria-hidden="true"></i>
                                     @endif
                                 </button>
@@ -86,7 +86,7 @@
                                 value="{{ format($row['dateToFinish'])->date(__('text.anytime')) }}" />
                         </td>
                         <td class="spacious">
-                            <select onchange="changeAssignedUser({{ $row['id'] }}, this.value)" class="form-select" style="width: 100%;">
+                            <select onchange="changeAssignedUser({{ $row['id'] }}, this.value)" class="form-select">
                                 @foreach ($row['projectUsers'] as $projectUser)
                                     <option value={{ $projectUser['id'] }}
                                         {{ (int) $row['editorId'] === (int) $projectUser['id'] ? 'selected' : '' }}>
@@ -111,7 +111,7 @@
                         <td>
                             @if (count($row['projectMilestones']) > 0)
                                 <select id="milestone-select" onchange="changeMilestone({{ $row['id'] }}, this.value)"
-                                    class="form-select" style="background: {!! $row['selectedMilestoneColor']  !!}">
+                                    class="form-select" style="background: {!! $row['selectedMilestoneColor'] !!}">
                                     @foreach ($row['projectMilestones'] as $projectMilestone)
                                         <option value={{ $projectMilestone['id'] }}
                                             id="milestone-option-{{ $projectMilestone['id'] }}"
@@ -131,7 +131,7 @@
                                 <input onchange="changeTags({{ $row['id'] }}, this.value)" type="text"
                                     class="form-control" value="{{ $row['tags'] }}">
                             </div>
-                      </td>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
