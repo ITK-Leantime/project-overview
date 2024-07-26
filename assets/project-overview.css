@@ -12,7 +12,8 @@
 .project-overview-container td.spacious {
   min-width: 130px;
 }
-.project-overview-container input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+.project-overview-container input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -46,7 +47,6 @@
   top: 20px;
   color: var(--main-border-color);
 }
-
 
 /* Firefox */
 .project-overview-container input[type="number"] {
@@ -100,7 +100,9 @@
   padding: 3px 20px;
   white-space: nowrap;
 }
-button.label-warning, .label-warning, .label-yellow {
+button.label-warning,
+.label-warning,
+.label-yellow {
   background: var(--yellow) !important;
   color: var(--yellow-text-color) !important;
 }
@@ -108,19 +110,25 @@ button.label-info {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-button.label-important, .label-important {
+button.label-important,
+.label-important {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-button.label-danger, .label-danger, .label-red {
+button.label-danger,
+.label-danger,
+.label-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-button.label-success, .label-success, .label-green {
+button.label-success,
+.label-success,
+.label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-button.label-default, .label-default {
+button.label-default,
+.label-default {
   background: var(--grey);
   color: var(--grey-text-color) !important;
 }
@@ -171,7 +179,9 @@ button.label-grey {
   background: var(--grey) !important;
   color: var(--grey-text-color) !important;
 }
-a.label-warning, .label-warning, .label-yellow {
+a.label-warning,
+.label-warning,
+.label-yellow {
   background: var(--yellow) !important;
   color: var(--yellow-text-color) !important;
 }
@@ -179,19 +189,25 @@ a.label-info {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-a.label-important, .label-important {
+a.label-important,
+.label-important {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-a.label-danger, .label-danger, .label-red {
+a.label-danger,
+.label-danger,
+.label-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-a.label-success, .label-success, .label-green {
+a.label-success,
+.label-success,
+.label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-a.label-default, .label-default {
+a.label-default,
+.label-default {
   background: var(--grey);
   color: var(--grey-text-color) !important;
 }

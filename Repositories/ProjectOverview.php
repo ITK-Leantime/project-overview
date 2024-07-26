@@ -113,13 +113,13 @@ class ProjectOverview
 
     public function getSelectedMilestoneColor(string $milestoneId)
     {
-        $sql = "SELECT
+        $sql = 'SELECT
         -- I dont know if this is considered bad practice, but renaming tags
         -- makes the code more understandable in the rest of the module
         ticket.tags AS color
         FROM
         zp_tickets AS ticket
-        WHERE ticket.id = :milestoneId";
+        WHERE ticket.id = :milestoneId';
 
         $stmn = $this->db->database->prepare($sql);
 

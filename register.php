@@ -1,4 +1,5 @@
 <?php
+
 use Leantime\Plugins\ProjectOverview\Middleware\GetLanguageAssets;
 use Leantime\Core\Events;
 
@@ -35,7 +36,7 @@ Events::add_filter_listener(
 );
 
 Events::add_event_listener(
-    "leantime.core.template.tpl.*.afterScriptLibTags",
+    'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
         if (isset($_SESSION['userdata']['id']) && !is_null($_SESSION['userdata']['id'])) {
             echo '<link rel="stylesheet" href="/dist/css/project-overview.css"></link>';

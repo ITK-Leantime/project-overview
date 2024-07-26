@@ -72,6 +72,8 @@ class ProjectOverview
         $milestone = $this->projectOverviewRepository->getSelectedMilestoneColor($milestoneId);
         if (is_array($milestone) && count($milestone) > 0) {
             return $milestone[0]['color'];
-        } else return null;
+        } else {
+            return null;
+        }
     }
 }

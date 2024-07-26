@@ -15,7 +15,8 @@ class GetLanguageAssets
     public function __construct(
         private Language $language,
         private Environment $config,
-    ) {}
+    ) {
+    }
 
     /**
      * @param \Closure(IncomingRequest): Response $next
@@ -34,7 +35,7 @@ class GetLanguageAssets
             $languageArray += parse_ini_file(__DIR__ . '/../Language/en-US.ini', true);
         }
 
-        if (($language = $_SESSION["usersettings.language"] ?? $this->config->language) !== 'en-US') {
+        if (($language = $_SESSION['usersettings.language'] ?? $this->config->language) !== 'en-US') {
             if (! Cache::store('installation')->has('projectOverview.language.' . $language)) {
                 Cache::store('installation')->put(
                     'projectOverview.language.' . $language,
@@ -51,4 +52,3 @@ class GetLanguageAssets
         return $next($request);
     }
 }
-

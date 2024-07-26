@@ -19,8 +19,8 @@ class ProjectOverview extends Controller
 
     /**
      * @param ProjectOverviewService   projectOverviewService
-     * @param TicketService    $ticketService
-     * @param UserService      $userService
+     * @param TicketService                                   $ticketService
+     * @param UserService                                     $userService
      * @return void
      */
     public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService): void
@@ -43,11 +43,11 @@ class ProjectOverview extends Controller
         $userIdForFilter = null;
         $searchTermForFilter = null;
 
-        if (isset($_GET['userId']) && $_GET['userId'] !== "") {
+        if (isset($_GET['userId']) && $_GET['userId'] !== '') {
             $userIdForFilter = $_GET['userId'];
         }
 
-        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== "") {
+        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
             $searchTermForFilter = $_GET['searchTerm'];
         }
 

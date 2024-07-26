@@ -49,7 +49,7 @@ function changeDueDate(ticketId, newDueDate) {
   if (newDueDate && ticketId) {
     const dueDate = jQuery.datepicker.formatDate(
       leantime.dateHelper.getFormatFromSettings("dateformat", "jquery"),
-      new Date(newDueDate)
+      new Date(newDueDate),
     );
     jQuery.ajax({
       type: "PATCH",
@@ -117,35 +117,37 @@ function changeMilestone(ticketId, newMilestoneId) {
         // in other places (I am looking at you ticketcontroller.js).
         const hexColorRegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
         const newMilestoneColor = jQuery(
-          `#milestone-option-${newMilestoneId}`
+          `#milestone-option-${newMilestoneId}`,
         ).attr("data-color");
         const isItAHexColor = hexColorRegExp.exec(newMilestoneColor);
         if (isItAHexColor) {
           jQuery(`#milestone-select`).css("background", newMilestoneColor);
         } else {
           jQuery(`#milestone-select`).css("background", "transparent");
-
         }
       });
   }
 }
 function changeTags(ticketId, newTags) {
   if (newTags && ticketId) {
-    jQuery
-      .ajax({
-        type: "PATCH",
-        url: leantime.appUrl + "/api/tickets",
-        data: {
-          id: ticketId,
-          tags: newTags,
-        },
-      });
+    jQuery.ajax({
+      type: "PATCH",
+      url: leantime.appUrl + "/api/tickets",
+      data: {
+        id: ticketId,
+        tags: newTags,
+      },
+    });
   }
 }
 function redirectWithUserId(searchUserId) {
-  searchUserId === "all" ? window.location ="?" : window.location = `?userId=${searchUserId}`;
+  searchUserId === "all"
+    ? (window.location = "?")
+    : (window.location = `?userId=${searchUserId}`);
 }
 
 function redirectWithSearchTerm(searchTerm) {
-  searchTerm === "" ? window.location ="?" : window.location = `?searchTerm=${searchTerm}`;
+  searchTerm === ""
+    ? (window.location = "?")
+    : (window.location = `?searchTerm=${searchTerm}`);
 }
