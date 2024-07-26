@@ -26,11 +26,17 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
     ];
     return $menuStructure;
 }
-function addProjectOverviewToPersonalMenu(): array
+
+/**
+* Adds project overview to the personal menu
+* @return string - the string "personal" if the route is ProjectOverview.projectOverview.
+*/
+function addProjectOverviewToPersonalMenu(): string
 {
-    if (FrontcontrollerCore::getCurrentRoute() === "ProjectOverview.projectOverview") {
-        return "personal";
+    if (FrontcontrollerCore::getCurrentRoute() === 'ProjectOverview.projectOverview') {
+        return 'personal';
     }
+    return '';
 }
 
 Events::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
