@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+
 * [PR-2](https://github.com/ITK-Leantime/project-overview/pull/3)
 * Project overview plugin
   * services file with install/uninstall and methods for passing data from the repo to the controller
