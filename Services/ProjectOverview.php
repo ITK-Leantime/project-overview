@@ -52,9 +52,9 @@ class ProjectOverview
     /**
      * @return array
      */
-    public function getTasks(): array
+    public function getTasks(?string $userId, ?string $searchTerm): array
     {
-        return $this->projectOverviewRepository->getTasks();
+        return $this->projectOverviewRepository->getTasks($userId, $searchTerm);
     }
 
     /**

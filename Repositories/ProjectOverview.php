@@ -30,9 +30,16 @@ class ProjectOverview
     /**
      * @return array
      */
-    public function getTasks(): array
+    public function getTasks(?string $userId, ?string $searchTerm): array
     {
-        $sql = "SELECT
+        $userIdQuery = isset($userId) ? ' AND editorId = :userId ' : '';
+        $searchTermQuery = isset($searchTerm) ? " AND
+        ticket.id LIKE CONCAT( '%', :searchTerm, '%') OR
+        ticket.tags LIKE CONCAT( '%', :searchTerm, '%') OR
+        ticket.headline LIKE CONCAT( '%', :searchTerm, '%') " : '';
+
+        $sql =
+            "SELECT
         ticket.id,
         ticket.headline,
         ticket.type,
@@ -50,14 +57,23 @@ class ProjectOverview
         t2.id AS editorId,
         t2.firstname AS editorFirstname,
         t2.lastname AS editorLastname
-    FROM
-    zp_tickets AS ticket
-    LEFT JOIN zp_user AS t1 ON ticket.userId = t1.id
-    LEFT JOIN zp_user AS t2 ON ticket.editorId = t2.id
-    WHERE ticket.type <> 'milestone' AND ticket.status <> '0'
-    ORDER BY ticket.priority ASC";
-
+        FROM
+        zp_tickets AS ticket
+        LEFT JOIN zp_user AS t1 ON ticket.userId = t1.id
+        LEFT JOIN zp_user AS t2 ON ticket.editorId = t2.id
+        WHERE ticket.type <> 'milestone' AND ticket.status <> '0'" .
+            $userIdQuery .
+            $searchTermQuery .
+            'ORDER BY ticket.priority ASC';
         $stmn = $this->db->database->prepare($sql);
+
+        if (isset($userId) && $userId !== '') {
+            $stmn->bindValue(':userId', $userId, PDO::PARAM_INT);
+        }
+
+        if (isset($searchTerm) && $searchTerm !== '') {
+            $stmn->bindParam(':searchTerm', $searchTerm, PDO::PARAM_STR);
+        }
 
         $stmn->execute();
         $values = $stmn->fetchAll();
@@ -95,7 +111,8 @@ class ProjectOverview
         return $values;
     }
 
-    public function getSelectedMilestoneColor(string $milestoneId) {
+    public function getSelectedMilestoneColor(string $milestoneId)
+    {
         $sql = "SELECT
         -- I dont know if this is considered bad practice, but renaming tags
         -- makes the code more understandable in the rest of the module

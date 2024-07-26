@@ -12,12 +12,41 @@
 .project-overview-container td.spacious {
   min-width: 130px;
 }
-
-.project-overview-container input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+.project-overview-container input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+.project-overview-container .search-and-filter {
+  display: flex;
+}
+.project-overview-container .search-and-filter select {
+  border-radius: 3px;
+  margin: 10px;
+  height: 35px;
+}
+.project-overview-container .search-and-filter input {
+  border-radius: 3px;
+  margin: 10px;
+  height: 35px;
+}
+.project-overview-container .search-and-filter input::placeholder {
+  color: black;
+  opacity: 1; /* Firefox */
+}
+
+.project-overview-container .search-and-filter .input-group {
+  position: relative;
+}
+.project-overview-container .milestone-select-white-text {
+  color: white;
+}
+.project-overview-container .search-and-filter .input-group i {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  color: var(--main-border-color);
+}
+
 
 /* Firefox */
 .project-overview-container input[type="number"] {
@@ -26,7 +55,6 @@ input::-webkit-inner-spin-button {
 .table td {
   position: relative;
 }
-
 .table td select {
   all: unset;
   position: absolute;
@@ -40,7 +68,6 @@ input::-webkit-inner-spin-button {
   padding: 10px;
   box-sizing: border-box;
 }
-
 .table td input {
   all: unset;
   position: absolute;
@@ -57,7 +84,6 @@ input::-webkit-inner-spin-button {
 .project-overview-container > input {
   border-radius: 3px !important;
 }
-
 .dropdown-item > button {
   width: 100%;
   text-align: left;
@@ -74,229 +100,171 @@ input::-webkit-inner-spin-button {
   padding: 3px 20px;
   white-space: nowrap;
 }
-
-button.label-warning,
-.label-warning,
-.label-yellow {
+button.label-warning, .label-warning, .label-yellow {
   background: var(--yellow) !important;
   color: var(--yellow-text-color) !important;
 }
-
 button.label-info {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-
-button.label-important,
-.label-important {
+button.label-important, .label-important {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-
-button.label-danger,
-.label-danger,
-.label-red {
+button.label-danger, .label-danger, .label-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-
-button.label-success,
-.label-success,
-.label-green {
+button.label-success, .label-success, .label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-
-button.label-default,
-.label-default {
+button.label-default, .label-default {
   background: var(--grey);
   color: var(--grey-text-color) !important;
 }
-
 button.label-default.milestone {
   color: var(--blue-text-color) !important;
 }
-
 button.label-purple {
   background: var(--purple) !important;
   color: var(--purple-text-color) !important;
 }
-
 button.label-pink {
   background: var(--pink) !important;
   color: var(--pink-text-color) !important;
 }
-
 button.label-brown {
   background: var(--brown) !important;
   color: var(--brown-text-color) !important;
 }
-
 button.label-blue {
   background: var(--blue) !important;
   color: var(--blue-text-color) !important;
 }
-
 button.label-dark-blue {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-
 button.label-darker-blue {
   background: var(--darker-blue) !important;
   color: var(--darker-blue-text-color) !important;
 }
-
 button.label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-
 button.label-dark-green {
   background: var(--dark-green) !important;
   color: var(--dark-green-text-color) !important;
 }
-
 button.label-red {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-
 button.label-dark-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-
 button.label-grey {
   background: var(--grey) !important;
   color: var(--grey-text-color) !important;
 }
-a.label-warning,
-.label-warning,
-.label-yellow {
+a.label-warning, .label-warning, .label-yellow {
   background: var(--yellow) !important;
   color: var(--yellow-text-color) !important;
 }
-
 a.label-info {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-
-a.label-important,
-.label-important {
+a.label-important, .label-important {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-
-a.label-danger,
-.label-danger,
-.label-red {
+a.label-danger, .label-danger, .label-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-
-a.label-success,
-.label-success,
-.label-green {
+a.label-success, .label-success, .label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-
-a.label-default,
-.label-default {
+a.label-default, .label-default {
   background: var(--grey);
   color: var(--grey-text-color) !important;
 }
-
 a.label-default.milestone {
   color: var(--blue-text-color) !important;
 }
-
 a.label-purple {
   background: var(--purple) !important;
   color: var(--purple-text-color) !important;
 }
-
 a.label-pink {
   background: var(--pink) !important;
   color: var(--pink-text-color) !important;
 }
-
 a.label-brown {
   background: var(--brown) !important;
   color: var(--brown-text-color) !important;
 }
-
 a.label-blue {
   background: var(--blue) !important;
   color: var(--blue-text-color) !important;
 }
-
 a.label-dark-blue {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-
 a.label-darker-blue {
   background: var(--darker-blue) !important;
   color: var(--darker-blue-text-color) !important;
 }
-
 a.label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-
 a.label-dark-green {
   background: var(--dark-green) !important;
   color: var(--dark-green-text-color) !important;
 }
-
 a.label-red {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-
 a.label-dark-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-
 a.label-grey {
   background: var(--grey) !important;
   color: var(--grey-text-color) !important;
 }
-
 .table-button.priority-bg-1 {
   background: var(--dark-red);
   color: var(--dark-red-text-color);
 }
-
 .table-button.priority-bg-2 {
   background: var(--red);
   color: var(--red-text-color);
 }
-
 .table-button.priority-bg-3 {
   background: var(--yellow);
   color: var(--yellow-text-color);
 }
-
 .table-button.priority-bg-4 {
   background: var(--green);
   color: var(--green-text-color);
 }
-
 .table-button.priority-bg-5 {
   background: var(--dark-grey);
   color: var(--dark-grey-text-color);
 }
-
 .table-button {
   border: 0;
 }
-
 .table-button.priority-bg- {
   background-color: var(--grey);
 }

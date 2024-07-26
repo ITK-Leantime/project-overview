@@ -142,3 +142,10 @@ function changeTags(ticketId, newTags) {
       });
   }
 }
+function redirectWithUserId(searchUserId) {
+  searchUserId === "all" ? window.location ="?" : window.location = `?userId=${searchUserId}`;
+}
+
+function redirectWithSearchTerm(searchTerm) {
+  searchTerm === "" ? window.location ="?" : window.location = `?searchTerm=${searchTerm}`;
+}

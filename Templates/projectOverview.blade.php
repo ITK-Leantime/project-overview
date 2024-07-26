@@ -6,6 +6,25 @@
         @if (count($allTickets) === 0)
             {{ __('projectOverview.empty_list') }}
         @endif
+        <div class="search-and-filter">
+        <select onchange="redirectWithUserId(this.value)" class="form-select">
+            <option value="all">{{ __('projectOverview.empty_filter_option') }}</option>
+            @foreach ($allUsers as $user)
+                <option  value={{ $user['id'] }}
+                {{ (int) $user['id'] === (int) $selectedFilterUser ? 'selected' : '' }}>
+                    {{ $user['firstname'] }}
+                    {{ $user['lastname'] }}
+                </option>
+            @endforeach
+        </select>
+
+        <div class="input-group">
+            <i class="fa fa-search"></i>
+            <div class="input-group-prepend">
+            </div>
+            <input value="{!!$currentSearchTerm!!}" type="text" class="form-control" onchange="redirectWithSearchTerm(this.value)" placeholder="{{ __('projectOverview.empty_search_label') }}"  aria-describedby="basic-addon1">
+          </div>
+        </div>
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -40,7 +59,7 @@
                                 <button type="button" id="status-ticket-{{ $row['id'] }}"
                                     class="table-button {!! $statusLabels[$row['status']]['class'] !!}" data-toggle="dropdown">
                                     <span id="status-label">{!! $statusLabels[$row['status']]['name'] !!} </span>
-                                    <i class="fa fa-caret-down" aria-hidden="true"></i>
+                                    <i class="fa fa-caret-down"></i>
                                 </button>
                                 <div class="dropdown-menu" id="status-dropdown-menu">
                                     @foreach ($statusLabels as $newStatusId => $label)
@@ -61,11 +80,11 @@
                                     data-toggle="dropdown">
                                     @if (is_numeric($row['priority']))
                                         <span id="priority-label">{!! $priorities[$row['priority']] !!} </span>
-                                        <i class="fa fa-caret-down" aria-hidden="true"></i>
+                                        <i class="fa fa-caret-down"></i>
                                     @endif
                                     @if (!is_numeric($row['priority']))
                                         <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
-                                        <i class="fa fa-caret-down" aria-hidden="true"></i>
+                                        <i class="fa fa-caret-down"></i>
                                     @endif
                                 </button>
                                 <div class="dropdown-menu">
@@ -110,7 +129,7 @@
                         </td>
                         <td>
                             @if (count($row['projectMilestones']) > 0)
-                                <select id="milestone-select" onchange="changeMilestone({{ $row['id'] }}, this.value)"
+                                <select id="milestone-select" class={{isset($row['selectedMilestoneColor']) ? "milestone-select-white-text" : ""}} onchange="changeMilestone({{ $row['id'] }}, this.value)"
                                     class="form-select" style="background: {!! $row['selectedMilestoneColor'] !!}">
                                     @foreach ($row['projectMilestones'] as $projectMilestone)
                                         <option value={{ $projectMilestone['id'] }}

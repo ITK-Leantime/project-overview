@@ -39,7 +39,22 @@ class ProjectOverview extends Controller
      */
     public function get(): Response
     {
-        $allTickets = $this->projectOverviewService->getTasks();
+        // Filters for the sql select
+        $userIdForFilter = null;
+        $searchTermForFilter = null;
+
+        if (isset($_GET['userId']) && $_GET['userId'] !== "") {
+            $userIdForFilter = $_GET['userId'];
+        }
+
+        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== "") {
+            $searchTermForFilter = $_GET['searchTerm'];
+        }
+
+        $this->tpl->assign('selectedFilterUser', $userIdForFilter);
+        $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
+
+        $allTickets = $this->projectOverviewService->getTasks($userIdForFilter, $searchTermForFilter);
 
         // A list of unique projectids
         $projectIds = array_unique(array_column($allTickets, 'projectId'));
@@ -67,6 +82,8 @@ class ProjectOverview extends Controller
         // The two below gets hardcoded labels from the ticket repo.
         $this->tpl->assign('priorities', $this->ticketService->getPriorityLabels());
         $this->tpl->assign('statusLabels', $this->ticketService->getStatusLabels());
+
+        $this->tpl->assign('allUsers', $this->userService->getAll(true));
 
         // All tickets assignet to the template
         $this->tpl->assign('allTickets', $allTickets);
