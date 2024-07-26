@@ -38,5 +38,5 @@ docker run --tty --interactive --rm --volume ${PWD}:/app itkdev/php8.1-fpm:lates
 ### Test release build
 
 ``` shell
-docker compose build && docker compose run --rm php bin/create-release dev-test
+docker compose build && docker compose run --rm php bash bin/create-release dev-test
 ```

@@ -8,10 +8,8 @@
 .twig-cs-fixer.dist.php
 bin
 checksum.txt
-compose.yml
+compose.yaml
 composer.lock
-misc/
-node_modules
 package.json
 phpcs.xml
 phpstan.dist.neon

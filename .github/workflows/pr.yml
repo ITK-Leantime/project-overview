@@ -84,4 +84,4 @@ jobs:
 
       - name: Create test release
         run: |
-          ./bin/create-release dev-test
+          bash ./bin/create-release dev-test

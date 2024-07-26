@@ -23,7 +23,7 @@ jobs:
           tag_name="${BRANCH_NAME//[^[:alnum:]-]/_}"
           release_name="${tag_name}"
 
-          docker compose run --user root --rm php bin/create-release "$tag_name"
+          docker compose run --user root --rm php bash bin/create-release "$tag_name"
 
           # Delete release if it already exists.
           gh release view "$release_name" > /dev/null 2>&1 && gh release delete "$release_name" --yes

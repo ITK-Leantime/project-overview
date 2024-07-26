@@ -61,7 +61,3 @@ Events::add_event_listener(
     },
     5
 );
-
-
-$url = '/dist/js/plugin-MyTimesheetDataExport.js?' . http_build_query(['v' => '%%VERSION%%']);
-echo '<script src="' . htmlspecialchars($url) . '"></script>';
