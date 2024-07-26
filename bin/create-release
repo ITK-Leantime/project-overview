@@ -43,7 +43,14 @@ mkdir -p "$target_dir"
 rsync --verbose --archive --compress --filter=':- .gitignore' --exclude-from "$script_dir/release-exclude.txt" . "$target_dir"
 
 # Replace %%VERSION%% with actual version in build
-find "$target_dir" -type f -print0 | xargs -0 sed -i "s/%%VERSION%%/${tag}/g"
+find ${target_dir} -type f -exec sed -i "" "s/%%VERSION%%/${tag}/gI" {} \;
+
+# Add version to extensions in assets/*
+find ${target_dir}/assets/* -print0 | while read -d $'\0' file
+do
+   mv $file "${file}?v${tag}"
+done
+
 
 # Strip any leading `dev-` from tag name in package name.
 name="${plugin_name}-${tag#dev-}.tar.gz"
