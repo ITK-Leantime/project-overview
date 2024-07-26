@@ -3,3 +3,8 @@ vendor
 dist
 
 *.cache
+
+# Release artifacts
+release/
+checksum.txt
+*.tar.gz

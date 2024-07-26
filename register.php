@@ -53,9 +53,15 @@ Events::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
         if (isset($_SESSION['userdata']['id'])) {
-            echo '<link rel="stylesheet" href="/dist/css/project-overview.css"></link>';
-            echo '<script type="text/javascript" src="/dist/js/project-overview.js"></script>';
+            $scriptUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => '%%VERSION%%']);
+            echo '<script src="' . htmlspecialchars($scriptUrl) . '"></script>';
+            $cssUrl = '/dist/js/project-overview.css?' . http_build_query(['v' => '%%VERSION%%']);
+            echo '<link rel="stylesheet" src="' . htmlspecialchars($cssUrl) . '"></link>';
         }
     },
     5
 );
+
+
+$url = '/dist/js/plugin-MyTimesheetDataExport.js?' . http_build_query(['v' => '%%VERSION%%']);
+echo '<script src="' . htmlspecialchars($url) . '"></script>';

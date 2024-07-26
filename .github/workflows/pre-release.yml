@@ -1,0 +1,32 @@
+name: pre-release
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and create release
+        env:
+          GH_TOKEN: ${{ github.TOKEN }}
+          # https://stackoverflow.com/a/71158878/2502647
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          tag_name="dev-${BRANCH_NAME//[^[:alnum:]-]/_}"
+          release_name="release-${tag_name}"
+
+          docker compose run --user root --rm php bin/create-release "$tag_name"
+
+          # Delete release if it already exists.
+          gh release view "$release_name" > /dev/null 2>&1 && gh release delete "$release_name" --yes
+          # The package name contains the tag name with any leading `dev-` removed
+          gh release create "$release_name" --prerelease --generate-notes ./*-"${tag_name#dev-}".tar.gz checksum.txt
+        shell: bash
