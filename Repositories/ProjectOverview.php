@@ -2,41 +2,42 @@
 
 namespace Leantime\Plugins\ProjectOverview\Repositories;
 
-use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Leantime\Core\Eventhelpers as EventhelperCore;
 use Leantime\Core\Db as DbCore;
-use Leantime\Core\Language as LanguageCore;
-use Leantime\Domain\Users\Services\Users;
 use PDO;
 
 /**
- *
+ * This is the project overview repository, that makes (hopefully) the relevant sql queries.
  */
 class ProjectOverview
 {
+    /**
+     * @var DbCore|null - db connection
+     */
+    private null|DbCore $db = null;
+
     /**
      * __construct - get db connection
      *
      * @access public
      * @return void
      */
-    public function __construct(DbCore $db, LanguageCore $language)
+    public function __construct(DbCore $db)
     {
         $this->db = $db;
-        $this->language = $language;
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     public function getTasks(?string $userId, ?string $searchTerm): array
     {
         $userIdQuery = isset($userId) ? ' AND editorId = :userId ' : '';
-        $searchTermQuery = isset($searchTerm) ? " AND
+        $searchTermQuery = isset($searchTerm)
+            ? " AND
         ticket.id LIKE CONCAT( '%', :searchTerm, '%') OR
         ticket.tags LIKE CONCAT( '%', :searchTerm, '%') OR
-        ticket.headline LIKE CONCAT( '%', :searchTerm, '%') " : '';
+        ticket.headline LIKE CONCAT( '%', :searchTerm, '%') "
+            : '';
 
         $sql =
             "SELECT
@@ -83,7 +84,7 @@ class ProjectOverview
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     public function getMilestonesByProjectId(string $projectId): array
     {
@@ -100,7 +101,7 @@ class ProjectOverview
 
         $stmn = $this->db->database->prepare($sql);
 
-        if (isset($projectId) && $projectId != '') {
+        if ($projectId != '') {
             $stmn->bindValue(':projectId', $projectId, PDO::PARAM_INT);
         }
 
@@ -111,6 +112,9 @@ class ProjectOverview
         return $values;
     }
 
+ /**
+     * @return array<array<string, string>>
+     */
     public function getSelectedMilestoneColor(string $milestoneId)
     {
         $sql = 'SELECT
@@ -123,7 +127,7 @@ class ProjectOverview
 
         $stmn = $this->db->database->prepare($sql);
 
-        if (isset($milestoneId) && $milestoneId != '') {
+        if ($milestoneId != '') {
             $stmn->bindValue(':milestoneId', $milestoneId, PDO::PARAM_INT);
         }
 

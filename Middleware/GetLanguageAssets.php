@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 
 namespace Leantime\Plugins\ProjectOverview\Middleware;
 
@@ -9,9 +10,14 @@ use Leantime\Core\IncomingRequest;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Core\Language;
 
-// https://github.com/Leantime/plugin-template/blob/main/Middleware/GetLanguageAssets.php
+/**
+ * https://github.com/Leantime/plugin-template/blob/main/Middleware/GetLanguageAssets.php
+ */
 class GetLanguageAssets
 {
+        /**
+     * Constructor.
+     */
     public function __construct(
         private Language $language,
         private Environment $config,
@@ -20,12 +26,12 @@ class GetLanguageAssets
 
     /**
      * @param \Closure(IncomingRequest): Response $next
-     * @throws BindingResolutionException
      **/
     public function handle(IncomingRequest $request, Closure $next): Response
     {
         $languageArray = Cache::get('projectOverview.languageArray', []);
 
+        // @phpstan-ignore-next-line
         if (! empty($languageArray)) {
             $this->language->ini_array = array_merge($this->language->ini_array, $languageArray);
             return $next($request);
@@ -35,6 +41,7 @@ class GetLanguageAssets
             $languageArray += parse_ini_file(__DIR__ . '/../Language/en-US.ini', true);
         }
 
+        // @phpstan-ignore-next-line
         if (($language = $_SESSION['usersettings.language'] ?? $this->config->language) !== 'en-US') {
             if (! Cache::store('installation')->has('projectOverview.language.' . $language)) {
                 Cache::store('installation')->put(

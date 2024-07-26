@@ -18,9 +18,9 @@ class ProjectOverview extends Controller
     private UserService $userService;
 
     /**
-     * @param ProjectOverviewService   projectOverviewService
-     * @param TicketService                                   $ticketService
-     * @param UserService                                     $userService
+     * @param ProjectOverviewService $projectOverviewService
+     * @param TicketService          $ticketService
+     * @param UserService            $userService
      * @return void
      */
     public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService): void
@@ -34,8 +34,6 @@ class ProjectOverview extends Controller
      * Gathers data and feeds it to the template.
      *
      * @return Response
-     *
-     * @throws Exception
      */
     public function get(): Response
     {
@@ -83,7 +81,7 @@ class ProjectOverview extends Controller
         $this->tpl->assign('priorities', $this->ticketService->getPriorityLabels());
         $this->tpl->assign('statusLabels', $this->ticketService->getStatusLabels());
 
-        $this->tpl->assign('allUsers', $this->userService->getAll(true));
+        $this->tpl->assign('allUsers', $this->userService->getAll());
 
         // All tickets assignet to the template
         $this->tpl->assign('allTickets', $allTickets);

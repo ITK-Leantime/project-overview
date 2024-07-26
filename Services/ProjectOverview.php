@@ -4,30 +4,35 @@ namespace Leantime\Plugins\ProjectOverview\Services;
 
 use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
 
+/**
+ * This is the project overview service, for installation, uninstall and getting data from the repository.
+ */
 class ProjectOverview
 {
-    private static $assets = [
+        /**
+     * @var array<string, string>
+     */
+    private static array $assets = [
         // source => target
         __DIR__ . '/../assets/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
         __DIR__ . '/../assets/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.js',
     ];
 
-    /* Constructor method for the class.
+    /** Constructor method for the class.
      *
-     * @param projectOverviewRepository    $projectOverviewRepository  The ticket repository instance.
+     * @param ProjectOverviewRepository $projectOverviewRepository The ticket repository instance.
      */
     public function __construct(private ProjectOverviewRepository $projectOverviewRepository)
     {
     }
-
-    /**
+/**
      * Install plugin.
      *
      * @return void
      */
     public function install(): void
     {
-        foreach (static::$assets as $source => $target) {
+        foreach (self::getAssets() as $source => $target) {
             if (file_exists($target)) {
                 unlink($target);
             }
@@ -42,7 +47,7 @@ class ProjectOverview
      */
     public function uninstall(): void
     {
-        foreach (static::$assets as $target) {
+        foreach (self::getAssets() as $target) {
             if (file_exists($target)) {
                 unlink($target);
             }
@@ -50,7 +55,17 @@ class ProjectOverview
     }
 
     /**
-     * @return array
+     * Get assets
+     *
+     * @return array|string[]
+     */
+    private static function getAssets(): array
+    {
+        return self::$assets;
+    }
+
+    /**
+     * @return array<string, mixed>
      */
     public function getTasks(?string $userId, ?string $searchTerm): array
     {
@@ -58,14 +73,14 @@ class ProjectOverview
     }
 
     /**
-     * @return array
+     * @return array<string, mixed>
      */
     public function getMilestonesByProjectId(string $projectId): array
     {
         return $this->projectOverviewRepository->getMilestonesByProjectId($projectId);
     }
     /**
-     * @return array
+     * @return string|null
      */
     public function getSelectedMilestoneColor(string $milestoneId): ?string
     {

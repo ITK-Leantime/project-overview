@@ -38,7 +38,7 @@ Events::add_filter_listener(
 Events::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
-        if (isset($_SESSION['userdata']['id']) && !is_null($_SESSION['userdata']['id'])) {
+        if (isset($_SESSION['userdata']['id'])) {
             echo '<link rel="stylesheet" href="/dist/css/project-overview.css"></link>';
             echo '<script type="text/javascript" src="/dist/js/project-overview.js"></script>';
         }
