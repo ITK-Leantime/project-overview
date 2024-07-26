@@ -2,6 +2,7 @@
 
 use Leantime\Plugins\ProjectOverview\Middleware\GetLanguageAssets;
 use Leantime\Core\Events;
+use Leantime\Core\Frontcontroller as FrontcontrollerCore;
 
 /**
 * Adds a menu point for adding fixture data.
@@ -25,8 +26,15 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
     ];
     return $menuStructure;
 }
+function addProjectOverviewToPersonalMenu(): array
+{
+    if (FrontcontrollerCore::getCurrentRoute() === "ProjectOverview.projectOverview") {
+        return "personal";
+    }
+}
 
 Events::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
+Events::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType', 'addProjectOverviewToPersonalMenu');
 
 // https://github.com/Leantime/plugin-template/blob/main/register.php#L43-L46
 // Register Language Assets
