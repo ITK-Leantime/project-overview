@@ -53,9 +53,9 @@ Events::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
         if (isset($_SESSION['userdata']['id'])) {
-            $scriptUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => '%%VERSION%%']);
+            $scriptUrl = '/dist/js/project-overview.js' . http_build_query(['v' => 'vVERSIONREPLACEDBYBUILDSCRIPT']);
             echo '<script src="' . htmlspecialchars($scriptUrl) . '"></script>';
-            $cssUrl = '/dist/js/project-overview.css?' . http_build_query(['v' => '%%VERSION%%']);
+            $cssUrl = '/dist/js/project-overview.css' . http_build_query(['v' => 'vVERSIONREPLACEDBYBUILDSCRIPT']);
             echo '<link rel="stylesheet" src="' . htmlspecialchars($cssUrl) . '"></link>';
         }
     },
