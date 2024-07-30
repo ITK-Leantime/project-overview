@@ -53,10 +53,8 @@ Events::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
         if (isset($_SESSION['userdata']['id'])) {
-            $scriptUrl = '/dist/js/project-overview.js' . http_build_query(['v' => 'VERSIONREPLACEDBYBUILDSCRIPT']);
-            echo '<script src="' . htmlspecialchars($scriptUrl) . '"></script>';
-            $cssUrl = '/dist/js/project-overview.css' . http_build_query(['v' => 'VERSIONREPLACEDBYBUILDSCRIPT']);
-            echo '<link rel="stylesheet" src="' . htmlspecialchars($cssUrl) . '"></link>';
+            echo '<script src="/dist/js/project-overview.vVERSIONREPLACEDBYBUILDSCRIPT.js"></script>';
+            echo '<link rel="stylesheet" href="/dist/css/project-overview.vVERSIONREPLACEDBYBUILDSCRIPT.css"></link>';
         }
     },
     5
