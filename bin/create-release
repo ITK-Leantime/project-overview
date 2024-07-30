@@ -42,8 +42,8 @@ mkdir -p "$target_dir"
 
 rsync --verbose --archive --compress --filter=':- .gitignore' --exclude-from "$script_dir/release-exclude.txt" . "$target_dir"
 
-# Replace vVERSIONREPLACEDBYBUILDSCRIPT with actual version in build
-find ${target_dir} -type f -exec sed -i "s/vVERSIONREPLACEDBYBUILDSCRIPT/${tag}/g" {} \;
+# Replace VERSIONREPLACEDBYBUILDSCRIPT with actual version in build
+find ${target_dir} -type f -exec sed -i "s/VERSIONREPLACEDBYBUILDSCRIPT/${tag}/g" {} \;
 
 # Add version to extensions in assets/*
 find ${target_dir}/assets/* -print0 | while read -d $'\0' file
