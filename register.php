@@ -1,6 +1,8 @@
 <?php
+
 use Leantime\Plugins\ProjectOverview\Middleware\GetLanguageAssets;
 use Leantime\Core\Events;
+use Leantime\Core\Frontcontroller as FrontcontrollerCore;
 
 /**
 * Adds a menu point for adding fixture data.
@@ -15,21 +17,45 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
     // https://github.com/ITK-Leantime/leantime/blob/0ff10e759a557af717e905ed5a1d324c9cf8c1d8/app/Domain/Menu/Repositories/Menu.php#L107
     $menuStructure['personal'][21] = [
         'type' => 'item',
-        'module' => 'dashboard',
-        'title' => '<i class="fa-solid fa-list-check"></i></span> ' . __('projectoverview.menu_title'),
+        'title' => '<i class="fa-solid fa-list-check"></i></span> ' . __('projectOverview.menu_title'),
         'icon' => 'fa-solid fa-list-check',
-        'tooltip' => __('projectoverview.menu_tooltip'),
+        'tooltip' => __('projectOverview.menu_tooltip'),
         'href' => '/ProjectOverview/projectOverview',
         'active' => ['ProjectOverview'],
+        'module' => 'tickets',
     ];
     return $menuStructure;
 }
 
+/**
+* Adds project overview to the personal menu
+* @return string - the string "personal" if the route is ProjectOverview.projectOverview.
+*/
+function addProjectOverviewToPersonalMenu(): string
+{
+    if (FrontcontrollerCore::getCurrentRoute() === 'ProjectOverview.projectOverview') {
+        return 'personal';
+    }
+    return '';
+}
+
 Events::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
+Events::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType', 'addProjectOverviewToPersonalMenu');
 
 // https://github.com/Leantime/plugin-template/blob/main/register.php#L43-L46
 // Register Language Assets
 Events::add_filter_listener(
     'leantime.core.httpkernel.handle.plugins_middleware',
     fn (array $middleware) => array_merge($middleware, [GetLanguageAssets::class]),
+);
+
+Events::add_event_listener(
+    'leantime.core.template.tpl.*.afterScriptLibTags',
+    function () {
+        if (isset($_SESSION['userdata']['id'])) {
+            echo '<link rel="stylesheet" href="/dist/css/project-overview.css"></link>';
+            echo '<script type="text/javascript" src="/dist/js/project-overview.js"></script>';
+        }
+    },
+    5
 );
