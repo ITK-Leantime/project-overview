@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+
+
+* [PR-3](https://github.com/ITK-Leantime/project-overview/pull/5)
+  * Add burger menu item (change ```<i``` to ```<span```)
+  * Limit search on dueDate (dateToFinish in db)
+  * Cast dueDate in sql query, because the time is not necessary for the filter
+
+
 * [PR-2](https://github.com/ITK-Leantime/project-overview/pull/3)
 * Project overview plugin
   * services file with install/uninstall and methods for passing data from the repo to the controller

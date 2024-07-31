@@ -50,7 +50,7 @@ function changeDueDate(ticketId, newDueDate) {
   if (newDueDate && ticketId) {
     const dueDate = jQuery.datepicker.formatDate(
       leantime.dateHelper.getFormatFromSettings("dateformat", "jquery"),
-      new Date(newDueDate)
+      new Date(newDueDate),
     );
     jQuery.ajax({
       type: "PATCH",
@@ -120,7 +120,7 @@ function changeMilestone(ticketId, newMilestoneId) {
         // in other places (I am looking at you ticketcontroller.js).
         const hexColorRegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
         const newMilestoneColor = jQuery(
-          `#milestone-option-${newMilestoneId}`
+          `#milestone-option-${newMilestoneId}`,
         ).attr("data-color");
         const isItAHexColor = hexColorRegExp.exec(newMilestoneColor);
         if (isItAHexColor) {
