@@ -7,23 +7,37 @@
             {{ __('projectOverview.empty_list') }}
         @endif
         <div class="search-and-filter">
-        <select onchange="redirectWithUserId(this.value)" class="form-select">
-            <option value="all">{{ __('projectOverview.empty_filter_option') }}</option>
-            @foreach ($allUsers as $user)
-                <option  value={{ $user['id'] }}
-                {{ (int) $user['id'] === (int) $selectedFilterUser ? 'selected' : '' }}>
-                    {{ $user['firstname'] }}
-                    {{ $user['lastname'] }}
-                </option>
-            @endforeach
-        </select>
-
-        <div class="input-group">
-            <i class="fa fa-search"></i>
-            <div class="input-group-prepend">
+            <div>
+                <label>{{ __('projectOverview.filter_user_label') }}</label>
+                <select onchange="redirectWithUserId(this.value)" class="form-select">
+                    <option value="all">{{ __('projectOverview.empty_filter_option') }}</option>
+                    @foreach ($allUsers as $user)
+                        <option value={{ $user['id'] }}
+                            {{ (int) $user['id'] === (int) $selectedFilterUser ? 'selected' : '' }}>
+                            {{ $user['firstname'] }}
+                            {{ $user['lastname'] }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
-            <input value="{!!$currentSearchTerm!!}" type="text" class="form-control" onchange="redirectWithSearchTerm(this.value)" placeholder="{{ __('projectOverview.empty_search_label') }}"  aria-describedby="basic-addon1">
-          </div>
+            <div class="input-group">
+                <div class="margin-left">
+                    <i class="fa fa-search"></i>
+                    <div class="input-group-prepend"></div>
+                    <label>{{ __('projectOverview.search_label') }}</label>
+                    <input value="{!! $currentSearchTerm !!}" type="text" class="form-control"
+                        onchange="redirectWithSearchTerm(this.value)"
+                        placeholder="{{ __('projectOverview.empty_search_label') }}" aria-describedby="basic-addon1">
+                </div>
+            </div>
+            <div class="margin-left">
+                <label>{{ __('projectOverview.from_label') }}</label>
+                <input type="date" class="form-control" onchange="changeDateFrom(this.value)" value="{{ $selectedDateFrom }}" />
+            </div>
+            <div class="margin-left">
+                <label>{{ __('projectOverview.to_label') }}</label>
+                <input type="date" onchange="changeDateTo(this.value)" value="{{ $selectedDateTo }}" />
+            </div>
         </div>
         <table class="table table-striped">
             <thead>
@@ -102,7 +116,8 @@
                         </td>
                         <td class="spacious">
                             <input type="date" onchange="changeDueDate({{ $row['id'] }}, this.value)"
-                                value="{{ format($row['dateToFinish'])->date(__('text.anytime')) }}" />
+
+                                value="{{ date($row['dueDate']) }}" />
                         </td>
                         <td class="spacious">
                             <select onchange="changeAssignedUser({{ $row['id'] }}, this.value)" class="form-select">
@@ -129,8 +144,10 @@
                         </td>
                         <td>
                             @if (count($row['projectMilestones']) > 0)
-                                <select id="milestone-select" class={{isset($row['selectedMilestoneColor']) ? "milestone-select-white-text" : ""}} onchange="changeMilestone({{ $row['id'] }}, this.value)"
-                                    class="form-select" style="background: {!! $row['selectedMilestoneColor'] !!}">
+                                <select id="milestone-select"
+                                    class={{ isset($row['selectedMilestoneColor']) ? 'milestone-select-white-text' : '' }}
+                                    onchange="changeMilestone({{ $row['id'] }}, this.value)" class="form-select"
+                                    style="background: {!! $row['selectedMilestoneColor'] !!}">
                                     @foreach ($row['projectMilestones'] as $projectMilestone)
                                         <option value={{ $projectMilestone['id'] }}
                                             id="milestone-option-{{ $projectMilestone['id'] }}"

@@ -21,6 +21,7 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
       });
   }
 }
+
 function changePriority(ticketId, newPriorityId, newLabel) {
   if (newPriorityId && ticketId) {
     jQuery
@@ -74,6 +75,7 @@ function changeAssignedUser(ticketId, userId) {
     });
   }
 }
+
 function changePlanHours(ticketId, newPlanHours) {
   if (newPlanHours && ticketId) {
     jQuery.ajax({
@@ -86,6 +88,7 @@ function changePlanHours(ticketId, newPlanHours) {
     });
   }
 }
+
 function changeHoursRemaining(ticketId, newHoursRemaining) {
   if (newHoursRemaining && ticketId) {
     jQuery.ajax({
@@ -128,6 +131,7 @@ function changeMilestone(ticketId, newMilestoneId) {
       });
   }
 }
+
 function changeTags(ticketId, newTags) {
   if (newTags && ticketId) {
     jQuery.ajax({
@@ -140,6 +144,7 @@ function changeTags(ticketId, newTags) {
     });
   }
 }
+
 function redirectWithUserId(searchUserId) {
   searchUserId === "all"
     ? (window.location = "?")
@@ -150,4 +155,16 @@ function redirectWithSearchTerm(searchTerm) {
   searchTerm === ""
     ? (window.location = "?")
     : (window.location = `?searchTerm=${searchTerm}`);
+}
+
+function changeDateFrom(dateFrom) {
+  dateFrom === ""
+    ? (window.location = "?")
+    : (window.location = `?dateFrom=${new Date(dateFrom).toLocaleDateString()}`);
+}
+
+function changeDateTo(dateTo) {
+  dateTo === ""
+    ? (window.location = "?")
+    : (window.location = `?dateTo=${new Date(dateTo).toLocaleDateString()}`);
 }

@@ -20,14 +20,17 @@ input::-webkit-inner-spin-button {
 .project-overview-container .search-and-filter {
   display: flex;
 }
+.project-overview-container .search-and-filter .margin-left {
+  margin-left: 5px;
+}
 .project-overview-container .search-and-filter select {
   border-radius: 3px;
-  margin: 10px;
+  margin-top: 3px;
   height: 35px;
 }
 .project-overview-container .search-and-filter input {
   border-radius: 3px;
-  margin: 10px;
+  margin-top: 3px;
   height: 35px;
 }
 .project-overview-container .search-and-filter input::placeholder {
@@ -43,8 +46,8 @@ input::-webkit-inner-spin-button {
 }
 .project-overview-container .search-and-filter .input-group i {
   position: absolute;
-  right: 20px;
-  top: 20px;
+  right: 15px;
+  top: 35px;
   color: var(--main-border-color);
 }
 
