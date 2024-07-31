@@ -2,6 +2,7 @@
 
 namespace Leantime\Plugins\ProjectOverview\Repositories;
 
+use Carbon\CarbonImmutable;
 use Leantime\Core\Db as DbCore;
 use PDO;
 
@@ -29,7 +30,7 @@ class ProjectOverview
     /**
      * @return array<string, mixed>
      */
-    public function getTasks(?string $userId, ?string $searchTerm): array
+    public function getTasks(?string $userId, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
         $userIdQuery = isset($userId) ? ' AND editorId = :userId ' : '';
         $searchTermQuery = isset($searchTerm)
@@ -47,7 +48,7 @@ class ProjectOverview
         ticket.description,
         ticket.date,
         ticket.milestoneid,
-        ticket.dateToFinish,
+        CAST(ticket.dateToFinish AS DATE) as dueDate,
         ticket.projectId,
         ticket.tags,
         ticket.priority,
@@ -62,7 +63,7 @@ class ProjectOverview
         zp_tickets AS ticket
         LEFT JOIN zp_user AS t1 ON ticket.userId = t1.id
         LEFT JOIN zp_user AS t2 ON ticket.editorId = t2.id
-        WHERE ticket.type <> 'milestone' AND ticket.status <> '0'" .
+        WHERE ticket.type <> 'milestone' AND ticket.status <> '0' AND (ticket.dateToFinish BETWEEN :dateFrom AND :dateTo) " .
             $userIdQuery .
             $searchTermQuery .
             'ORDER BY ticket.priority ASC';
@@ -75,6 +76,9 @@ class ProjectOverview
         if (isset($searchTerm) && $searchTerm !== '') {
             $stmn->bindParam(':searchTerm', $searchTerm, PDO::PARAM_STR);
         }
+
+        $stmn->bindValue(':dateFrom', $dateFrom, PDO::PARAM_STR);
+        $stmn->bindValue(':dateTo', $dateTo, PDO::PARAM_STR);
 
         $stmn->execute();
         $values = $stmn->fetchAll();

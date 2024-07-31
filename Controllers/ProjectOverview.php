@@ -2,11 +2,13 @@
 
 namespace Leantime\Plugins\ProjectOverview\Controllers;
 
+use Carbon\CarbonImmutable;
 use Leantime\Core\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Domain\Tickets\Services\Tickets as TicketService;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 use Leantime\Domain\Users\Services\Users as UserService;
+use Leantime\Core\Support\DateTimeHelper;
 
 /**
  * ProjectOverview
@@ -16,18 +18,21 @@ class ProjectOverview extends Controller
     private ProjectOverviewService $projectOverviewService;
     private TicketService $ticketService;
     private UserService $userService;
+    private DateTimeHelper $dateTimeHelper;
 
     /**
      * @param ProjectOverviewService $projectOverviewService
      * @param TicketService          $ticketService
      * @param UserService            $userService
+     * @param DateTimeHelper         $dateTimeHelper
      * @return void
      */
-    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService): void
+    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, DateTimeHelper $dateTimeHelper): void
     {
         $this->projectOverviewService = $projectOverviewService;
         $this->ticketService = $ticketService;
         $this->userService = $userService;
+        $this->dateTimeHelper = $dateTimeHelper;
     }
 
     /**
@@ -40,6 +45,16 @@ class ProjectOverview extends Controller
         // Filters for the sql select
         $userIdForFilter = null;
         $searchTermForFilter = null;
+        $dateFromForFilter = CarbonImmutable::now();
+        $dateToForFilter = CarbonImmutable::now()->addDays(7);
+
+        if (isset($_GET['dateFrom'])) {
+            $dateFromForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateFrom'], 'start');
+        }
+
+        if (isset($_GET['dateTo'])) {
+            $dateToForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateTo'], 'end');
+        }
 
         if (isset($_GET['userId']) && $_GET['userId'] !== '') {
             $userIdForFilter = $_GET['userId'];
@@ -49,10 +64,12 @@ class ProjectOverview extends Controller
             $searchTermForFilter = $_GET['searchTerm'];
         }
 
+        $this->tpl->assign('selectedDateFrom', $dateFromForFilter->toDateString());
+        $this->tpl->assign('selectedDateTo', $dateToForFilter->toDateString());
         $this->tpl->assign('selectedFilterUser', $userIdForFilter);
         $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
 
-        $allTickets = $this->projectOverviewService->getTasks($userIdForFilter, $searchTermForFilter);
+        $allTickets = $this->projectOverviewService->getTasks($userIdForFilter, $searchTermForFilter, $dateFromForFilter, $dateToForFilter);
 
         // A list of unique projectids
         $projectIds = array_unique(array_column($allTickets, 'projectId'));

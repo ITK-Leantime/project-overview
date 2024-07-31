@@ -2,6 +2,7 @@
 
 namespace Leantime\Plugins\ProjectOverview\Services;
 
+use Carbon\CarbonImmutable;
 use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
 
 /**
@@ -67,9 +68,9 @@ class ProjectOverview
     /**
      * @return array<string, mixed>
      */
-    public function getTasks(?string $userId, ?string $searchTerm): array
+    public function getTasks(?string $userId, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
-        return $this->projectOverviewRepository->getTasks($userId, $searchTerm);
+        return $this->projectOverviewRepository->getTasks($userId, $searchTerm, $dateFrom, $dateTo);
     }
 
     /**
