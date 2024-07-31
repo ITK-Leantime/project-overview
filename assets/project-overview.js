@@ -50,7 +50,7 @@ function changeDueDate(ticketId, newDueDate) {
   if (newDueDate && ticketId) {
     const dueDate = jQuery.datepicker.formatDate(
       leantime.dateHelper.getFormatFromSettings("dateformat", "jquery"),
-      new Date(newDueDate),
+      new Date(newDueDate)
     );
     jQuery.ajax({
       type: "PATCH",
@@ -120,7 +120,7 @@ function changeMilestone(ticketId, newMilestoneId) {
         // in other places (I am looking at you ticketcontroller.js).
         const hexColorRegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
         const newMilestoneColor = jQuery(
-          `#milestone-option-${newMilestoneId}`,
+          `#milestone-option-${newMilestoneId}`
         ).attr("data-color");
         const isItAHexColor = hexColorRegExp.exec(newMilestoneColor);
         if (isItAHexColor) {
@@ -147,24 +147,35 @@ function changeTags(ticketId, newTags) {
 
 function redirectWithUserId(searchUserId) {
   searchUserId === "all"
-    ? (window.location = "?")
-    : (window.location = `?userId=${searchUserId}`);
+    ? updateLocation("userId", "")
+    : updateLocation("userId", searchUserId);
 }
 
 function redirectWithSearchTerm(searchTerm) {
-  searchTerm === ""
-    ? (window.location = "?")
-    : (window.location = `?searchTerm=${searchTerm}`);
+  searchTerm === "all"
+    ? updateLocation("searchTerm", "")
+    : updateLocation("searchTerm", searchTerm);
 }
 
 function changeDateFrom(dateFrom) {
   dateFrom === ""
-    ? (window.location = "?")
-    : (window.location = `?dateFrom=${new Date(dateFrom).toLocaleDateString()}`);
+    ? updateLocation("dateFrom", "")
+    : updateLocation("dateFrom", new Date(dateFrom).toLocaleDateString());
 }
 
 function changeDateTo(dateTo) {
   dateTo === ""
-    ? (window.location = "?")
-    : (window.location = `?dateTo=${new Date(dateTo).toLocaleDateString()}`);
+    ? updateLocation("dateTo", "")
+    : updateLocation("dateTo", new Date(dateTo).toLocaleDateString());
+}
+
+function updateLocation(key, value) {
+  let params = new URLSearchParams(document.location.search);
+  if (params.has(key)) {
+    params.delete(key);
+  }
+  if (value !== "") {
+    params.append(key, value);
+  }
+  window.location = `?${params.toString()}`;
 }
