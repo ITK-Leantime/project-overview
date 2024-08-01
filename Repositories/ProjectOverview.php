@@ -46,6 +46,8 @@ class ProjectOverview
         ticket.headline,
         ticket.type,
         ticket.description,
+        ticket.planHours,
+        ticket.hourRemaining,
         ticket.date,
         ticket.milestoneid,
         CAST(ticket.dateToFinish AS DATE) as dueDate,
