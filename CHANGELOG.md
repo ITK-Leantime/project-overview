@@ -3,7 +3,7 @@
 ## Unreleased
 
 * [PR-4](https://github.com/ITK-Leantime/project-overview/pull/6)
-  * add ```ticket.planHours``` and ```ticket.hourRemaining``` to sql query, so the data is shown in the table. 
+  * add ```ticket.planHours``` and ```ticket.hourRemaining``` to sql query, so the data is shown in the table.
 
 * [PR-3](https://github.com/ITK-Leantime/project-overview/pull/5)
   * Add burger menu item (change ```<i``` to ```<span```)
