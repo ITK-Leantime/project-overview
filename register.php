@@ -28,19 +28,19 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
 }
 
 /**
-* Adds project overview to the personal menu
-* @return string - the string "personal" if the route is ProjectOverview.projectOverview.
-*/
-function addProjectOverviewToPersonalMenu(): string
+ * Adds Timetable to the personal menu
+ * @param array<string, array<int, array<string, mixed>>> $sections The sections in the menu is to do with which menu is displayed on the current page.
+ * @return array<string, string> - the sections array, where ProjectOverview.projectOverview is in the "personal" menu.
+ */
+function addProjectOverviewToPersonalMenu(array $sections): array
 {
-    if (FrontcontrollerCore::getCurrentRoute() === 'ProjectOverview.projectOverview') {
-        return 'personal';
-    }
-    return '';
+    $sections['ProjectOverview.projectOverview'] = 'personal';
+    return $sections;
 }
 
+
 Events::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
-Events::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType', 'addProjectOverviewToPersonalMenu');
+Events::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType.menuSections', 'addProjectOverviewToPersonalMenu');
 
 // https://github.com/Leantime/plugin-template/blob/main/register.php#L43-L46
 // Register Language Assets
