@@ -2,8 +2,11 @@
 
 ## Unreleased
 
+* [PR-5](https://github.com/ITK-Leantime/project-overview/pull/7)
+  * Make the side menu "personal", so when on the "project overview"-page, the sidemenu doesn't change to the projects menu.
+
 * [PR-4](https://github.com/ITK-Leantime/project-overview/pull/6)
-  * add ```ticket.planHours``` and ```ticket.hourRemaining``` to sql query, so the data is shown in the table.
+  * Add ```ticket.planHours``` and ```ticket.hourRemaining``` to sql query, so the data is shown in the table.
 
 * [PR-3](https://github.com/ITK-Leantime/project-overview/pull/5)
   * Add burger menu item (change ```<i``` to ```<span```)
@@ -12,10 +15,10 @@
 
 * [PR-2](https://github.com/ITK-Leantime/project-overview/pull/3)
 * Project overview plugin
-  * services file with install/uninstall and methods for passing data from the repo to the controller
-  * a controller that feeds data to the template
-  * a template
-  * a repository that handles the sql queries
+  * Services file with install/uninstall and methods for passing data from the repo to the controller
+  * A controller that feeds data to the template
+  * A template
+  * A repository that handles the sql queries
   * A filter/search that uses a redirect
 * code analysis
 * code style
