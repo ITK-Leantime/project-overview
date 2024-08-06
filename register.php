@@ -30,7 +30,7 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
 /**
  * Adds Timetable to the personal menu
  * @param array<string, array<int, array<string, mixed>>> $sections The sections in the menu is to do with which menu is displayed on the current page.
- * @return array - the sections array, where ProjectOverview.projectOverview is in the "personal" menu.
+ * @return array<string, string> - the sections array, where ProjectOverview.projectOverview is in the "personal" menu.
  */
 function addProjectOverviewToPersonalMenu(array $sections): array
 {
