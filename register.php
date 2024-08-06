@@ -40,7 +40,7 @@ function addProjectOverviewToPersonalMenu(array $sections): array
 
 
 Events::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
-Events::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType', 'addProjectOverviewToPersonalMenu');
+Events::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType.menuSections', 'addProjectOverviewToPersonalMenu');
 
 // https://github.com/Leantime/plugin-template/blob/main/register.php#L43-L46
 // Register Language Assets
