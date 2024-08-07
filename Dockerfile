@@ -4,7 +4,6 @@ USER root
 
 # Add rsync
 RUN apt-get update && apt-get --yes install rsync
-RUN apt-get -y install coreutils
 
 # Clean up
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
