@@ -28,5 +28,5 @@ jobs:
           # Delete release if it already exists.
           gh release view "$release_name" > /dev/null 2>&1 && gh release delete "$release_name" --yes
           # The package name contains the tag name with any leading `dev-` removed
-          gh release create "$release_name" --prerelease --generate-notes ./*-"${tag_name#dev-}".tar.gz checksum.txt
+          gh release create "$release_name" --generate-notes ./*-"${tag_name#dev-}".tar.gz checksum.txt
         shell: bash
