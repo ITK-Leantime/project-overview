@@ -34,3 +34,9 @@ docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ign
 docker run --tty --interactive --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer install
 docker run --tty --interactive --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer code-analysis
 ```
+
+### Test release build
+
+``` shell
+docker compose build && docker compose run --rm php bash bin/create-release dev-test
+```

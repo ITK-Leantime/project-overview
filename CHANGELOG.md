@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* [PR-6](https://github.com/ITK-Leantime/project-overview/pull/4)
+  * Add build script
+  * Add check-create-release to pr.yml
+  * Add pre-release.yml and release.yml to github workflows
+  * Add dockerfile + install of rsync
+
 * [PR-5](https://github.com/ITK-Leantime/project-overview/pull/7)
   * Make the side menu "personal", so when on the "project overview"-page, the sidemenu doesn't change to the projects menu.
 

@@ -72,3 +72,16 @@ jobs:
       - run: |
           docker run --user root --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer install
           docker run --user root --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer code-analysis/phpstan
+
+  check-create-release:
+    runs-on: ubuntu-latest
+    name: Test create release
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create test release
+        run: |
+          bash ./bin/create-release dev-test

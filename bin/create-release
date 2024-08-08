@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -o errexit -o errtrace -o noclobber -o nounset -o pipefail
+IFS=$'\n\t'
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+project_dir=$(cd "$(dirname "$script_dir")" && pwd)
+
+tag=${1:-}
+if [ -z "$tag" ]; then
+  (>&2 echo "Usage: $0 tag")
+  exit
+fi
+
+cd "$project_dir"
+
+# Configuration start
+
+plugin_name=ProjectOverview
+# Edit release-exclude.txt to exclude files and folder from release package.
+
+# Configuration end
+
+git config --global --add safe.directory "$PWD"
+if ! git diff --exit-code composer.json; then
+  (>&2 echo; echo composer.json is changed. Aborting.)
+  exit 1
+fi
+
+# Make sure that `composer.json` has the correct version.
+composer config version "${tag}"
+
+# Build release start
+
+composer install --no-dev --classmap-authoritative
+
+# Build release end
+
+# Package release
+release_dir=release
+target_dir="$release_dir/$plugin_name"
+mkdir -p "$target_dir"
+
+rsync --verbose --archive --compress --filter=':- .gitignore' --exclude-from "$script_dir/release-exclude.txt" . "$target_dir"
+
+# Replace %%VERSION%% with actual version in build
+find ${target_dir} -type f -exec sed -i "s/%%VERSION%%/${tag}/g" {} \;
+
+# Add version to extensions in assets/*
+find ${target_dir}/assets/* -print0 | while read -d $'\0' file
+do
+   mv $file "${file}?v${tag}"
+done
+
+
+# Strip any leading `dev-` from tag name in package name.
+name="${plugin_name}-${tag#dev-}.tar.gz"
+tar --create --file "$name" -C "$release_dir" $plugin_name
+sha256sum "$name" >| checksum.txt
+
+# Clean up
+rm -fr $release_dir
+
+git checkout composer.json
+
+echo
+echo "Release content ($name)"
+echo
+tar tvf "$name" | grep -v '/$'
+echo

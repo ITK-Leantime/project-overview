@@ -1,59 +1,58 @@
 {
-    "name": "leantime/project-overview",
-    "description": "A project overview for leantime",
-    "type": "leantime-plugin",
-    "version": "1.0.0",
-    "homepage": "https://github.com/ITK-Leantime/project-overview",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Sine Jespersen",
-            "email": "sinejespersen@gmail.com"
-        }
-    ],
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://rimi-itk.github.io/composer/"
-        }
-    ],
-    "require-dev": {
-        "ergebnis/composer-normalize": "^2.42",
-        "friendsofphp/php-cs-fixer": "^3.51",
-        "leantime/leantime": "^3.0",
-        "phpcsstandards/phpcsextra": "^1.2",
-        "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^10.5",
-        "psr/log": "^1.1",
-        "squizlabs/php_codesniffer": "^3.9",
-        "zebra-north/phpcs-short-types": "^1.0"
-    },
-    "require": {},
-    "scripts": {
-        "code-analysis": [
-            "@code-analysis/phpstan"
-        ],
-        "code-analysis/phpstan": [
-            "phpstan analyse"
-        ],
-        "coding-standards-apply": [
-            "@coding-standards-apply/phpcbf"
-        ],
-        "coding-standards-apply/phpcbf": [
-            "phpcbf ."
-        ],
-        "coding-standards-check": [
-            "@coding-standards-check/phpcs"
-        ],
-        "coding-standards-check/phpcs": [
-            "phpcs ."
-        ]
-    },
-    "config": {
-        "allow-plugins": {
-            "metasyntactical/composer-plugin-license-check": true,
-            "ergebnis/composer-normalize": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
+  "name": "leantime/project-overview",
+  "description": "A project overview for leantime",
+  "type": "leantime-plugin",
+  "version": "1.0.0",
+  "homepage": "https://github.com/ITK-Leantime/project-overview",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Sine Jespersen",
+      "email": "sinejespersen@gmail.com"
     }
+  ],
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://rimi-itk.github.io/composer/"
+    }
+  ],
+  "require-dev": {
+    "ergebnis/composer-normalize": "^2.42",
+    "friendsofphp/php-cs-fixer": "^3.51",
+    "leantime/leantime": "^3.0",
+    "phpcsstandards/phpcsextra": "^1.2",
+    "phpstan/phpstan": "^1.10",
+    "phpunit/phpunit": "^10.5",
+    "psr/log": "^1.1",
+    "squizlabs/php_codesniffer": "^3.9",
+    "zebra-north/phpcs-short-types": "^1.0"
+  },
+  "scripts": {
+    "code-analysis": [
+      "@code-analysis/phpstan"
+    ],
+    "code-analysis/phpstan": [
+      "phpstan analyse"
+    ],
+    "coding-standards-apply": [
+      "@coding-standards-apply/phpcbf"
+    ],
+    "coding-standards-apply/phpcbf": [
+      "phpcbf ."
+    ],
+    "coding-standards-check": [
+      "@coding-standards-check/phpcs"
+    ],
+    "coding-standards-check/phpcs": [
+      "phpcs ."
+    ]
+  },
+  "config": {
+    "allow-plugins": {
+      "metasyntactical/composer-plugin-license-check": true,
+      "ergebnis/composer-normalize": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  }
 }

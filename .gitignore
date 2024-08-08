@@ -1,5 +1,11 @@
 composer.lock
 vendor
 dist
+.DS_Store
 
 *.cache
+
+# Release artifacts
+release/
+checksum.txt
+*.tar.gz
