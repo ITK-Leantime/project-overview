@@ -2,7 +2,7 @@ composer.lock
 vendor
 dist
 .DS_Store
-
+node_modules
 *.cache
 
 # Release artifacts
