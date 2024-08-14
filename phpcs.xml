@@ -58,6 +58,7 @@
     <!-- Leantime PHP_CodeSniffer configuration end -->
 
     <exclude-pattern>assets/</exclude-pattern>
+    <exclude-pattern>node_modules/</exclude-pattern>
     <exclude-pattern>vendor*/</exclude-pattern>
 
     <!-- Not (yet) a part of the Leantime coding standards
