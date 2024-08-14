@@ -45,13 +45,6 @@ rsync --verbose --archive --compress --filter=':- .gitignore' --exclude-from "$s
 # Replace %%VERSION%% with actual version in build
 find ${target_dir} -type f -exec sed -i "s/%%VERSION%%/${tag}/g" {} \;
 
-# Add version to extensions in assets/*
-find ${target_dir}/assets/* -print0 | while read -d $'\0' file
-do
-   mv $file "${file}?v${tag}"
-done
-
-
 # Strip any leading `dev-` from tag name in package name.
 name="${plugin_name}-${tag#dev-}.tar.gz"
 tar --create --file "$name" -C "$release_dir" $plugin_name
