@@ -2,8 +2,8 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
   if (newStatusId !== undefined && ticketId) {
     jQuery
       .ajax({
-        type: "PATCH",
-        url: leantime.appUrl + "/api/tickets",
+        type: 'PATCH',
+        url: leantime.appUrl + '/api/tickets',
         data: {
           id: ticketId,
           status: newStatusId,
@@ -26,8 +26,8 @@ function changePriority(ticketId, newPriorityId, newLabel) {
   if (newPriorityId && ticketId) {
     jQuery
       .ajax({
-        type: "PATCH",
-        url: leantime.appUrl + "/api/tickets",
+        type: 'PATCH',
+        url: leantime.appUrl + '/api/tickets',
         data: {
           id: ticketId,
           priority: newPriorityId,
@@ -49,12 +49,12 @@ function changePriority(ticketId, newPriorityId, newLabel) {
 function changeDueDate(ticketId, newDueDate) {
   if (newDueDate && ticketId) {
     const dueDate = jQuery.datepicker.formatDate(
-      leantime.dateHelper.getFormatFromSettings("dateformat", "jquery"),
-      new Date(newDueDate),
+      leantime.dateHelper.getFormatFromSettings('dateformat', 'jquery'),
+      new Date(newDueDate)
     );
     jQuery.ajax({
-      type: "PATCH",
-      url: leantime.appUrl + "/api/tickets",
+      type: 'PATCH',
+      url: leantime.appUrl + '/api/tickets',
       data: {
         id: ticketId,
         dateToFinish: dueDate,
@@ -66,8 +66,8 @@ function changeDueDate(ticketId, newDueDate) {
 function changeAssignedUser(ticketId, userId) {
   if (userId && ticketId) {
     jQuery.ajax({
-      type: "PATCH",
-      url: leantime.appUrl + "/api/tickets",
+      type: 'PATCH',
+      url: leantime.appUrl + '/api/tickets',
       data: {
         id: ticketId,
         editorId: userId,
@@ -79,8 +79,8 @@ function changeAssignedUser(ticketId, userId) {
 function changePlanHours(ticketId, newPlanHours) {
   if (newPlanHours && ticketId) {
     jQuery.ajax({
-      type: "PATCH",
-      url: leantime.appUrl + "/api/tickets",
+      type: 'PATCH',
+      url: leantime.appUrl + '/api/tickets',
       data: {
         id: ticketId,
         planHours: newPlanHours,
@@ -92,8 +92,8 @@ function changePlanHours(ticketId, newPlanHours) {
 function changeHoursRemaining(ticketId, newHoursRemaining) {
   if (newHoursRemaining && ticketId) {
     jQuery.ajax({
-      type: "PATCH",
-      url: leantime.appUrl + "/api/tickets",
+      type: 'PATCH',
+      url: leantime.appUrl + '/api/tickets',
       data: {
         id: ticketId,
         hourRemaining: newHoursRemaining,
@@ -106,8 +106,8 @@ function changeMilestone(ticketId, newMilestoneId) {
   if (newMilestoneId && ticketId) {
     jQuery
       .ajax({
-        type: "PATCH",
-        url: leantime.appUrl + "/api/tickets",
+        type: 'PATCH',
+        url: leantime.appUrl + '/api/tickets',
         data: {
           id: ticketId,
           milestoneid: newMilestoneId,
@@ -118,15 +118,15 @@ function changeMilestone(ticketId, newMilestoneId) {
         // But if I instead create a get-request it returns 200 and an otherwise empty
         // response. So this is what I chose to do, and is also what is done in
         // in other places (I am looking at you ticketcontroller.js).
-        const hexColorRegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
+        const hexColorRegExp = new RegExp('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$');
         const newMilestoneColor = jQuery(
-          `#milestone-option-${newMilestoneId}`,
-        ).attr("data-color");
+          `#milestone-option-${newMilestoneId}`
+        ).attr('data-color');
         const isItAHexColor = hexColorRegExp.exec(newMilestoneColor);
         if (isItAHexColor) {
-          jQuery(`#milestone-select`).css("background", newMilestoneColor);
+          jQuery(`#milestone-select`).css('background', newMilestoneColor);
         } else {
-          jQuery(`#milestone-select`).css("background", "transparent");
+          jQuery(`#milestone-select`).css('background', 'transparent');
         }
       });
   }
@@ -135,8 +135,8 @@ function changeMilestone(ticketId, newMilestoneId) {
 function changeTags(ticketId, newTags) {
   if (newTags && ticketId) {
     jQuery.ajax({
-      type: "PATCH",
-      url: leantime.appUrl + "/api/tickets",
+      type: 'PATCH',
+      url: leantime.appUrl + '/api/tickets',
       data: {
         id: ticketId,
         tags: newTags,
@@ -146,27 +146,27 @@ function changeTags(ticketId, newTags) {
 }
 
 function redirectWithUserId(searchUserId) {
-  searchUserId === "all"
-    ? updateLocation("userId", "")
-    : updateLocation("userId", searchUserId);
+  searchUserId === 'all'
+    ? updateLocation('userId', '')
+    : updateLocation('userId', searchUserId);
 }
 
 function redirectWithSearchTerm(searchTerm) {
-  searchTerm === "all"
-    ? updateLocation("searchTerm", "")
-    : updateLocation("searchTerm", searchTerm);
+  searchTerm === 'all'
+    ? updateLocation('searchTerm', '')
+    : updateLocation('searchTerm', searchTerm);
 }
 
 function changeDateFrom(dateFrom) {
-  dateFrom === ""
-    ? updateLocation("dateFrom", "")
-    : updateLocation("dateFrom", new Date(dateFrom).toLocaleDateString());
+  dateFrom === ''
+    ? updateLocation('dateFrom', '')
+    : updateLocation('dateFrom', new Date(dateFrom).toLocaleDateString());
 }
 
 function changeDateTo(dateTo) {
-  dateTo === ""
-    ? updateLocation("dateTo", "")
-    : updateLocation("dateTo", new Date(dateTo).toLocaleDateString());
+  dateTo === ''
+    ? updateLocation('dateTo', '')
+    : updateLocation('dateTo', new Date(dateTo).toLocaleDateString());
 }
 
 function updateLocation(key, value) {
@@ -174,7 +174,7 @@ function updateLocation(key, value) {
   if (params.has(key)) {
     params.delete(key);
   }
-  if (value !== "") {
+  if (value !== '') {
     params.append(key, value);
   }
   window.location = `?${params.toString()}`;

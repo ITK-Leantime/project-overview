@@ -52,7 +52,7 @@ input::-webkit-inner-spin-button {
 }
 
 /* Firefox */
-.project-overview-container input[type="number"] {
+.project-overview-container input[type='number'] {
   -moz-appearance: textfield;
 }
 .table td {
