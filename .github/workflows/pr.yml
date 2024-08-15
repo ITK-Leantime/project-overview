@@ -97,4 +97,4 @@ jobs:
 
       - name: Create test release
         run: |
-          bash ./bin/create-release dev-test
+          ./bin/create-release dev-test
