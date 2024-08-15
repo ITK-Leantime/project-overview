@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* [PR-6](https://github.com/ITK-Leantime/project-overview/pull/8)
+* [PR-7](https://github.com/ITK-Leantime/project-overview/pull/8)
   * Add prettier
   * Add node_modules to different ignore files
   * Add deploy script
