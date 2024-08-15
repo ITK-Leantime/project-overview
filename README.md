@@ -35,8 +35,7 @@ docker compose run --rm php npm run coding-standards-apply
 ```
 
 ```shell
-docker run --rm --tty --volume "$(pwd):/app" peterdavehello/shellcheck shellcheck /app/bin/deploy
-docker run --rm --tty --volume "$(pwd):/app" peterdavehello/shellcheck shellcheck /app/bin/create-release
+docker run --rm --tty --volume "$(pwd):/app" peterdavehello/shellcheck shellcheck /app/bin/*
 ```
 
 ### Code analysis
