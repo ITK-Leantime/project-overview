@@ -54,7 +54,7 @@ docker compose build && docker compose run --rm php bash bin/create-release dev-
 
 The create-release script replaces `@@VERSION@@` in
 [register.php](https://github.com/ITK-Leantime/project-overview/blob/main/register.php#L56) and
-[Services/OmniSearch.php](https://github.com/ITK-Leantime/project-overview/blob/main/Services/ProjectOverview.php#L18-L19)
+[Services/ProjectOverview.php](https://github.com/ITK-Leantime/project-overview/blob/main/Services/ProjectOverview.php#L18-L19)
 with the tag provided (in the above it is `dev-test`).
 
 ## Deploy
