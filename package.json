@@ -1,0 +1,12 @@
+{
+    "name": "project-overview",
+    "version": "1.0.0",
+    "main": "assets/project-overview.js",
+    "license": "MIT",
+    "dependencies": {
+      "prettier": "^3.2.5"
+    },
+    "scripts": {
+      "coding-standards-apply": "prettier assets --write"
+    }
+  }

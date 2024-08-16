@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* [PR-7](https://github.com/ITK-Leantime/project-overview/pull/8)
+  * Add prettier
+  * Add node_modules to different ignore files
+  * Add deploy script
+  * Merge release and prerelease files
+  * Add shell check to pr.yml
+  * Add node to dockerfile to run prettier
+
 * [PR-6](https://github.com/ITK-Leantime/project-overview/pull/4)
   * Add build script
   * Add check-create-release to pr.yml

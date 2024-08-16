@@ -10,6 +10,7 @@ bin
 checksum.txt
 compose.yaml
 composer.lock
+node_modules
 package.json
 phpcs.xml
 phpstan.dist.neon
