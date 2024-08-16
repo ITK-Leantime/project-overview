@@ -84,7 +84,8 @@ jobs:
 
       - name: Shellcheck
         run: |
-          docker run --rm --tty --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/*
+          docker run --rm --tty --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/create-release
+          docker run --rm --tty --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/deploy
 
   check-create-release:
     runs-on: ubuntu-latest
