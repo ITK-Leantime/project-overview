@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [1.0.0] 2024-08-16
+
 * [PR-7](https://github.com/ITK-Leantime/project-overview/pull/8)
   * Add prettier
   * Add node_modules to different ignore files
