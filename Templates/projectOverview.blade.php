@@ -1,12 +1,27 @@
 @extends($layout)
-
 @section('content')
+    <div class="pageheader">
+        <div class="pageicon"><span class="fa fa-cogs"></span></div>
+        <div class="pagetitle">
+            <h5>{{ __("label.table-columns") }}</h5>
+            <h1>{{ __("projectOverview.dashboard_title") }}</h1>
+        </div>
+    </div>
     <div class="project-overview-container">
-        <h1 class="h1">{{ __('projectOverview.dashboard_title') }}</h1>
         @if (count($allTickets) === 0)
             {{ __('projectOverview.empty_list') }}
         @endif
         <div class="search-and-filter">
+            <div class="input-group">
+                <div>
+                    <i class="fa fa-search"></i>
+                    <div class="input-group-prepend"></div>
+                    <label>{{ __('projectOverview.search_label') }}</label>
+                    <input value="{!! $currentSearchTerm !!}" type="text" class="form-control"
+                           onchange="redirectWithSearchTerm(this.value)"
+                           placeholder="{{ __('projectOverview.empty_search_label') }}" aria-describedby="basic-addon1">
+                </div>
+            </div>
             <div>
                 <label>{{ __('projectOverview.filter_user_label') }}</label>
                 <select onchange="redirectWithUserId(this.value)" class="form-select">
@@ -19,16 +34,6 @@
                         </option>
                     @endforeach
                 </select>
-            </div>
-            <div class="input-group">
-                <div class="margin-left">
-                    <i class="fa fa-search"></i>
-                    <div class="input-group-prepend"></div>
-                    <label>{{ __('projectOverview.search_label') }}</label>
-                    <input value="{!! $currentSearchTerm !!}" type="text" class="form-control"
-                        onchange="redirectWithSearchTerm(this.value)"
-                        placeholder="{{ __('projectOverview.empty_search_label') }}" aria-describedby="basic-addon1">
-                </div>
             </div>
             <div class="margin-left">
                 <label>{{ __('projectOverview.from_label') }}</label>
@@ -114,13 +119,14 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="spacious">
+                        <td class="specific">
                             <input type="date" onchange="changeDueDate({{ $row['id'] }}, this.value)"
 
                                 value="{{ date($row['dueDate']) }}" />
                         </td>
                         <td class="spacious">
                             <select onchange="changeAssignedUser({{ $row['id'] }}, this.value)" class="form-select">
+                                <option value="-1">👻</option>
                                 @foreach ($row['projectUsers'] as $projectUser)
                                     <option value={{ $projectUser['id'] }}
                                         {{ (int) $row['editorId'] === (int) $projectUser['id'] ? 'selected' : '' }}>
@@ -130,13 +136,13 @@
                                 @endforeach
                             </select>
                         </td>
-                        <td>
+                        <td class="confined">
                             <div class="input-group input-group-sm mb-3">
                                 <input onchange="changePlanHours({{ $row['id'] }}, this.value)" type="number"
                                     class="form-control" value="{{ $row['planHours'] }}">
                             </div>
                         </td>
-                        <td>
+                        <td class="confined">
                             <div class="input-group input-group-sm mb-3">
                                 <input onchange="changeHoursRemaining({{ $row['id'] }}, this.value)" type="number"
                                     class="form-control" value="{{ $row['hourRemaining'] }}">
