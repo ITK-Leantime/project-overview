@@ -78,7 +78,7 @@ class ProjectOverview extends Controller
 
         // Get users and milestones by project, as these differ by project.
         foreach ($projectIds as &$projectId) {
-            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess($_SESSION['userdata']['id'], $projectId);
+            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess((session('userdata.id')), $projectId);
             $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
         }
 
