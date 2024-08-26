@@ -4,7 +4,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 10px;
+  padding: 15px;
+  margin-right: 10px;
+  margin-left: 15px;
+  margin-top: -85px;
+  width: calc(100% - 30px);
 }
 .project-overview-container > h1 {
   margin-bottom: 30px;
@@ -12,13 +16,20 @@
 .project-overview-container td.spacious {
   min-width: 130px;
 }
+.project-overview-container td.confined {
+  width: 50px;
+}
+.project-overview-container td.specific {
+  width: 120px;
+}
 .project-overview-container input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
+.project-overview-container input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 .project-overview-container .search-and-filter {
   display: flex;
+  width: 100%;
 }
 .project-overview-container .search-and-filter .margin-left {
   margin-left: 5px;
@@ -32,14 +43,20 @@ input::-webkit-inner-spin-button {
   border-radius: 3px;
   margin-top: 3px;
   height: 35px;
+  color: #555555;
+}
+.project-overview-container .search-and-filter input::-ms-input-placeholder {
+  /* Edge 12 -18 */
+  color: #555555;
 }
 .project-overview-container .search-and-filter input::placeholder {
-  color: black;
+  color: #555555;
   opacity: 1; /* Firefox */
 }
 
 .project-overview-container .search-and-filter .input-group {
   position: relative;
+  margin-right: auto;
 }
 .project-overview-container .milestone-select-white-text {
   color: white;
@@ -55,10 +72,13 @@ input::-webkit-inner-spin-button {
 .project-overview-container input[type='number'] {
   -moz-appearance: textfield;
 }
-.table td {
+.project-overview-container .table {
+  border: 1px solid #e9e9e9;
+}
+.project-overview-container .table td {
   position: relative;
 }
-.table td select {
+.project-overview-container .table td select {
   all: unset;
   position: absolute;
   display: block;
@@ -71,7 +91,7 @@ input::-webkit-inner-spin-button {
   padding: 10px;
   box-sizing: border-box;
 }
-.table td input {
+.project-overview-container .table td input {
   all: unset;
   position: absolute;
   display: block;
@@ -87,7 +107,7 @@ input::-webkit-inner-spin-button {
 .project-overview-container > input {
   border-radius: 3px !important;
 }
-.dropdown-item > button {
+.project-overview-container .dropdown-item > button {
   width: 100%;
   text-align: left;
   border-radius: 0;
@@ -103,187 +123,229 @@ input::-webkit-inner-spin-button {
   padding: 3px 20px;
   white-space: nowrap;
 }
-button.label-warning,
-.label-warning,
-.label-yellow {
+.project-overview-container .button.label-warning,
+.project-overview-container .label-warning,
+.project-overview-container .label-yellow {
   background: var(--yellow) !important;
   color: var(--yellow-text-color) !important;
 }
-button.label-info {
+
+.project-overview-container button.label-info {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-button.label-important,
-.label-important {
+
+.project-overview-container button.label-important,
+.project-overview-container .label-important {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-button.label-danger,
-.label-danger,
-.label-red {
+
+.project-overview-container button.label-danger,
+.project-overview-container .label-danger,
+.project-overview-container .label-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-button.label-success,
-.label-success,
-.label-green {
+
+.project-overview-container button.label-success,
+.project-overview-container .label-success,
+.project-overview-container .label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-button.label-default,
-.label-default {
+
+.project-overview-container button.label-default,
+.project-overview-container .label-default {
   background: var(--grey);
   color: var(--grey-text-color) !important;
 }
-button.label-default.milestone {
+
+.project-overview-container button.label-default.milestone {
   color: var(--blue-text-color) !important;
 }
-button.label-purple {
+
+.project-overview-container button.label-purple {
   background: var(--purple) !important;
   color: var(--purple-text-color) !important;
 }
-button.label-pink {
+
+.project-overview-container button.label-pink {
   background: var(--pink) !important;
   color: var(--pink-text-color) !important;
 }
-button.label-brown {
+
+.project-overview-container button.label-brown {
   background: var(--brown) !important;
   color: var(--brown-text-color) !important;
 }
-button.label-blue {
+
+.project-overview-container button.label-blue {
   background: var(--blue) !important;
   color: var(--blue-text-color) !important;
 }
-button.label-dark-blue {
+
+.project-overview-container button.label-dark-blue {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-button.label-darker-blue {
+
+.project-overview-container button.label-darker-blue {
   background: var(--darker-blue) !important;
   color: var(--darker-blue-text-color) !important;
 }
-button.label-green {
+
+.project-overview-container button.label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-button.label-dark-green {
+
+.project-overview-container button.label-dark-green {
   background: var(--dark-green) !important;
   color: var(--dark-green-text-color) !important;
 }
-button.label-red {
+
+.project-overview-container button.label-red {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-button.label-dark-red {
+
+.project-overview-container button.label-dark-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-button.label-grey {
+
+.project-overview-container button.label-grey {
   background: var(--grey) !important;
   color: var(--grey-text-color) !important;
 }
-a.label-warning,
-.label-warning,
-.label-yellow {
+
+.project-overview-container a.label-warning,
+.project-overview-container .label-warning,
+.project-overview-container .label-yellow {
   background: var(--yellow) !important;
   color: var(--yellow-text-color) !important;
 }
-a.label-info {
+
+.project-overview-container a.label-info {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-a.label-important,
-.label-important {
+
+.project-overview-container a.label-important,
+.project-overview-container .label-important {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-a.label-danger,
-.label-danger,
-.label-red {
+
+.project-overview-container a.label-danger,
+.project-overview-container .label-danger,
+.project-overview-container .label-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-a.label-success,
-.label-success,
-.label-green {
+
+.project-overview-container a.label-success,
+.project-overview-container .label-success,
+.project-overview-container .label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-a.label-default,
-.label-default {
+
+.project-overview-container a.label-default,
+.project-overview-container .label-default {
   background: var(--grey);
   color: var(--grey-text-color) !important;
 }
-a.label-default.milestone {
+
+.project-overview-container a.label-default.milestone {
   color: var(--blue-text-color) !important;
 }
-a.label-purple {
+
+.project-overview-container a.label-purple {
   background: var(--purple) !important;
   color: var(--purple-text-color) !important;
 }
-a.label-pink {
+
+.project-overview-container a.label-pink {
   background: var(--pink) !important;
   color: var(--pink-text-color) !important;
 }
-a.label-brown {
+
+.project-overview-container a.label-brown {
   background: var(--brown) !important;
   color: var(--brown-text-color) !important;
 }
-a.label-blue {
+
+.project-overview-container a.label-blue {
   background: var(--blue) !important;
   color: var(--blue-text-color) !important;
 }
-a.label-dark-blue {
+
+.project-overview-container a.label-dark-blue {
   background: var(--dark-blue) !important;
   color: var(--dark-blue-text-color) !important;
 }
-a.label-darker-blue {
+
+.project-overview-container a.label-darker-blue {
   background: var(--darker-blue) !important;
   color: var(--darker-blue-text-color) !important;
 }
-a.label-green {
+
+.project-overview-container a.label-green {
   background: var(--green) !important;
   color: var(--green-text-color) !important;
 }
-a.label-dark-green {
+
+.project-overview-container a.label-dark-green {
   background: var(--dark-green) !important;
   color: var(--dark-green-text-color) !important;
 }
-a.label-red {
+
+.project-overview-container a.label-red {
   background: var(--red) !important;
   color: var(--red-text-color) !important;
 }
-a.label-dark-red {
+
+.project-overview-container a.label-dark-red {
   background: var(--dark-red) !important;
   color: var(--dark-red-text-color) !important;
 }
-a.label-grey {
+
+.project-overview-container a.label-grey {
   background: var(--grey) !important;
   color: var(--grey-text-color) !important;
 }
-.table-button.priority-bg-1 {
+
+.project-overview-container .table-button.priority-bg-1 {
   background: var(--dark-red);
   color: var(--dark-red-text-color);
 }
-.table-button.priority-bg-2 {
+
+.project-overview-container .table-button.priority-bg-2 {
   background: var(--red);
   color: var(--red-text-color);
 }
-.table-button.priority-bg-3 {
+
+.project-overview-container .table-button.priority-bg-3 {
   background: var(--yellow);
   color: var(--yellow-text-color);
 }
-.table-button.priority-bg-4 {
+
+.project-overview-container .table-button.priority-bg-4 {
   background: var(--green);
   color: var(--green-text-color);
 }
-.table-button.priority-bg-5 {
+
+.project-overview-container .table-button.priority-bg-5 {
   background: var(--dark-grey);
   color: var(--dark-grey-text-color);
 }
-.table-button {
+
+.project-overview-container .table-button {
   border: 0;
 }
-.table-button.priority-bg- {
+
+.project-overview-container .table-button.priority-bg- {
   background-color: var(--grey);
 }
