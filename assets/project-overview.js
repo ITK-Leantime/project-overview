@@ -54,18 +54,21 @@ function changeDueDate(event, ticketId, newDueDate) {
       leantime.dateHelper.getFormatFromSettings('dateformat', 'jquery'),
       new Date(newDueDate)
     );
-    jQuery.ajax({
-      type: 'PATCH',
-      url: leantime.appUrl + '/api/tickets',
-      data: {
-        id: ticketId,
-        dateToFinish: dueDate,
-      },
-    }).then(() => {
-      saveSuccess(parentElement);
-    }).fail(() => {
-      saveError(parentElement);
-    });
+    jQuery
+      .ajax({
+        type: 'PATCH',
+        url: leantime.appUrl + '/api/tickets',
+        data: {
+          id: ticketId,
+          dateToFinish: dueDate,
+        },
+      })
+      .then(() => {
+        saveSuccess(parentElement);
+      })
+      .fail(() => {
+        saveError(parentElement);
+      });
   }
 }
 
@@ -73,18 +76,21 @@ function changeAssignedUser(event, ticketId, userId) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (userId && ticketId) {
-    jQuery.ajax({
-      type: 'PATCH',
-      url: leantime.appUrl + '/api/tickets',
-      data: {
-        id: ticketId,
-        editorId: userId,
-      },
-    }).then(() => {
-      saveSuccess(parentElement);
-    }).fail(() => {
-      saveError(parentElement);
-    });
+    jQuery
+      .ajax({
+        type: 'PATCH',
+        url: leantime.appUrl + '/api/tickets',
+        data: {
+          id: ticketId,
+          editorId: userId,
+        },
+      })
+      .then(() => {
+        saveSuccess(parentElement);
+      })
+      .fail(() => {
+        saveError(parentElement);
+      });
   }
 }
 
@@ -92,18 +98,21 @@ function changePlanHours(event, ticketId, newPlanHours) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (newPlanHours && ticketId) {
-    jQuery.ajax({
-      type: 'PATCH',
-      url: leantime.appUrl + '/api/tickets',
-      data: {
-        id: ticketId,
-        planHours: newPlanHours,
-      },
-    }).then(() => {
-      saveSuccess(parentElement);
-    }).fail(() => {
-      saveError(parentElement);
-    });
+    jQuery
+      .ajax({
+        type: 'PATCH',
+        url: leantime.appUrl + '/api/tickets',
+        data: {
+          id: ticketId,
+          planHours: newPlanHours,
+        },
+      })
+      .then(() => {
+        saveSuccess(parentElement);
+      })
+      .fail(() => {
+        saveError(parentElement);
+      });
   }
 }
 
@@ -111,18 +120,21 @@ function changeHoursRemaining(event, ticketId, newHoursRemaining) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (newHoursRemaining && ticketId) {
-    jQuery.ajax({
-      type: 'PATCH',
-      url: leantime.appUrl + '/api/tickets',
-      data: {
-        id: ticketId,
-        hourRemaining: newHoursRemaining,
-      },
-    }).then(() => {
-      saveSuccess(parentElement);
-    }).fail(() => {
-      saveError(parentElement);
-    });
+    jQuery
+      .ajax({
+        type: 'PATCH',
+        url: leantime.appUrl + '/api/tickets',
+        data: {
+          id: ticketId,
+          hourRemaining: newHoursRemaining,
+        },
+      })
+      .then(() => {
+        saveSuccess(parentElement);
+      })
+      .fail(() => {
+        saveError(parentElement);
+      });
   }
 }
 
@@ -149,7 +161,6 @@ function changeMilestone(event, ticketId, newMilestoneId) {
         ).attr('data-color');
         const isItAHexColor = hexColorRegExp.exec(newMilestoneColor);
 
-
         if (isItAHexColor) {
           jQuery(parentElement).css('background', newMilestoneColor);
         } else {
@@ -163,18 +174,21 @@ function changeTags(event, ticketId, newTags) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (newTags && ticketId) {
-    jQuery.ajax({
-      type: 'PATCH',
-      url: leantime.appUrl + '/api/tickets',
-      data: {
-        id: ticketId,
-        tags: newTags,
-      },
-    }).then(() => {
-      saveSuccess(parentElement);
-    }).fail(() => {
-      saveError(parentElement);
-    });;
+    jQuery
+      .ajax({
+        type: 'PATCH',
+        url: leantime.appUrl + '/api/tickets',
+        data: {
+          id: ticketId,
+          tags: newTags,
+        },
+      })
+      .then(() => {
+        saveSuccess(parentElement);
+      })
+      .fail(() => {
+        saveError(parentElement);
+      });
   }
 }
 
@@ -214,17 +228,17 @@ function updateLocation(key, value) {
 }
 
 function saveSuccess(elem) {
-  elem.addClass("save-success");
+  elem.addClass('save-success');
 
   setTimeout(() => {
-    elem.removeClass("save-success");
+    elem.removeClass('save-success');
   }, 1000);
 }
 
 function saveError(elem) {
-  elem.addClass("save-error");
+  elem.addClass('save-error');
 
   setTimeout(() => {
-    elem.removeClass("save-error");
+    elem.removeClass('save-error');
   }, 1000);
 }
