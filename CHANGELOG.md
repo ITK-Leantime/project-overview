@@ -4,6 +4,12 @@
 
 ## [1.0.0] 2024-08-16
 
+* [PR-9](https://github.com/ITK-Leantime/project-overview/pull/9)
+  * Specified files to only be loaded on projectOverview page
+  * Minor layout changes and classes for styling
+  * Minor css alterations and additions
+  * Added visual feedback when saving asynchronously
+  
 * [PR-7](https://github.com/ITK-Leantime/project-overview/pull/8)
   * Add prettier
   * Add node_modules to different ignore files
