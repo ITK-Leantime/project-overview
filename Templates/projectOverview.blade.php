@@ -120,12 +120,12 @@
                             </div>
                         </td>
                         <td class="specific">
-                            <input type="date" onchange="changeDueDate({{ $row['id'] }}, this.value)"
+                            <input type="date" onchange="changeDueDate(event, {{ $row['id'] }}, this.value)"
 
                                 value="{{ date($row['dueDate']) }}" />
                         </td>
                         <td class="spacious">
-                            <select onchange="changeAssignedUser({{ $row['id'] }}, this.value)" class="form-select">
+                            <select onchange="changeAssignedUser(event, {{ $row['id'] }}, this.value)" class="form-select">
                                 <option value="-1">👻</option>
                                 @foreach ($row['projectUsers'] as $projectUser)
                                     <option value={{ $projectUser['id'] }}
@@ -138,27 +138,28 @@
                         </td>
                         <td class="confined">
                             <div class="input-group input-group-sm mb-3">
-                                <input onchange="changePlanHours({{ $row['id'] }}, this.value)" type="number"
+                                <input onchange="changePlanHours(event, {{ $row['id'] }}, this.value)" type="number"
                                     class="form-control" value="{{ $row['planHours'] }}">
                             </div>
                         </td>
                         <td class="confined">
                             <div class="input-group input-group-sm mb-3">
-                                <input onchange="changeHoursRemaining({{ $row['id'] }}, this.value)" type="number"
+                                <input onchange="changeHoursRemaining(event, {{ $row['id'] }}, this.value)" type="number"
                                     class="form-control" value="{{ $row['hourRemaining'] }}">
                             </div>
                         </td>
                         <td>
                             @if (count($row['projectMilestones']) > 0)
                                 <select id="milestone-select"
-                                    class={{ isset($row['selectedMilestoneColor']) ? 'milestone-select-white-text' : '' }}
-                                    onchange="changeMilestone({{ $row['id'] }}, this.value)" class="form-select"
-                                    style="background: {!! $row['selectedMilestoneColor'] !!}">
+                                        class="form-select {{ isset($row['selectedMilestoneColor']) ? 'milestone-select-white-text' : '' }}"
+                                        onchange="changeMilestone(event, {{ $row['id'] }}, this.value)"
+                                        @if (!empty($row['selectedMilestoneColor'])) style="background: {{ $row['selectedMilestoneColor'] }}" @endif
+                                >
                                     @foreach ($row['projectMilestones'] as $projectMilestone)
                                         <option value={{ $projectMilestone['id'] }}
-                                            id="milestone-option-{{ $projectMilestone['id'] }}"
-                                            data-color="{!! $projectMilestone['color'] !!}"
-                                            {{ (int) $row['milestoneid'] === (int) $projectMilestone['id'] ? 'selected=true' : 'selected=false' }}>
+                id="milestone-option-{{ $projectMilestone['id'] }}"
+                                                data-color="{!! $projectMilestone['color'] !!}"
+                                            {{ (int) $row['milestoneid'] === (int) $projectMilestone['id'] ? 'selected' : '' }}>
                                             {{ $projectMilestone['headline'] }}
                                         </option>
                                     @endforeach
@@ -170,7 +171,7 @@
                         </td>
                         <td class="spacious">
                             <div class="input-group input-group-sm mb-3">
-                                <input onchange="changeTags({{ $row['id'] }}, this.value)" type="text"
+                                <input onchange="changeTags(event, {{ $row['id'] }}, this.value)" type="text"
                                     class="form-control" value="{{ $row['tags'] }}">
                             </div>
                         </td>
