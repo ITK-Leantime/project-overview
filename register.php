@@ -2,7 +2,6 @@
 
 use Leantime\Plugins\ProjectOverview\Middleware\GetLanguageAssets;
 use Leantime\Core\Events;
-use Leantime\Core\Frontcontroller as FrontcontrollerCore;
 
 /**
 * Adds a menu point for adding fixture data.
@@ -49,10 +48,12 @@ Events::add_filter_listener(
     fn (array $middleware) => array_merge($middleware, [GetLanguageAssets::class]),
 );
 
+
+
 Events::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
-        if (isset($_SESSION['userdata']['id'])) {
+        if (isset($_SESSION['userdata']['id']) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/projectOverview')) {
             echo '<script src="/dist/js/project-overview.v' . urlencode('%%VERSION%%') . '.js"></script>';
             echo '<link rel="stylesheet" href="/dist/css/project-overview.v' . urlencode('%%VERSION%%') . '.css"></link>';
         }
