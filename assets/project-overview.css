@@ -1,210 +1,213 @@
 .project-overview-container {
-    position: relative;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 15px;
-    margin-right: 10px;
-    margin-left: 15px;
-    margin-top: -85px;
-    width: calc(100% - 30px);
+  position: relative;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+  margin-right: 10px;
+  margin-left: 15px;
+  margin-top: -85px;
+  width: calc(100% - 30px);
 
-    > h1 {
-        margin-bottom: 30px;
+  > h1 {
+    margin-bottom: 30px;
+  }
+
+  td {
+    &.spacious {
+      min-width: 130px;
     }
 
-    td {
-        &.spacious {
-            min-width: 130px;
-        }
+    &.confined {
+      width: 50px;
+    }
 
-        &.confined {
-            width: 50px;
-        }
+    &.specific {
+      width: 120px;
+    }
+  }
 
-        &.specific {
-            width: 120px;
-        }
+  input {
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &[type='number'] {
+      -moz-appearance: textfield; /* Firefox */
+    }
+  }
+
+  .search-and-filter {
+    display: flex;
+    width: 100%;
+
+    select,
+    input {
+      border-radius: 3px;
+      margin-top: 3px;
+      height: 35px;
+      color: #555555;
     }
 
     input {
-        &::-webkit-outer-spin-button,
-        &::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
+      &::-ms-input-placeholder {
+        /* Edge 12 -18 */
+        color: #555555;
+      }
 
-        &[type='number'] {
-            -moz-appearance: textfield; /* Firefox */
-        }
+      &::placeholder {
+        color: #555555;
+        opacity: 1; /* Firefox */
+      }
     }
 
-    .search-and-filter {
-        display: flex;
+    .input-group {
+      position: relative;
+      margin-right: auto;
+
+      i {
+        position: absolute;
+        right: 15px;
+        top: 35px;
+        color: var(--main-border-color);
+      }
+    }
+
+    .margin-left {
+      margin-left: 5px;
+    }
+  }
+
+  .milestone-select-white-text {
+    color: white !important;
+  }
+
+  .table {
+    border: 1px solid #e9e9e9;
+
+    td {
+      position: relative;
+
+      select,
+      input {
+        all: unset;
+        position: absolute;
+        display: block;
+        top: 0;
+        left: 0;
+        margin: 0;
+        height: 100%;
         width: 100%;
+        border: none;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+    }
+  }
 
-        select, input {
-            border-radius: 3px;
-            margin-top: 3px;
-            height: 35px;
-            color: #555555;
-        }
+  > input {
+    border-radius: 3px !important;
+  }
 
-        input {
-            &::-ms-input-placeholder { /* Edge 12 -18 */
-                color: #555555;
-            }
-
-            &::placeholder {
-                color: #555555;
-                opacity: 1; /* Firefox */
-            }
-        }
-
-        .input-group {
-            position: relative;
-            margin-right: auto;
-
-            i {
-                position: absolute;
-                right: 15px;
-                top: 35px;
-                color: var(--main-border-color);
-            }
-        }
-
-        .margin-left {
-            margin-left: 5px;
-        }
+  .dropdown-item > button,
+  button.label-,
+  button,
+  a {
+    &.label-warning,
+    &.label-yellow,
+    &.label-info,
+    &.label-important,
+    &.label-danger,
+    &.label-red,
+    &.label-success,
+    &.label-green,
+    &.label-default,
+    &.label-purple,
+    &.label-pink,
+    &.label-brown,
+    &.label-blue,
+    &.label-dark-blue,
+    &.label-darker-blue,
+    &.label-dark-green,
+    &.label-grey {
+      background: var(--yellow) !important;
+      color: var(--yellow-text-color) !important;
     }
 
-    .milestone-select-white-text {
-        color: white !important;
+    &.label-default.milestone {
+      color: var(--blue-text-color) !important;
     }
 
-    .table {
-        border: 1px solid #e9e9e9;
+    &:not(.label-default).milestone {
+      color: white !important;
+    }
+  }
 
-        td {
-            position: relative;
+  .table-button {
+    border: 0;
 
-            select, input {
-                all: unset;
-                position: absolute;
-                display: block;
-                top: 0;
-                left: 0;
-                margin: 0;
-                height: 100%;
-                width: 100%;
-                border: none;
-                padding: 10px;
-                box-sizing: border-box;
-            }
-        }
+    &.priority-bg-1 {
+      background: var(--dark-red);
+      color: var(--dark-red-text-color);
     }
 
-    > input {
-        border-radius: 3px !important;
+    &.priority-bg-2 {
+      background: var(--red);
+      color: var(--red-text-color);
     }
 
-    .dropdown-item > button,
-    button.label-,
-    button,
-    a {
-        &.label-warning,
-        &.label-yellow,
-        &.label-info,
-        &.label-important,
-        &.label-danger,
-        &.label-red,
-        &.label-success,
-        &.label-green,
-        &.label-default,
-        &.label-purple,
-        &.label-pink,
-        &.label-brown,
-        &.label-blue,
-        &.label-dark-blue,
-        &.label-darker-blue,
-        &.label-dark-green,
-        &.label-grey {
-            background: var(--yellow) !important;
-            color: var(--yellow-text-color) !important;
-        }
-
-        &.label-default.milestone {
-            color: var(--blue-text-color) !important;
-        }
-
-        &:not(.label-default).milestone {
-            color: white !important;
-        }
+    &.priority-bg-3 {
+      background: var(--yellow);
+      color: var(--yellow-text-color);
     }
 
-    .table-button {
-        border: 0;
-
-        &.priority-bg-1 {
-            background: var(--dark-red);
-            color: var(--dark-red-text-color);
-        }
-
-        &.priority-bg-2 {
-            background: var(--red);
-            color: var(--red-text-color);
-        }
-
-        &.priority-bg-3 {
-            background: var(--yellow);
-            color: var(--yellow-text-color);
-        }
-
-        &.priority-bg-4 {
-            background: var(--green);
-            color: var(--green-text-color);
-        }
-
-        &.priority-bg-5 {
-            background: var(--dark-grey);
-            color: var(--dark-grey-text-color);
-        }
+    &.priority-bg-4 {
+      background: var(--green);
+      color: var(--green-text-color);
     }
 
-    .table-button.priority-bg- {
-        background-color: var(--grey);
+    &.priority-bg-5 {
+      background: var(--dark-grey);
+      color: var(--dark-grey-text-color);
     }
+  }
+
+  .table-button.priority-bg- {
+    background-color: var(--grey);
+  }
 }
 
 .save-success,
 .save-error {
-    animation-duration: 1s;
-    animation-fill-mode: forwards;
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
 }
 
 .save-success {
-    animation-name: successAnim;
+  animation-name: successAnim;
 }
 
 @keyframes successAnim {
-    0% {
-        background-color: #28a745;
-    }
-    100% {
-        background-color: transparent;
-    }
+  0% {
+    background-color: #28a745;
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 
 .save-error {
-    animation-name: errorAnim;
+  animation-name: errorAnim;
 }
 
 @keyframes errorAnim {
-    0% {
-        background-color: #dc3545;
-    } /* You can pick your preferred shade of red */
-    100% {
-        background-color: transparent;
-    }
+  0% {
+    background-color: #dc3545;
+  } /* You can pick your preferred shade of red */
+  100% {
+    background-color: transparent;
+  }
 }
