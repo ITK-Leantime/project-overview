@@ -1,381 +1,210 @@
 .project-overview-container {
-  position: relative;
-  background-color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 15px;
-  margin-right: 10px;
-  margin-left: 15px;
-  margin-top: -85px;
-  width: calc(100% - 30px);
-}
-.project-overview-container > h1 {
-  margin-bottom: 30px;
-}
-.project-overview-container td.spacious {
-  min-width: 130px;
-}
-.project-overview-container td.confined {
-  width: 50px;
-}
-.project-overview-container td.specific {
-  width: 120px;
-}
-.project-overview-container input::-webkit-outer-spin-button,
-.project-overview-container input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.project-overview-container .search-and-filter {
-  display: flex;
-  width: 100%;
-}
-.project-overview-container .search-and-filter .margin-left {
-  margin-left: 5px;
-}
-.project-overview-container .search-and-filter select {
-  border-radius: 3px;
-  margin-top: 3px;
-  height: 35px;
-}
-.project-overview-container .search-and-filter input {
-  border-radius: 3px;
-  margin-top: 3px;
-  height: 35px;
-  color: #555555;
-}
-.project-overview-container .search-and-filter input::-ms-input-placeholder {
-  /* Edge 12 -18 */
-  color: #555555;
-}
-.project-overview-container .search-and-filter input::placeholder {
-  color: #555555;
-  opacity: 1; /* Firefox */
+    position: relative;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    margin-right: 10px;
+    margin-left: 15px;
+    margin-top: -85px;
+    width: calc(100% - 30px);
+
+    > h1 {
+        margin-bottom: 30px;
+    }
+
+    td {
+        &.spacious {
+            min-width: 130px;
+        }
+
+        &.confined {
+            width: 50px;
+        }
+
+        &.specific {
+            width: 120px;
+        }
+    }
+
+    input {
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        &[type='number'] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+    }
+
+    .search-and-filter {
+        display: flex;
+        width: 100%;
+
+        select, input {
+            border-radius: 3px;
+            margin-top: 3px;
+            height: 35px;
+            color: #555555;
+        }
+
+        input {
+            &::-ms-input-placeholder { /* Edge 12 -18 */
+                color: #555555;
+            }
+
+            &::placeholder {
+                color: #555555;
+                opacity: 1; /* Firefox */
+            }
+        }
+
+        .input-group {
+            position: relative;
+            margin-right: auto;
+
+            i {
+                position: absolute;
+                right: 15px;
+                top: 35px;
+                color: var(--main-border-color);
+            }
+        }
+
+        .margin-left {
+            margin-left: 5px;
+        }
+    }
+
+    .milestone-select-white-text {
+        color: white !important;
+    }
+
+    .table {
+        border: 1px solid #e9e9e9;
+
+        td {
+            position: relative;
+
+            select, input {
+                all: unset;
+                position: absolute;
+                display: block;
+                top: 0;
+                left: 0;
+                margin: 0;
+                height: 100%;
+                width: 100%;
+                border: none;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+        }
+    }
+
+    > input {
+        border-radius: 3px !important;
+    }
+
+    .dropdown-item > button,
+    button.label-,
+    button,
+    a {
+        &.label-warning,
+        &.label-yellow,
+        &.label-info,
+        &.label-important,
+        &.label-danger,
+        &.label-red,
+        &.label-success,
+        &.label-green,
+        &.label-default,
+        &.label-purple,
+        &.label-pink,
+        &.label-brown,
+        &.label-blue,
+        &.label-dark-blue,
+        &.label-darker-blue,
+        &.label-dark-green,
+        &.label-grey {
+            background: var(--yellow) !important;
+            color: var(--yellow-text-color) !important;
+        }
+
+        &.label-default.milestone {
+            color: var(--blue-text-color) !important;
+        }
+
+        &:not(.label-default).milestone {
+            color: white !important;
+        }
+    }
+
+    .table-button {
+        border: 0;
+
+        &.priority-bg-1 {
+            background: var(--dark-red);
+            color: var(--dark-red-text-color);
+        }
+
+        &.priority-bg-2 {
+            background: var(--red);
+            color: var(--red-text-color);
+        }
+
+        &.priority-bg-3 {
+            background: var(--yellow);
+            color: var(--yellow-text-color);
+        }
+
+        &.priority-bg-4 {
+            background: var(--green);
+            color: var(--green-text-color);
+        }
+
+        &.priority-bg-5 {
+            background: var(--dark-grey);
+            color: var(--dark-grey-text-color);
+        }
+    }
+
+    .table-button.priority-bg- {
+        background-color: var(--grey);
+    }
 }
 
-.project-overview-container .search-and-filter .input-group {
-  position: relative;
-  margin-right: auto;
-}
-.project-overview-container .milestone-select-white-text {
-  color: white !important;
-}
-.project-overview-container .search-and-filter .input-group i {
-  position: absolute;
-  right: 15px;
-  top: 35px;
-  color: var(--main-border-color);
-}
-
-/* Firefox */
-.project-overview-container input[type='number'] {
-  -moz-appearance: textfield;
-}
-.project-overview-container .table {
-  border: 1px solid #e9e9e9;
-}
-.project-overview-container .table td {
-  position: relative;
-}
-.project-overview-container .table td select {
-  all: unset;
-  position: absolute;
-  display: block;
-  top: 0;
-  left: 0;
-  margin: 0;
-  height: 100%;
-  width: 100%;
-  border: none;
-  padding: 10px;
-  box-sizing: border-box;
-}
-.project-overview-container .table td input {
-  all: unset;
-  position: absolute;
-  display: block;
-  top: 0;
-  left: 0;
-  margin: 0;
-  height: 100%;
-  width: 100%;
-  border: none;
-  padding: 10px;
-  box-sizing: border-box;
-}
-.project-overview-container > input {
-  border-radius: 3px !important;
-}
-.project-overview-container .dropdown-item > button {
-  width: 100%;
-  text-align: left;
-  border-radius: 0;
-  color: var(--primary-font-color);
-  font-size: var(--base-font-size);
-  margin: 0;
-  padding: 5px 10px;
-  clear: both;
-  color: #333;
-  display: block;
-  font-weight: 400;
-  line-height: 20px;
-  padding: 3px 20px;
-  white-space: nowrap;
-}
-.project-overview-container .button.label-warning,
-.project-overview-container .label-warning,
-.project-overview-container .label-yellow {
-  background: var(--yellow) !important;
-  color: var(--yellow-text-color) !important;
-}
-
-.project-overview-container button.label-info {
-  background: var(--dark-blue) !important;
-  color: var(--dark-blue-text-color) !important;
-}
-
-.project-overview-container button.label-important,
-.project-overview-container .label-important {
-  background: var(--red) !important;
-  color: var(--red-text-color) !important;
-}
-
-.project-overview-container button.label-danger,
-.project-overview-container .label-danger,
-.project-overview-container .label-red {
-  background: var(--dark-red) !important;
-  color: var(--dark-red-text-color) !important;
-}
-
-.project-overview-container button.label-success,
-.project-overview-container .label-success,
-.project-overview-container .label-green {
-  background: var(--green) !important;
-  color: var(--green-text-color) !important;
-}
-
-.project-overview-container button.label-default,
-.project-overview-container .label-default {
-  background: var(--grey);
-  color: var(--grey-text-color) !important;
-}
-
-.project-overview-container button.label-default.milestone {
-  color: var(--blue-text-color) !important;
-}
-
-.project-overview-container button.label-purple {
-  background: var(--purple) !important;
-  color: var(--purple-text-color) !important;
-}
-
-.project-overview-container button.label-pink {
-  background: var(--pink) !important;
-  color: var(--pink-text-color) !important;
-}
-
-.project-overview-container button.label-brown {
-  background: var(--brown) !important;
-  color: var(--brown-text-color) !important;
-}
-
-.project-overview-container button.label-blue {
-  background: var(--blue) !important;
-  color: var(--blue-text-color) !important;
-}
-
-.project-overview-container button.label-dark-blue {
-  background: var(--dark-blue) !important;
-  color: var(--dark-blue-text-color) !important;
-}
-
-.project-overview-container button.label-darker-blue {
-  background: var(--darker-blue) !important;
-  color: var(--darker-blue-text-color) !important;
-}
-
-.project-overview-container button.label-green {
-  background: var(--green) !important;
-  color: var(--green-text-color) !important;
-}
-
-.project-overview-container button.label-dark-green {
-  background: var(--dark-green) !important;
-  color: var(--dark-green-text-color) !important;
-}
-
-.project-overview-container button.label-red {
-  background: var(--red) !important;
-  color: var(--red-text-color) !important;
-}
-
-.project-overview-container button.label-dark-red {
-  background: var(--dark-red) !important;
-  color: var(--dark-red-text-color) !important;
-}
-
-.project-overview-container button.label-grey {
-  background: var(--grey) !important;
-  color: var(--grey-text-color) !important;
-}
-
-.project-overview-container a.label-warning,
-.project-overview-container .label-warning,
-.project-overview-container .label-yellow {
-  background: var(--yellow) !important;
-  color: var(--yellow-text-color) !important;
-}
-
-.project-overview-container a.label-info {
-  background: var(--dark-blue) !important;
-  color: var(--dark-blue-text-color) !important;
-}
-
-.project-overview-container a.label-important,
-.project-overview-container .label-important {
-  background: var(--red) !important;
-  color: var(--red-text-color) !important;
-}
-
-.project-overview-container a.label-danger,
-.project-overview-container .label-danger,
-.project-overview-container .label-red {
-  background: var(--dark-red) !important;
-  color: var(--dark-red-text-color) !important;
-}
-
-.project-overview-container a.label-success,
-.project-overview-container .label-success,
-.project-overview-container .label-green {
-  background: var(--green) !important;
-  color: var(--green-text-color) !important;
-}
-
-.project-overview-container a.label-default,
-.project-overview-container .label-default {
-  background: var(--grey);
-  color: var(--grey-text-color) !important;
-}
-
-.project-overview-container a.label-default.milestone {
-  color: var(--blue-text-color) !important;
-}
-
-.project-overview-container a.label-purple {
-  background: var(--purple) !important;
-  color: var(--purple-text-color) !important;
-}
-
-.project-overview-container a.label-pink {
-  background: var(--pink) !important;
-  color: var(--pink-text-color) !important;
-}
-
-.project-overview-container a.label-brown {
-  background: var(--brown) !important;
-  color: var(--brown-text-color) !important;
-}
-
-.project-overview-container a.label-blue {
-  background: var(--blue) !important;
-  color: var(--blue-text-color) !important;
-}
-
-.project-overview-container a.label-dark-blue {
-  background: var(--dark-blue) !important;
-  color: var(--dark-blue-text-color) !important;
-}
-
-.project-overview-container a.label-darker-blue {
-  background: var(--darker-blue) !important;
-  color: var(--darker-blue-text-color) !important;
-}
-
-.project-overview-container a.label-green {
-  background: var(--green) !important;
-  color: var(--green-text-color) !important;
-}
-
-.project-overview-container a.label-dark-green {
-  background: var(--dark-green) !important;
-  color: var(--dark-green-text-color) !important;
-}
-
-.project-overview-container a.label-red {
-  background: var(--red) !important;
-  color: var(--red-text-color) !important;
-}
-
-.project-overview-container a.label-dark-red {
-  background: var(--dark-red) !important;
-  color: var(--dark-red-text-color) !important;
-}
-
-.project-overview-container a.label-grey {
-  background: var(--grey) !important;
-  color: var(--grey-text-color) !important;
-}
-
-.project-overview-container .table-button.priority-bg-1 {
-  background: var(--dark-red);
-  color: var(--dark-red-text-color);
-}
-
-.project-overview-container .table-button.priority-bg-2 {
-  background: var(--red);
-  color: var(--red-text-color);
-}
-
-.project-overview-container .table-button.priority-bg-3 {
-  background: var(--yellow);
-  color: var(--yellow-text-color);
-}
-
-.project-overview-container .table-button.priority-bg-4 {
-  background: var(--green);
-  color: var(--green-text-color);
-}
-
-.project-overview-container .table-button.priority-bg-5 {
-  background: var(--dark-grey);
-  color: var(--dark-grey-text-color);
-}
-
-.project-overview-container .table-button {
-  border: 0;
-}
-
-.project-overview-container .table-button.priority-bg- {
-  background-color: var(--grey);
+.save-success,
+.save-error {
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
 }
 
 .save-success {
-  animation-name: successAnim;
-  animation-duration: 1s;
-  animation-fill-mode: forwards;
+    animation-name: successAnim;
 }
 
 @keyframes successAnim {
-  0% {
-    background-color: #28a745;
-  }
-  100% {
-    background-color: transparent;
-  }
+    0% {
+        background-color: #28a745;
+    }
+    100% {
+        background-color: transparent;
+    }
 }
 
 .save-error {
-  animation-name: errorAnim;
-  animation-duration: 1s;
-  animation-fill-mode: forwards;
+    animation-name: errorAnim;
 }
 
 @keyframes errorAnim {
-  0% {
-    background-color: #dc3545;
-  } /* You can pick your preferred shade of red */
-  100% {
-    background-color: transparent;
-  }
+    0% {
+        background-color: #dc3545;
+    } /* You can pick your preferred shade of red */
+    100% {
+        background-color: transparent;
+    }
 }
