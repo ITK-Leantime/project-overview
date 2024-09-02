@@ -20,7 +20,6 @@ class GetLanguageAssets
      */
     public function __construct(
         private Language $language,
-        // @phpstan-ignore-next-line
         private Environment $config,
     ) {
     }
