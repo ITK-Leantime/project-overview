@@ -27,7 +27,6 @@ class GetLanguageAssets
     /**
      * @param \Closure(IncomingRequest): Response $next
      **/
-    // @phpstan-ignore-next-line
     public function handle(IncomingRequest $request, Closure $next): Response
     {
         $languageArray = Cache::get('projectOverview.languageArray', []);
