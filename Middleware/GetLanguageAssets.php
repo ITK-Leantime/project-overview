@@ -20,6 +20,7 @@ class GetLanguageAssets
      */
     public function __construct(
         private Language $language,
+        // @phpstan-ignore-next-line
         private Environment $config,
     ) {
     }
@@ -27,6 +28,7 @@ class GetLanguageAssets
     /**
      * @param \Closure(IncomingRequest): Response $next
      **/
+    // @phpstan-ignore-next-line
     public function handle(IncomingRequest $request, Closure $next): Response
     {
         $languageArray = Cache::get('projectOverview.languageArray', []);

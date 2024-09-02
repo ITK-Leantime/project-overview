@@ -10,7 +10,6 @@ parameters:
     ignoreErrors:
         - '#Constant (APP_ROOT|BASE_URL) not found.#'
         # - identifier: missingType.generics
-        - '#^Function session not found\.$#'
 
 # Local Variables:
 # mode: yaml
