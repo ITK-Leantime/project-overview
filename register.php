@@ -53,7 +53,7 @@ EventDispatcher::add_filter_listener(
 EventDispatcher::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
-        if (null !== (session('userdata.id'))) {
+        if (null !== (session('userdata.id')) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/projectOverview')) {
             echo '<script src="/dist/js/project-overview.v' . urlencode('%%VERSION%%') . '.js"></script>';
             echo '<link rel="stylesheet" href="/dist/css/project-overview.v' . urlencode('%%VERSION%%') . '.css"></link>';
         }
