@@ -5,8 +5,8 @@ namespace Leantime\Plugins\ProjectOverview\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Cache;
-use Leantime\Core\Environment;
-use Leantime\Core\IncomingRequest;
+use Leantime\Core\Configuration\Environment;
+use Leantime\Core\Http\IncomingRequest;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Core\Language;
 
@@ -42,7 +42,7 @@ class GetLanguageAssets
         }
 
         // @phpstan-ignore-next-line
-        if (($language = $_SESSION['usersettings.language'] ?? $this->config->language) !== 'en-US') {
+        if (($language = session(['usersettings.language']) ?? $this->config->language) !== 'en-US') {
             if (! Cache::store('installation')->has('projectOverview.language.' . $language)) {
                 Cache::store('installation')->put(
                     'projectOverview.language.' . $language,

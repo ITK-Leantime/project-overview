@@ -3,7 +3,7 @@
 namespace Leantime\Plugins\ProjectOverview\Repositories;
 
 use Carbon\CarbonImmutable;
-use Leantime\Core\Db as DbCore;
+use Leantime\Core\Db\Db as DbCore;
 use PDO;
 
 /**

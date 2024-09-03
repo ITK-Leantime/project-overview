@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* [PR-10](https://github.com/ITK-Leantime/project-overview/pull/10)
+  * Added compatability for Leantime 3.2
+  * Change imports
+  * Replace old session handling with new session handling
+  * Update leantime dependency for phpstan
+  * Add composer.lock
+  * Update from php8.1 -> php 8.3 in pr.yml and README
+
 ## [1.0.0] 2024-08-16
 
 * [PR-9](https://github.com/ITK-Leantime/project-overview/pull/9)
@@ -9,8 +17,8 @@
   * Minor layout changes and classes for styling
   * Minor css alterations and additions
   * Added visual feedback when saving asynchronously
-  
-* [PR-7](https://github.com/ITK-Leantime/project-overview/pull/8)
+
+* [PR-7](https://github.com/ITK-Leantime/project-overview/pull/7)
   * Add prettier
   * Add node_modules to different ignore files
   * Add deploy script

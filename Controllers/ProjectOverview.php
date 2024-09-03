@@ -3,12 +3,13 @@
 namespace Leantime\Plugins\ProjectOverview\Controllers;
 
 use Carbon\CarbonImmutable;
-use Leantime\Core\Controller;
+use Leantime\Core\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Domain\Tickets\Services\Tickets as TicketService;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Core\Support\DateTimeHelper;
+use Leantime\Core\Template;
 
 /**
  * ProjectOverview
@@ -27,12 +28,13 @@ class ProjectOverview extends Controller
      * @param DateTimeHelper         $dateTimeHelper
      * @return void
      */
-    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, DateTimeHelper $dateTimeHelper): void
+    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, DateTimeHelper $dateTimeHelper, Template $tpl): void
     {
         $this->projectOverviewService = $projectOverviewService;
         $this->ticketService = $ticketService;
         $this->userService = $userService;
         $this->dateTimeHelper = $dateTimeHelper;
+        $this->tpl = $tpl;
     }
 
     /**
@@ -78,7 +80,7 @@ class ProjectOverview extends Controller
 
         // Get users and milestones by project, as these differ by project.
         foreach ($projectIds as &$projectId) {
-            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess($_SESSION['userdata']['id'], $projectId);
+            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
             $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
         }
 

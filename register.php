@@ -1,7 +1,7 @@
 <?php
 
 use Leantime\Plugins\ProjectOverview\Middleware\GetLanguageAssets;
-use Leantime\Core\Events;
+use Leantime\Core\Events\EventDispatcher;
 
 /**
 * Adds a menu point for adding fixture data.
@@ -38,22 +38,22 @@ function addProjectOverviewToPersonalMenu(array $sections): array
 }
 
 
-Events::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
-Events::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType.menuSections', 'addProjectOverviewToPersonalMenu');
+EventDispatcher::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
+EventDispatcher::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType.menuSections', 'addProjectOverviewToPersonalMenu');
 
 // https://github.com/Leantime/plugin-template/blob/main/register.php#L43-L46
 // Register Language Assets
-Events::add_filter_listener(
-    'leantime.core.httpkernel.handle.plugins_middleware',
+EventDispatcher::add_filter_listener(
+    'leantime.core.http.httpkernel.handle.plugins_middleware',
     fn (array $middleware) => array_merge($middleware, [GetLanguageAssets::class]),
 );
 
 
 
-Events::add_event_listener(
+EventDispatcher::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
-        if (isset($_SESSION['userdata']['id']) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/projectOverview')) {
+        if (null !== (session('userdata.id'))) {
             echo '<script src="/dist/js/project-overview.v' . urlencode('%%VERSION%%') . '.js"></script>';
             echo '<link rel="stylesheet" href="/dist/css/project-overview.v' . urlencode('%%VERSION%%') . '.css"></link>';
         }

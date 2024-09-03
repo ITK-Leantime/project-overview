@@ -48,8 +48,8 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - run: |
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer install
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer normalize
+          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
+          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer normalize
 
   coding-standards-phpcs:
     name: coding-standards-check/phpcs
@@ -59,8 +59,8 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - run: |
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer install
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer coding-standards-check/phpcs
+          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
+          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer coding-standards-check/phpcs
 
   code-analysis-phpstan:
     name: code-analysis/phpstan
@@ -70,8 +70,8 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - run: |
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer install
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.1-fpm:latest composer code-analysis/phpstan
+          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
+          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer code-analysis/phpstan
 
   shellcheck:
     runs-on: ubuntu-latest
