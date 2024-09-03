@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [2.0.0] 2024-09-03
+
 * [PR-10](https://github.com/ITK-Leantime/project-overview/pull/10)
   * Added compatability for Leantime 3.2
   * Change imports
