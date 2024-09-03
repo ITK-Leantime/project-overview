@@ -5,7 +5,7 @@
 * [PR-10](https://github.com/ITK-Leantime/project-overview/pull/10)
   * Added compatability for Leantime 3.2
   * Change imports
-  * Replace old session handling with new session handling, 
+  * Replace old session handling with new session handling
   * Update leantime dependency for phpstan
   * Add composer.lock
   * Update from php8.1 -> php 8.3 in pr.yml and README
