@@ -68,9 +68,8 @@
                                 {{ $row['headline'] }}
                             </a>
                             {{-- if the ticket does not depend on another ticket, this "id" is set to 0 --}}
-                            @if ($row['dependingTicketId'] > 0)
-                                (<a
-                                    href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">{{ $row['parentHeadline'] }}</a>)
+                            @if (isset($row['dependingTicketId']) && $row['dependingTicketId'] > 0)
+                                (<a href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">{{ $row['parentHeadline'] }}</a>)
                             @endif
                         </td>
                         <td>
