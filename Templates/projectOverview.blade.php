@@ -75,12 +75,12 @@
                         <td>
                             <div class="btn-group">
                                 <button type="button" id="status-ticket-{{ $row['id'] }}"
-                                    class="table-button {!! $statusLabels[$row['status']]['class'] !!}" data-toggle="dropdown">
-                                    <span id="status-label">{!! $statusLabels[$row['status']]['name'] !!} </span>
+                                    class="table-button {!! $statusLabels[$row['projectId']][$row['status']]['class'] ?? '' !!}" data-toggle="dropdown">
+                                    <span id="status-label">{!! $statusLabels[$row['projectId']][$row['status']]['name'] !!} </span>
                                     <i class="fa fa-caret-down"></i>
                                 </button>
                                 <div class="dropdown-menu" id="status-dropdown-menu">
-                                    @foreach ($statusLabels as $newStatusId => $label)
+                                    @foreach ($statusLabels[$row['projectId']] as $newStatusId => $label)
                                         <li class="dropdown-item">
                                             <button class="table-button {!! $label['class'] !!}"
                                                 onclick="changeStatus({{ $row['id'] }}, {{ $newStatusId }}, '{{ $label['class'] }}', '{{ $label['name'] }}')">

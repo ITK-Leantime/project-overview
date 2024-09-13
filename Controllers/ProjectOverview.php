@@ -78,8 +78,10 @@ class ProjectOverview extends Controller
         $userAndProject = [];
         $milestonesAndProject = [];
 
+        $projectTicketStatuses = [];
         // Get users and milestones by project, as these differ by project.
         foreach ($projectIds as &$projectId) {
+            $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
             $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
             $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
         }
@@ -98,7 +100,7 @@ class ProjectOverview extends Controller
 
         // The two below gets hardcoded labels from the ticket repo.
         $this->tpl->assign('priorities', $this->ticketService->getPriorityLabels());
-        $this->tpl->assign('statusLabels', $this->ticketService->getStatusLabels());
+        $this->tpl->assign('statusLabels', $projectTicketStatuses);
 
         $this->tpl->assign('allUsers', $this->userService->getAll());
 
