@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -o errexit -o errtrace -o noclobber -o nounset -o pipefail
+
+export plugin_name=ProjectOverview
+export plugin_repo_url=https://github.com/ITK-Leantime/project-overview/
+
+buildRelease() {
+  composer install --no-dev --classmap-authoritative
+  return
+}
+
+export -f buildRelease
