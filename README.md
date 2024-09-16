@@ -10,10 +10,15 @@ Clone this repository into your Leantime plugins folder:
 git clone https://github.com/ITK-Leantime/project-overview.git app/Plugins/ProjectOverview
 ```
 
+Run composer install
+
+```shell name=development-install
+docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
+```
+
 ### Composer normalize
 
 ```shell name=composer-normalize
-docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
 docker run --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer normalize
 ```
 
