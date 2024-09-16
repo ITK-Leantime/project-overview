@@ -63,5 +63,5 @@ jobs:
       - run: |
           go run github.com/mikkelricky/markdown-code-runner@latest run \
             --verbose --echo '👉 ' \
-            --substitutions '"docker run ": "docker run --user root "' \
+            --substitutions '{"docker run ": "docker run --user root ", "docker compose run ": "docker compose run --user root "}' \
             ${{ matrix.blocks }}
