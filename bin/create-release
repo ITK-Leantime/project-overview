@@ -1,9 +1,25 @@
 #!/usr/bin/env bash
 set -o errexit -o errtrace -o noclobber -o nounset -o pipefail
+
 IFS=$'\n\t'
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 project_dir=$(cd "$(dirname "$script_dir")" && pwd)
+# shellcheck source=local.create-release
+local_create_release="bin/local.create-release"
+release_exclude_file="bin/release-exclude.txt"
+
+if [[ ! -f "$local_create_release" ]]; then
+    (>&2 echo "Error: $local_create_release does not exist. See README.")
+    exit
+fi
+# shellcheck source=local.create-release
+source $local_create_release
+
+if [[ ! -f "$release_exclude_file" ]]; then
+    (>&2 echo "Error: $release_exclude_file does not exist. See README.")
+    exit
+fi
 
 tag=${1:-}
 if [ -z "$tag" ]; then
@@ -15,7 +31,7 @@ cd "$project_dir"
 
 # Configuration start
 
-plugin_name=ProjectOverview
+plugin_name="$plugin_name"
 # Edit release-exclude.txt to exclude files and folder from release package.
 
 # Configuration end
@@ -29,9 +45,8 @@ fi
 # Make sure that `composer.json` has the correct version.
 composer config version "${tag}"
 
-# Build release start
-
-composer install --no-dev --classmap-authoritative
+# Script defined in local.create-release to build project-specific assets
+buildRelease
 
 # Build release end
 
@@ -43,15 +58,15 @@ mkdir -p "$target_dir"
 rsync --verbose --archive --compress --filter=':- .gitignore' --exclude-from "$script_dir/release-exclude.txt" . "$target_dir"
 
 # Replace %%VERSION%% with actual version in build
-find ${target_dir} -type f -exec sed -i "s/%%VERSION%%/${tag}/g" {} \;
+find "${target_dir}" -type f -exec sed -i "s/%%VERSION%%/${tag}/g" {} \;
 
 # Strip any leading `dev-` from tag name in package name.
 name="${plugin_name}-${tag#dev-}.tar.gz"
-tar --create --file "$name" -C "$release_dir" $plugin_name
+tar --create --file "$name" -C "$release_dir" "$plugin_name"
 sha256sum "$name" >| checksum.txt
 
 # Clean up
-rm -fr $release_dir
+rm -fr "$release_dir"
 
 git checkout composer.json
 
