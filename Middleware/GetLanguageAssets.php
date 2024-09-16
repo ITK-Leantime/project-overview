@@ -31,7 +31,6 @@ class GetLanguageAssets
     {
         $languageArray = Cache::get('projectOverview.languageArray', []);
 
-        // @phpstan-ignore-next-line
         if (! empty($languageArray)) {
             $this->language->ini_array = array_merge($this->language->ini_array, $languageArray);
             return $next($request);
