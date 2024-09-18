@@ -6,7 +6,8 @@
 
 * [PR-12](https://github.com/ITK-Leantime/project-overview/pull/14)
   * Removed additional border-radiusses
-  * Use [url](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) to test if I can fix error that I cannot reproduce: Navigation with the date dropdowns, the url is updated with `.`'s instead of `/`'s.
+  * Use [url](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) to test if I can fix error that I cannot
+    reproduce: Navigation with the date dropdowns, the url is updated with `.`'s instead of `/`'s.
 
 * [PR-11](https://github.com/ITK-Leantime/project-overview/pull/12)
   * Streamline release/deploy
@@ -47,7 +48,8 @@
   * Add dockerfile + install of rsync
 
 * [PR-5](https://github.com/ITK-Leantime/project-overview/pull/7)
-  * Make the side menu "personal", so when on the "project overview"-page, the sidemenu doesn't change to the projects menu.
+  * Make the side menu "personal", so when on the "project overview"-page, the sidemenu doesn't change to the projects
+    menu.
 
 * [PR-4](https://github.com/ITK-Leantime/project-overview/pull/6)
   * Add ```ticket.planHours``` and ```ticket.hourRemaining``` to sql query, so the data is shown in the table.
