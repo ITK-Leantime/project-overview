@@ -94,13 +94,13 @@
                         <td>
                             <div class="btn-group">
                                 <button type="button" id="priority-ticket-{{ $row['id'] }}"
-                                    class="table-button label-default priority-bg-{!! $row['priority'] !!}"
+                                    class="table-button priority-bg-{!! $row['priority'] !!}"
                                     data-toggle="dropdown">
                                     @if (is_numeric($row['priority']) && isset($priorities[$row['priority']]))
                                         <span id="priority-label">{!! $priorities[$row['priority']] !!}</span>
                                         <i class="fa fa-caret-down"></i>
                                     @endif
-                                    @if (!is_numeric($row['priority'] && isset($priorities[$row['priority']])))
+                                    @if (!is_numeric($row['priority']))
                                         <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
                                         <i class="fa fa-caret-down"></i>
                                     @endif
