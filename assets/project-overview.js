@@ -218,13 +218,15 @@ function changeDateTo(dateTo) {
 
 function updateLocation(key, value) {
   let params = new URLSearchParams(document.location.search);
+  let url = new URL(window.location.href);
+
   if (params.has(key)) {
-    params.delete(key);
+    url.searchParams.delete(key);
   }
   if (value !== '') {
-    params.append(key, value);
+    url.searchParams.set(key, value);
   }
-  window.location = `?${params.toString()}`;
+  window.location.assign(url);
 }
 
 function saveSuccess(elem) {
