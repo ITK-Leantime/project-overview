@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.0.1] - 2024-09-18
+
 * [PR-11](https://github.com/ITK-Leantime/project-overview/pull/12)
   * Streamline release/deploy
   * Add Markdown Runner to actions
@@ -66,6 +68,7 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.1...HEAD
+[2.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/v2.0.0...2.0.1
 [2.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/olivierlacan/keep-a-changelog/releases/tag/v1.0.0
