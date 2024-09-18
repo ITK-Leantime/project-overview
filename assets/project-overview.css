@@ -135,6 +135,7 @@
     &.label-grey {
       background: var(--yellow) !important;
       color: var(--yellow-text-color) !important;
+      border-radius: 0;
     }
 
     &.label-default.milestone {
