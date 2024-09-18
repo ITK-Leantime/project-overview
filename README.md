@@ -10,46 +10,68 @@ Clone this repository into your Leantime plugins folder:
 git clone https://github.com/ITK-Leantime/project-overview.git app/Plugins/ProjectOverview
 ```
 
+Run composer install
+
+```shell name=development-install
+docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
+```
+
+### Composer normalize
+
+```shell name=composer-normalize
+docker run --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer normalize
+```
+
 ### Coding standards
 
-``` shell
-docker run --tty --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
-docker run --tty --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer coding-standards-apply
-docker run --tty --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer coding-standards-check
+#### Check and apply with phpcs
+
+```shell name=check-coding-standards
+docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer coding-standards-check
 ```
 
-```shell
-docker run --rm -v "$(pwd):/work" tmknom/prettier --write assets
-docker run --rm -v "$(pwd):/work" tmknom/prettier --check assets
+```shell name=apply-coding-standards
+docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer coding-standards-apply
 ```
 
-```shell
-docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore node_modules --ignore LICENSE.md '**/*.md' --fix
-docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore node_modules --ignore LICENSE.md '**/*.md'
+#### Check and apply with prettier
+
+```shell name=prettier-check
+docker run --rm -v "$(pwd):/work" tmknom/prettier:latest --check assets
 ```
 
-```shell
-docker compose build
-docker compose run --rm php npm install
-docker compose run --rm php npm run coding-standards-apply
+```shell name=prettier-apply
+docker run --rm -v "$(pwd):/work" tmknom/prettier:latest --write assets
 ```
 
-```shell
-docker run --rm --tty --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/create-release
-docker run --rm --tty --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/deploy
+#### Check and apply markdownlint
+
+```shell name=markdown-check
+docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md '**/*.md'
+```
+
+```shell name=markdown-apply
+docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md '**/*.md' --fix
+```
+
+#### Check with shellcheck
+
+```shell name=shell-check
+docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/create-release
+docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/deploy
+docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/local.create-release
 ```
 
 ### Code analysis
 
-```shell
-docker run --tty --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
-docker run --tty --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer code-analysis
+```shell name=code-analysis
+docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer code-analysis
 ```
 
 ## Test release build
 
-``` shell
-docker compose build && docker compose run --rm php bash bin/create-release dev-test
+```shell name=test-create-release
+docker compose build && docker compose run --rm php bin/create-release dev-test
 ```
 
 The create-release script replaces `@@VERSION@@` in

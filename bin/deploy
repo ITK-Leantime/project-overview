@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 set -o errexit -o errtrace -o noclobber -o nounset -o pipefail
 
-plugin_repo_url=https://github.com/ITK-Leantime/project-overview/
-plugin_name=ProjectOverview
+# shellcheck source=local.create-release
+local_create_release="./local.create-release"
+
+if [[ ! -f "$local_create_release" ]]; then
+    (>&2 echo "Error: $local_create_release does not exist. See README.")
+    exit
+fi
+
+# shellcheck source=local.create-release
+source $local_create_release
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 plugins_dir=$(cd "$(dirname "$script_dir")"/.. && pwd)

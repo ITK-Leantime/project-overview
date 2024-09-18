@@ -9,8 +9,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Git fetch
         run: git fetch
@@ -18,84 +16,52 @@ jobs:
       - name: Check that changelog has been updated.
         run: git diff --exit-code origin/${{ github.base_ref }} -- CHANGELOG.md && exit 1 || exit 0
 
-  assets-coding-standards:
-    name: Assets coding standards
+  documentation:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Coding standards
-        run: |
-          docker run --rm -v "$(pwd):/work" tmknom/prettier --check assets
-
-  markdown-coding-standards:
-    name: Markdown coding standards
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Coding standards
-        run: |
-          docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md '**/*.md'
-
-  composer-normalize:
-    name: composer-normalize
-    runs-on: ubuntu-latest
+    name: Documentation should be updated
+    if: github.event_name == 'pull_request'
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Git fetch
+        run: git fetch
+
+      - name: Check that documentation (Markdown files excluding changelog and pr-template) has been updated.
+        run: git diff --exit-code origin/${{ github.base_ref }} -- git ls-files '*.md' ':!:CHANGELOG.md' ':!:.github/' && exit 1 || exit 0
+
+  run-code-blocks-from-readme:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        blocks:
+          - development-install markdown-check
+          - development-install composer-normalize
+          - development-install check-coding-standards
+          - development-install prettier-check
+          - development-install shell-check
+          - development-install code-analysis
+          - development-install test-create-release
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # https://github.com/actions/setup-go
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.0'
+
+      # https://github.com/mikkelricky/markdown-code-runner
+      # We need to run as root in GitHub Actions, hence the `--substitutions` hack!
       - run: |
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer normalize
-
-  coding-standards-phpcs:
-    name: coding-standards-check/phpcs
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@master
-      - run: |
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer coding-standards-check/phpcs
-
-  code-analysis-phpstan:
-    name: code-analysis/phpstan
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@master
-      - run: |
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
-          docker run --user root --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer code-analysis/phpstan
-
-  shellcheck:
-    runs-on: ubuntu-latest
-    name: Shellcheck
-    strategy:
-      fail-fast: false
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Shellcheck
-        run: |
-          docker run --rm --tty --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/create-release
-          docker run --rm --tty --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/deploy
-
-  check-create-release:
-    runs-on: ubuntu-latest
-    name: Test create release
-    strategy:
-      fail-fast: false
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Create test release
-        run: |
-          ./bin/create-release dev-test
+          go run github.com/mikkelricky/markdown-code-runner@latest run \
+            --verbose --echo '👉 ' \
+            --substitutions '{"docker run ": "docker run --user root ", "docker compose run ": "docker compose run --user root "}' \
+            ${{ matrix.blocks }}

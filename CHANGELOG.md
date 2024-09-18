@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-11](https://github.com/ITK-Leantime/project-overview/pull/12)
+  * Streamline release/deploy
+  * Add Markdown Runner to actions
 * [PR-10](https://github.com/ITK-Leantime/project-overview/pull/11)
   * Add request uri check to scope js/css
 
