@@ -4,6 +4,10 @@
 
 ## [2.0.1] - 2024-09-18
 
+* [PR-12](https://github.com/ITK-Leantime/project-overview/pull/14)
+  * Removed additional border-radiusses
+  * Use [url](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL) to test if I can fix error that I cannot reproduce: Navigation with the date dropdowns, the url is updated with `.`'s instead of `/`'s.
+
 * [PR-11](https://github.com/ITK-Leantime/project-overview/pull/12)
   * Streamline release/deploy
   * Add Markdown Runner to actions
