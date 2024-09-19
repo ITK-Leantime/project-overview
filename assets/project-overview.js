@@ -223,9 +223,11 @@ function updateLocation(key, value) {
   if (params.has(key)) {
     url.searchParams.delete(key);
   }
+
   if (value !== '') {
     url.searchParams.set(key, encodeURIComponent(value));
   }
+
   window.location.assign(url);
 }
 
@@ -247,5 +249,12 @@ function saveError(elem) {
 
 function formatDate(date) {
   const localDate = new Date(date);
-  return `${localDate.getDate()}/${localDate.getMonth() + 1}/${localDate.getFullYear()}`;
+  const yyyy = localDate.getFullYear();
+  let mm = localDate.getMonth() + 1; // Months start at 0!
+  let dd = localDate.getDate();
+
+  dd = (dd < 10) ? `0${dd}` : dd;
+  mm = (mm < 10) ? `0${mm}` : mm;
+
+  return dd + '/' + mm + '/' + yyyy;
 }
