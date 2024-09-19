@@ -207,24 +207,28 @@ function redirectWithSearchTerm(searchTerm) {
 function changeDateFrom(dateFrom) {
   dateFrom === ''
     ? updateLocation('dateFrom', '')
-    : updateLocation('dateFrom', new Date(dateFrom).toLocaleDateString());
+    : updateLocation('dateFrom', formatDate(dateFrom));
 }
 
 function changeDateTo(dateTo) {
   dateTo === ''
     ? updateLocation('dateTo', '')
-    : updateLocation('dateTo', new Date(dateTo).toLocaleDateString());
+    : updateLocation('dateTo', formatDate(dateTo));
 }
 
 function updateLocation(key, value) {
   let params = new URLSearchParams(document.location.search);
+  let url = new URL(window.location.href);
+
   if (params.has(key)) {
-    params.delete(key);
+    url.searchParams.delete(key);
   }
+
   if (value !== '') {
-    params.append(key, value);
+    url.searchParams.set(key, value);
   }
-  window.location = `?${params.toString()}`;
+
+  window.location.assign(url);
 }
 
 function saveSuccess(elem) {
@@ -241,4 +245,16 @@ function saveError(elem) {
   setTimeout(() => {
     elem.removeClass('save-error');
   }, 1000);
+}
+
+function formatDate(date) {
+  const localDate = new Date(date);
+  const yyyy = localDate.getFullYear();
+  let mm = localDate.getMonth() + 1; // Months start at 0!
+  let dd = localDate.getDate();
+
+  dd = dd < 10 ? `0${dd}` : dd;
+  mm = mm < 10 ? `0${mm}` : mm;
+
+  return dd + '/' + mm + '/' + yyyy;
 }
