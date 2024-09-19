@@ -37,7 +37,6 @@ function addProjectOverviewToPersonalMenu(array $sections): array
     return $sections;
 }
 
-
 EventDispatcher::add_filter_listener('leantime.domain.menu.repositories.menu.getMenuStructure.menuStructures', 'addProjectOverviewMenuPoint');
 EventDispatcher::add_filter_listener('leantime.domain.menu.repositories.menu.getSectionMenuType.menuSections', 'addProjectOverviewToPersonalMenu');
 
@@ -48,14 +47,18 @@ EventDispatcher::add_filter_listener(
     fn (array $middleware) => array_merge($middleware, [GetLanguageAssets::class]),
 );
 
-
-
 EventDispatcher::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
+
+        $url = '/dist/js/plugin-AllTimesheetsDataExport.js?' . http_build_query(['v' => '%%VERSION%%']);
+        echo '<script src="' . htmlspecialchars($url) . '"></script>';
+
         if (null !== (session('userdata.id')) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/projectOverview')) {
-            echo '<script src="/dist/js/project-overview.v%%VERSION%%.js"></script>';
-            echo '<link rel="stylesheet" href="/dist/css/project-overview.v%%VERSION%%.css"></link>';
+            $jsUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => '%%VERSION%%']);
+            echo '<script src="' . htmlspecialchars($jsUrl) . '"></script>';
+            $cssUrl = '/dist/css/project-overview.css?' . http_build_query(['v' => '%%VERSION%%']);
+            echo '<link rel="stylesheet" href="' . htmlspecialchars($cssUrl) . '"></link>';
         }
     },
     5
