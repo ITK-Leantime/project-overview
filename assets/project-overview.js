@@ -207,13 +207,13 @@ function redirectWithSearchTerm(searchTerm) {
 function changeDateFrom(dateFrom) {
   dateFrom === ''
     ? updateLocation('dateFrom', '')
-    : updateLocation('dateFrom',formatDate(dateFrom));
+    : updateLocation('dateFrom' , formatDate(dateFrom));
 }
 
 function changeDateTo(dateTo) {
   dateTo === ''
     ? updateLocation('dateTo', '')
-    : updateLocation('dateTo',formatDate(dateTo));
+    : updateLocation('dateTo' , formatDate(dateTo));
 }
 
 function updateLocation(key, value) {
@@ -245,6 +245,7 @@ function saveError(elem) {
   }, 1000);
 }
 
-function formatDate(date){
-  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+function formatDate(date) {
+  const localDate = new Date(date);
+  return `${localDate.getDate()}/${localDate.getMonth() + 1}/${localDate.getFullYear()}`;
 }
