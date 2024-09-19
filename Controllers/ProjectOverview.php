@@ -49,13 +49,18 @@ class ProjectOverview extends Controller
         $searchTermForFilter = null;
         $dateFromForFilter = CarbonImmutable::now();
         $dateToForFilter = CarbonImmutable::now()->addDays(7);
+        $dateFrom = $_GET['dateFrom'];
+        $dateTo = isset($_GET['dateTo']);
 
-        if (isset($_GET['dateFrom'])) {
-            $dateFromForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateFrom'], 'start');
+        if (isset($dateFrom)) {
+            if (str_contains($dateFrom, '.')){
+                die(var_dump($dateFrom));
+            }
+            $dateFromForFilter = $this->dateTimeHelper->parseUserDateTime($dateFrom, 'start');
         }
 
-        if (isset($_GET['dateTo'])) {
-            $dateToForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateTo'], 'end');
+        if (isset($dateTo)) {
+            $dateToForFilter = $this->dateTimeHelper->parseUserDateTime($dateTo, 'end');
         }
 
         if (isset($_GET['userId']) && $_GET['userId'] !== '') {
