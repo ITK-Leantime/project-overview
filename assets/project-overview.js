@@ -207,13 +207,13 @@ function redirectWithSearchTerm(searchTerm) {
 function changeDateFrom(dateFrom) {
   dateFrom === ''
     ? updateLocation('dateFrom', '')
-    : updateLocation('dateFrom' , formatDate(dateFrom));
+    : updateLocation('dateFrom', formatDate(dateFrom));
 }
 
 function changeDateTo(dateTo) {
   dateTo === ''
     ? updateLocation('dateTo', '')
-    : updateLocation('dateTo' , formatDate(dateTo));
+    : updateLocation('dateTo', formatDate(dateTo));
 }
 
 function updateLocation(key, value) {
@@ -253,8 +253,8 @@ function formatDate(date) {
   let mm = localDate.getMonth() + 1; // Months start at 0!
   let dd = localDate.getDate();
 
-  dd = (dd < 10) ? `0${dd}` : dd;
-  mm = (mm < 10) ? `0${mm}` : mm;
+  dd = dd < 10 ? `0${dd}` : dd;
+  mm = mm < 10 ? `0${mm}` : mm;
 
   return dd + '/' + mm + '/' + yyyy;
 }
