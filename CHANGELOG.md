@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.0.3] - 2024-09-19
+
 * [PR-13](https://github.com/ITK-Leantime/project-overview/pull/16)
   Remove urlencode in `register.php`
 
@@ -78,7 +80,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.2...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.3...HEAD
+[2.0.3]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/v2.0.0...2.0.1
 [2.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.0.0...v2.0.0
