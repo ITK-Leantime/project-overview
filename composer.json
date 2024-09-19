@@ -2,7 +2,7 @@
   "name": "leantime/project-overview",
   "description": "A project overview for leantime",
   "type": "leantime-plugin",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "homepage": "https://github.com/ITK-Leantime/project-overview",
   "license": "MIT",
   "authors": [
