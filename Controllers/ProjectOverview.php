@@ -50,7 +50,7 @@ class ProjectOverview extends Controller
         $dateFromForFilter = CarbonImmutable::now();
         $dateToForFilter = CarbonImmutable::now()->addDays(7);
         $dateFrom = $_GET['dateFrom'];
-        $dateTo = isset($_GET['dateTo']);
+        $dateTo = $_GET['dateTo'];
 
         if (isset($dateFrom)) {
             if (str_contains($dateFrom, '.')){
