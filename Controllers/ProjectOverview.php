@@ -54,12 +54,15 @@ class ProjectOverview extends Controller
 
         if (!is_null($dateFrom)) {
             if (str_contains($dateFrom, '.')){
-                die(var_dump($dateFrom));
+                $dateFrom = str_replace($dateFrom, ".", "/");
             }
             $dateFromForFilter = $this->dateTimeHelper->parseUserDateTime($dateFrom, 'start');
         }
 
         if (!is_null($dateTo)) {
+            if (str_contains($dateTo, '.')){
+                $dateTo = str_replace($dateTo, ".", "/");
+            }
             $dateToForFilter = $this->dateTimeHelper->parseUserDateTime($dateTo, 'end');
         }
 
