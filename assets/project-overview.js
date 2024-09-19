@@ -205,6 +205,7 @@ function redirectWithSearchTerm(searchTerm) {
 }
 
 function changeDateFrom(dateFrom) {
+  console.log(dateFrom);
   dateFrom === ''
     ? updateLocation('dateFrom', '')
     : updateLocation('dateFrom', new Date(dateFrom).toLocaleDateString());
