@@ -2,11 +2,14 @@
 
 ## [Unreleased]
 
+* [PR-13](https://github.com/ITK-Leantime/project-overview/pull/16)
+  Remove urlencode in `register.php`
+
 ## [2.0.2] - 2024-09-19
 
 * [PR-12](https://github.com/ITK-Leantime/project-overview/pull/14)
-    * Removed additional border-radiusses
-    * Format javascript dates to force /'s instead of .'s.
+  * Removed additional border-radiusses
+  * Format javascript dates to force /'s instead of .'s.
 
 ## [2.0.1] - 2024-09-18
 
