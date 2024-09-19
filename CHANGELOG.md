@@ -4,11 +4,11 @@
 
 ## [2.0.2] - 2024-09-19
 
-## [2.0.1] - 2024-09-18
-
 * [PR-12](https://github.com/ITK-Leantime/project-overview/pull/14)
-  * Removed additional border-radiusses
-  * Format javascript dates to force /'s instead of .'s.
+    * Removed additional border-radiusses
+    * Format javascript dates to force /'s instead of .'s.
+
+## [2.0.1] - 2024-09-18
 
 * [PR-11](https://github.com/ITK-Leantime/project-overview/pull/12)
   * Streamline release/deploy
