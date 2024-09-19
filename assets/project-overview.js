@@ -205,7 +205,6 @@ function redirectWithSearchTerm(searchTerm) {
 }
 
 function changeDateFrom(dateFrom) {
-  console.log(dateFrom);
   dateFrom === ''
     ? updateLocation('dateFrom', '')
     : updateLocation('dateFrom', new Date(dateFrom).toLocaleDateString());
@@ -226,6 +225,7 @@ function updateLocation(key, value) {
   }
   if (value !== '') {
     url.searchParams.set(key, encodeURIComponent(value));
+    console.log(encodeURIComponent(value));
   }
   // window.location.assign(url);
 }
