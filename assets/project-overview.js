@@ -224,7 +224,7 @@ function updateLocation(key, value) {
     url.searchParams.delete(key);
   }
   if (value !== '') {
-    url.searchParams.set(key, value);
+    url.searchParams.set(key, encodeURIComponent(value));
   }
   window.location.assign(url);
 }
