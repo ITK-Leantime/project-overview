@@ -205,17 +205,15 @@ function redirectWithSearchTerm(searchTerm) {
 }
 
 function changeDateFrom(dateFrom) {
-  console.log(dateFrom)
-  console.log(new Date(dateFrom).toLocaleDateString())
   dateFrom === ''
     ? updateLocation('dateFrom', '')
-    : updateLocation('dateFrom', new Date(dateFrom).toLocaleDateString());
+    : updateLocation('dateFrom',formatDate(dateFrom));
 }
 
 function changeDateTo(dateTo) {
   dateTo === ''
     ? updateLocation('dateTo', '')
-    : updateLocation('dateTo', new Date(dateTo).toLocaleDateString());
+    : updateLocation('dateTo',formatDate(dateTo));
 }
 
 function updateLocation(key, value) {
@@ -227,10 +225,8 @@ function updateLocation(key, value) {
   }
   if (value !== '') {
     url.searchParams.set(key, encodeURIComponent(value));
-    console.log(value);
-    console.log(encodeURIComponent(value));
   }
-  // window.location.assign(url);
+  window.location.assign(url);
 }
 
 function saveSuccess(elem) {
@@ -247,4 +243,8 @@ function saveError(elem) {
   setTimeout(() => {
     elem.removeClass('save-error');
   }, 1000);
+}
+
+function formatDate(date){
+  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 }
