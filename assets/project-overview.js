@@ -163,9 +163,11 @@ function changeMilestone(event, ticketId, newMilestoneId) {
         const isItAHexColor = hexColorRegExp.exec(newMilestoneColor);
         if (isItAHexColor) {
           jQuery(parentElement).css('background', newMilestoneColor);
-          jQuery("#milestone-select").addClass("milestone-select-white-text");
+          jQuery('#milestone-select').addClass('milestone-select-white-text');
         } else {
-          jQuery("#milestone-select").removeClass("milestone-select-white-text");
+          jQuery('#milestone-select').removeClass(
+            'milestone-select-white-text'
+          );
           jQuery(parentElement).css('background', 'transparent');
         }
       });
