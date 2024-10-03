@@ -30,9 +30,13 @@ class ProjectOverview
     /**
      * @return array<string, mixed>
      */
-    public function getTasks(?string $userId, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
+    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
-        $userIdQuery = isset($userId) ? ' AND editorId = :userId ' : '';
+        $userIdQuery = "";
+        if (!empty($userIdArray)) {
+            $placeholders = ':' . implode(', :', array_keys(array_flip($userIdArray)));
+            $userIdQuery = ' AND editorId IN (' . $placeholders . ') ';
+        }
         $searchTermQuery = isset($searchTerm)
             ? " AND
         ticket.id LIKE CONCAT( '%', :searchTerm, '%') OR
@@ -71,8 +75,10 @@ class ProjectOverview
             'ORDER BY ticket.priority ASC';
         $stmn = $this->db->database->prepare($sql);
 
-        if (isset($userId) && $userId !== '') {
-            $stmn->bindValue(':userId', $userId, PDO::PARAM_INT);
+        if (!empty($userIdArray)) {
+            foreach ($userIdArray as $id) {
+                $stmn->bindValue(':' . $id, $id, PDO::PARAM_INT);
+            }
         }
 
         if (isset($searchTerm) && $searchTerm !== '') {
@@ -142,5 +148,40 @@ class ProjectOverview
         $stmn->closeCursor();
 
         return $values;
+    }
+
+    /**
+     * Get all projects from the database
+     *
+     * @access public
+     * @return array Returns an array of all projects
+     */
+    public function getAllProjects()
+    {
+        $sql = 'SELECT * FROM zp_projects';
+
+        $stmn = $this->db->database->prepare($sql);
+
+        $stmn->execute();
+        $values = $stmn->fetchAll(PDO::FETCH_ASSOC);
+        $stmn->closeCursor();
+
+        $projects = [];
+
+        foreach ($values as $value) {
+            $id = $value['id'];
+            unset($value[0]); // Remove numeric index
+
+            // Remove all numeric indices
+            foreach ($value as $key => $item) {
+                if (is_numeric($key)) {
+                    unset($value[$key]);
+                }
+            }
+
+            $projects[$id] = $value;
+        }
+
+        return $projects;
     }
 }

@@ -16,7 +16,7 @@ class ProjectOverview
     private static array $assets = [
         // source => target
         __DIR__ . '/../assets/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
-        __DIR__ . '/../assets/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.js',
+        __DIR__ . '/../dist/js/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.js',
     ];
 
     /** Constructor method for the class.
@@ -68,7 +68,7 @@ class ProjectOverview
     /**
      * @return array<string, mixed>
      */
-    public function getTasks(?string $userId, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
+    public function getTasks(?array $userId, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
         return $this->projectOverviewRepository->getTasks($userId, $searchTerm, $dateFrom, $dateTo);
     }
@@ -91,5 +91,15 @@ class ProjectOverview
         } else {
             return null;
         }
+    }
+
+    /**
+     * Get all projects.
+     *
+     * @return array An array containing all projects.
+     */
+    public function getAllProjects(): array
+    {
+        return $this->projectOverviewRepository->getAllProjects();
     }
 }

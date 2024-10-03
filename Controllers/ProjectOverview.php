@@ -49,6 +49,7 @@ class ProjectOverview extends Controller
         $searchTermForFilter = null;
         $dateFromForFilter = CarbonImmutable::now();
         $dateToForFilter = CarbonImmutable::now()->addDays(7);
+        $allProjects = $this->projectOverviewService->getAllProjects();
 
         if (isset($_GET['dateFrom'])) {
             $dateFromForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateFrom'], 'start');
@@ -59,7 +60,9 @@ class ProjectOverview extends Controller
         }
 
         if (isset($_GET['userId']) && $_GET['userId'] !== '') {
-            $userIdForFilter = $_GET['userId'];
+            //$userIdForFilter = $_GET['userId'];
+            $userIdForFilter = explode(',', $_GET['userId']);
+
         }
 
         if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
@@ -90,7 +93,7 @@ class ProjectOverview extends Controller
         foreach ($allTickets as &$ticket) {
             $ticket['projectUsers'] = $userAndProject[$ticket['projectId']];
             $ticket['projectMilestones'] = $milestonesAndProject[$ticket['projectId']];
-
+            $ticket['projectName'] = $allProjects[$ticket['projectId']]['name'];
             if (isset($ticket['milestoneid'])) {
                 // If the ticket has a milestone, then the color of that milestone is retrieved here.
                 // selectedMilestoneColor is only used for styling
