@@ -66,7 +66,13 @@ class ProjectOverview
     }
 
     /**
-     * @return array<string, mixed>
+     * Get tasks based on the given parameters.
+     *
+     * @param array<int, string>|null $userIdArray An array of user IDs to filter the tasks. Can be null.
+     * @param string|null             $searchTerm  The search term to filter the tasks. Can be null.
+     * @param CarbonImmutable         $dateFrom    The start date to filter the tasks.
+     * @param CarbonImmutable         $dateTo      The end date to filter the tasks.
+     * @return array<int, mixed> An array of tasks based on the given parameters.
      */
     public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
@@ -96,7 +102,7 @@ class ProjectOverview
     /**
      * Get all projects.
      *
-     * @return array An array containing all projects.
+     * @return array<string, mixed> An array containing all projects.
      */
     public function getAllProjects(): array
     {
