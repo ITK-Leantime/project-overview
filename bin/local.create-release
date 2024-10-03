@@ -6,6 +6,7 @@ export plugin_repo_url=https://github.com/ITK-Leantime/project-overview/
 
 buildRelease() {
   composer install --no-dev --classmap-authoritative
+  npm install --no-dev
   npm run build
   return
 }
