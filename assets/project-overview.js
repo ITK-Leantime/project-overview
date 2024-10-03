@@ -77,7 +77,6 @@ $(document).ready(function() {
       let ids = values.map(function(item) {
         return item.id;
       });
-      console.log(ids);
       redirectWithUserId(ids);
     });
 
@@ -293,8 +292,8 @@ function redirectWithUserId(searchUserIds) {
     searchUserIds = searchUserIds.join(',');
   }
   searchUserIds === 'all'
-    ? updateLocation('userId', '')
-    : updateLocation('userId', searchUserIds);
+    ? updateLocation('userIds', '')
+    : updateLocation('userIds', searchUserIds);
 }
 
 function redirectWithSearchTerm(searchTerm) {
