@@ -10,8 +10,13 @@
   margin-top: -85px;
   width: calc(100% - 30px);
 
-    .project-overview-assignee-select {
+    .project-overview-assignee-select:not(.select2-hidden-accessible) {
         width: 250px !important;
+        max-width: none;
+
+        option {
+            display: none;
+        }
     }
     .select2-selection__choice {
         margin-bottom: 5px;
