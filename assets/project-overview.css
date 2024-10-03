@@ -10,6 +10,30 @@
   margin-top: -85px;
   width: calc(100% - 30px);
 
+    .project-overview-assignee-select {
+        width: 250px !important;
+    }
+    .select2-selection__choice {
+        margin-bottom: 5px;
+    }
+
+    /* Adjacent sibling selector */
+    .project-overview-assignee-select + .select2.select2-container {
+        width: 250px !important;
+        margin: 5px 0 !important;
+
+        /* Descendant selector */
+        span.select2-selection {
+            padding: 0 !important;
+            line-height: 30px !important;
+            border-radius: 3px !important;
+            margin-top: -1px;
+            border: 1px solid var(--main-border-color) !important;
+
+
+        }
+    }
+
   > h1 {
     margin-bottom: 30px;
   }
@@ -48,7 +72,7 @@
     input {
       border-radius: 3px;
       margin-top: 3px;
-      height: 35px;
+      height: 36px;
       color: #555555;
     }
 
@@ -211,4 +235,7 @@
   100% {
     background-color: transparent;
   }
+}
+ul.select2-results__options {
+    margin: 2px !important;
 }
