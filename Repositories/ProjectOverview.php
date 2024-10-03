@@ -32,9 +32,9 @@ class ProjectOverview
      */
     public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
-        $userIdQuery = "";
+        $userIdQuery = '';
         if (!empty($userIdArray)) {
-            $placeholders = ':' . implode(', :', array_keys(array_flip($userIdArray)));
+            $placeholders = ':' . implode(', :', array_values($userIdArray));
             $userIdQuery = ' AND editorId IN (' . $placeholders . ') ';
         }
         $searchTermQuery = isset($searchTerm)

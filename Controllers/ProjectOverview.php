@@ -45,7 +45,7 @@ class ProjectOverview extends Controller
     public function get(): Response
     {
         // Filters for the sql select
-        $userIdForFilter = null;
+        $userIdArray = [];
         $searchTermForFilter = null;
         $dateFromForFilter = CarbonImmutable::now();
         $dateToForFilter = CarbonImmutable::now()->addDays(7);
@@ -59,9 +59,8 @@ class ProjectOverview extends Controller
             $dateToForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateTo'], 'end');
         }
 
-        if (isset($_GET['userId']) && $_GET['userId'] !== '') {
-            //$userIdForFilter = $_GET['userId'];
-            $userIdForFilter = explode(',', $_GET['userId']);
+        if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
+            $userIdArray = explode(',', $_GET['userIds']);
 
         }
 
@@ -71,10 +70,10 @@ class ProjectOverview extends Controller
 
         $this->tpl->assign('selectedDateFrom', $dateFromForFilter->toDateString());
         $this->tpl->assign('selectedDateTo', $dateToForFilter->toDateString());
-        $this->tpl->assign('selectedFilterUser', $userIdForFilter);
+        $this->tpl->assign('selectedFilterUser', $userIdArray);
         $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
 
-        $allTickets = $this->projectOverviewService->getTasks($userIdForFilter, $searchTermForFilter, $dateFromForFilter, $dateToForFilter);
+        $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $dateFromForFilter, $dateToForFilter);
 
         // A list of unique projectids
         $projectIds = array_unique(array_column($allTickets, 'projectId'));

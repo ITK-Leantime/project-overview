@@ -68,9 +68,9 @@ class ProjectOverview
     /**
      * @return array<string, mixed>
      */
-    public function getTasks(?array $userId, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
+    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
-        return $this->projectOverviewRepository->getTasks($userId, $searchTerm, $dateFrom, $dateTo);
+        return $this->projectOverviewRepository->getTasks($userIdArray, $searchTerm, $dateFrom, $dateTo);
     }
 
     /**
