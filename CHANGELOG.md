@@ -2,23 +2,28 @@
 
 ## [Unreleased]
 
+* [PR-20](https://github.com/ITK-Leantime/project-overview/pull/20)
+  * Add empty option for milestone select
+  * Add project column between id and taskname 
+  * Add multiselect for user filter
+
 ## [2.0.3] - 2024-09-19
 
-* [PR-13](https://github.com/ITK-Leantime/project-overview/pull/16)
+* [PR-16](https://github.com/ITK-Leantime/project-overview/pull/16)
   Remove urlencode in `register.php`
 
 ## [2.0.2] - 2024-09-19
 
-* [PR-12](https://github.com/ITK-Leantime/project-overview/pull/14)
+* [PR-14](https://github.com/ITK-Leantime/project-overview/pull/14)
   * Removed additional border-radiusses
   * Format javascript dates to force /'s instead of .'s.
 
 ## [2.0.1] - 2024-09-18
 
-* [PR-11](https://github.com/ITK-Leantime/project-overview/pull/12)
+* [PR-12](https://github.com/ITK-Leantime/project-overview/pull/12)
   * Streamline release/deploy
   * Add Markdown Runner to actions
-* [PR-10](https://github.com/ITK-Leantime/project-overview/pull/11)
+* [PR-11](https://github.com/ITK-Leantime/project-overview/pull/11)
   * Add request uri check to scope js/css
 
 ## [2.0.0] 2024-09-03
