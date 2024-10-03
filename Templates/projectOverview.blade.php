@@ -8,9 +8,6 @@
         </div>
     </div>
     <div class="project-overview-container">
-        @if (count($allTickets) === 0)
-            {{ __('projectOverview.empty_list') }}
-        @endif
         <div class="search-and-filter">
             <div class="input-group">
                 <div>
@@ -18,17 +15,15 @@
                     <div class="input-group-prepend"></div>
                     <label>{{ __('projectOverview.search_label') }}</label>
                     <input value="{!! $currentSearchTerm !!}" type="text" class="form-control"
-                           onchange="redirectWithSearchTerm(this.value)"
-                           placeholder="{{ __('projectOverview.empty_search_label') }}" aria-describedby="basic-addon1">
+                           placeholder="{{ __('projectOverview.empty_search_label') }}" id="search-term" aria-describedby="basic-addon1">
                 </div>
             </div>
             <div>
                 <label>{{ __('projectOverview.filter_user_label') }}</label>
-                <select onchange="redirectWithUserId(this.value)" class="form-select">
-                    <option value="all">{{ __('projectOverview.empty_filter_option') }}</option>
+
+                <select class="form-select project-overview-assignee-select" id="user-filter" multiple="multiple">
                     @foreach ($allUsers as $user)
-                        <option value={{ $user['id'] }}
-                            {{ (int) $user['id'] === (int) $selectedFilterUser ? 'selected' : '' }}>
+                        <option value={{ $user['id'] }} {{ ($selectedFilterUser !== null && in_array($user['id'], $selectedFilterUser)) ? 'selected' : '' }}>
                             {{ $user['firstname'] }}
                             {{ $user['lastname'] }}
                         </option>
@@ -37,145 +32,143 @@
             </div>
             <div class="margin-left">
                 <label>{{ __('projectOverview.from_label') }}</label>
-                <input type="date" class="form-control" onchange="changeDateFrom(this.value)" value="{{ $selectedDateFrom }}" />
+                <input type="date" class="form-control" id="date-from" value="{{ $selectedDateFrom }}" />
             </div>
             <div class="margin-left">
                 <label>{{ __('projectOverview.to_label') }}</label>
-                <input type="date" onchange="changeDateTo(this.value)" value="{{ $selectedDateTo }}" />
+                <input type="date" id="date-to" value="{{ $selectedDateTo }}" />
             </div>
         </div>
         <table class="table table-striped">
             <thead>
-                <tr>
-                    <th scope="col">{{ __('projectOverview.id_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.todo_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.status_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.priority_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.due_date_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.todo_assigned_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.todo_planned_hours_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.todo_remaining_hours_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.todo_milestone_table_header') }}</th>
-                    <th scope="col">{{ __('projectOverview.todo_tags_table_header') }}</th>
-                </tr>
+            <tr>
+                <th scope="col">{{ __('projectOverview.id_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.project_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.todo_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.status_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.priority_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.due_date_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.todo_assigned_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.todo_planned_hours_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.todo_remaining_hours_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.todo_milestone_table_header') }}</th>
+                <th scope="col">{{ __('projectOverview.todo_tags_table_header') }}</th>
+            </tr>
             </thead>
             <tbody>
-                @foreach ($allTickets as $row)
-                    <tr>
-                        <th scope="row">{{ $row['id'] }}</th>
-                        <td>
-                            <a href="#/tickets/showTicket/{{ $row['id'] }}">
-                                {{ $row['headline'] }}
-                            </a>
-                            {{-- if the ticket does not depend on another ticket, this "id" is set to 0 --}}
-                            @if (isset($row['dependingTicketId']) && $row['dependingTicketId'] > 0)
-                                (<a href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">{{ $row['parentHeadline'] }}</a>)
-                            @endif
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button type="button" id="status-ticket-{{ $row['id'] }}"
+            @foreach ($allTickets as $key => $row)
+                <tr>
+                    <th scope="row">{{ $row['id'] }}</th>
+                    <th scope="row">{{ $row['projectName'] }}</th>
+                    <td>
+                        <a href="#/tickets/showTicket/{{ $row['id'] }}">
+                            {{ $row['headline'] }}
+                        </a>
+                        @if (isset($row['dependingTicketId']) && $row['dependingTicketId'] > 0)
+                            (<a href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">{{ $row['parentHeadline'] }}</a>)
+                        @endif
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" id="status-ticket-{{ $row['id'] }}"
                                     class="table-button {!! $statusLabels[$row['projectId']][$row['status']]['class'] ?? '' !!}" data-toggle="dropdown">
-                                    <span id="status-label">{!! $statusLabels[$row['projectId']][$row['status']]['name'] !!} </span>
-                                    <i class="fa fa-caret-down"></i>
-                                </button>
-                                <div class="dropdown-menu" id="status-dropdown-menu">
-                                    @foreach ($statusLabels[$row['projectId']] as $newStatusId => $label)
-                                        <li class="dropdown-item">
-                                            <button class="table-button {!! $label['class'] !!}"
-                                                onclick="changeStatus({{ $row['id'] }}, {{ $newStatusId }}, '{{ $label['class'] }}', '{{ $label['name'] }}')">
-                                                {{ $label['name'] }}
-                                            </button>
-                                        </li>
-                                    @endforeach
-                                </div>
+                                <span id="status-label">{!! $statusLabels[$row['projectId']][$row['status']]['name'] !!} </span>
+                                <i class="fa fa-caret-down"></i>
+                            </button>
+                            <div class="dropdown-menu" id="status-dropdown-menu">
+                                @foreach ($statusLabels[$row['projectId']] as $newStatusId => $label)
+                                    <li class="dropdown-item">
+                                        <button class="table-button {!! $label['class'] !!}"
+                                                {{ $row['id'] }}, {{ $newStatusId }}, '{{ $label['class'] }}', '{{ $label['name'] }}'">
+                                        {{ $label['name'] }}
+                                        </button>
+                                    </li>
+                                @endforeach
                             </div>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button type="button" id="priority-ticket-{{ $row['id'] }}"
+                        </div>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" id="priority-ticket-{{ $row['id'] }}"
                                     class="table-button priority-bg-{!! $row['priority'] !!}"
                                     data-toggle="dropdown">
-                                    @if (is_numeric($row['priority']) && isset($priorities[$row['priority']]))
-                                        <span id="priority-label">{!! $priorities[$row['priority']] !!}</span>
-                                        <i class="fa fa-caret-down"></i>
-                                    @endif
-                                    @if (!is_numeric($row['priority']))
-                                        <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
-                                        <i class="fa fa-caret-down"></i>
-                                    @endif
-                                </button>
-                                <div class="dropdown-menu">
-                                    @foreach ($priorities as $newPriorityId => $priorityLabel)
-                                        <li class="dropdown-item">
-                                            <button type="button"
-                                                onclick="changePriority({{ $row['id'] }}, {{ $newPriorityId }}, '{{ $priorityLabel }}')"
+                                @if (is_numeric($row['priority']) && isset($priorities[$row['priority']]))
+                                    <span id="priority-label">{!! $priorities[$row['priority']] !!}</span>
+                                    <i class="fa fa-caret-down"></i>
+                                @endif
+                                @if (!is_numeric($row['priority']))
+                                    <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
+                                    <i class="fa fa-caret-down"></i>
+                                @endif
+                            </button>
+                            <div class="dropdown-menu">
+                                @foreach ($priorities as $newPriorityId => $priorityLabel)
+                                    <li class="dropdown-item">
+                                        <button type="button"
                                                 class="table-button priority-bg-{!! $newPriorityId !!}">
-                                                <div> {{ $priorityLabel }}</div>
-                                            </button>
-                                        </li>
-                                    @endforeach
-                                </div>
+                                            <div> {{ $priorityLabel }}</div>
+                                        </button>
+                                    </li>
+                                @endforeach
                             </div>
-                        </td>
-                        <td class="specific">
-                            <input type="date" onchange="changeDueDate(event, {{ $row['id'] }}, this.value)"
-
-                                value="{{ date($row['dueDate']) }}" />
-                        </td>
-                        <td class="spacious">
-                            <select onchange="changeAssignedUser(event, {{ $row['id'] }}, this.value)" class="form-select">
-                                <option value="-1">👻</option>
-                                @foreach ($row['projectUsers'] as $projectUser)
-                                    <option value={{ $projectUser['id'] }}
-                                        {{ (int) $row['editorId'] === (int) $projectUser['id'] ? 'selected' : '' }}>
-                                        {{ $projectUser['firstname'] }}
-                                        {{ $projectUser['lastname'] }}
+                        </div>
+                    </td>
+                    <td class="specific">
+                        <input type="date" id="due-date-{{ $row['id'] }}" value="{{ date($row['dueDate']) }}" />
+                    </td>
+                    <td class="spacious">
+                        <select class="form-select" id="assigned-user-{{ $row['id'] }}">
+                            <option value="-1"></option>
+                            @foreach ($row['projectUsers'] as $projectUser)
+                                <option value={{ $projectUser['id'] }}
+                                    {{ (int) $row['editorId'] === (int) $projectUser['id'] ? 'selected' : '' }}>
+                                    {{ $projectUser['firstname'] }}
+                                    {{ $projectUser['lastname'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td class="confined">
+                        <div class="input-group input-group-sm mb-3">
+                            <input type="number" id="plan-hours-{{ $row['id'] }}" class="form-control" value="{{ $row['planHours'] }}">
+                        </div>
+                    </td>
+                    <td class="confined">
+                        <div class="input-group input-group-sm mb-3">
+                            <input type="number" id="remaining-hours-{{ $row['id'] }}" class="form-control" value="{{ $row['hourRemaining'] }}">
+                        </div>
+                    </td>
+                    <td>
+                        @if (count($row['projectMilestones']) > 0)
+                            <select id="milestone-select-{{ $row['id'] }}"
+                                    class="form-select {{ isset($row['selectedMilestoneColor']) ? 'milestone-select-white-text' : '' }}"
+                                    @if (!empty($row['selectedMilestoneColor'])) style="background: {{ $row['selectedMilestoneColor'] }}" @endif
+                            >
+                                <option value="-1"></option>
+                                @foreach ($row['projectMilestones'] as $projectMilestone)
+                                    <option value={{ $projectMilestone['id'] }}
+                                        id="milestone-option-{{ $projectMilestone['id'] }}"
+                                            data-color="{!! $projectMilestone['color'] !!}"
+                                        {{ (int) $row['milestoneid'] === (int) $projectMilestone['id'] ? 'selected' : '' }}>
+                                        {{ $projectMilestone['headline'] }}
                                     </option>
                                 @endforeach
                             </select>
-                        </td>
-                        <td class="confined">
-                            <div class="input-group input-group-sm mb-3">
-                                <input onchange="changePlanHours(event, {{ $row['id'] }}, this.value)" type="number"
-                                    class="form-control" value="{{ $row['planHours'] }}">
-                            </div>
-                        </td>
-                        <td class="confined">
-                            <div class="input-group input-group-sm mb-3">
-                                <input onchange="changeHoursRemaining(event, {{ $row['id'] }}, this.value)" type="number"
-                                    class="form-control" value="{{ $row['hourRemaining'] }}">
-                            </div>
-                        </td>
-                        <td>
-                            @if (count($row['projectMilestones']) > 0)
-                                <select id="milestone-select"
-                                        class="form-select {{ isset($row['selectedMilestoneColor']) ? 'milestone-select-white-text' : '' }}"
-                                        onchange="changeMilestone(event, {{ $row['id'] }}, this.value)"
-                                        @if (!empty($row['selectedMilestoneColor'])) style="background: {{ $row['selectedMilestoneColor'] }}" @endif
-                                >
-                                    @foreach ($row['projectMilestones'] as $projectMilestone)
-                                        <option value={{ $projectMilestone['id'] }}
-                id="milestone-option-{{ $projectMilestone['id'] }}"
-                                                data-color="{!! $projectMilestone['color'] !!}"
-                                            {{ (int) $row['milestoneid'] === (int) $projectMilestone['id'] ? 'selected' : '' }}>
-                                            {{ $projectMilestone['headline'] }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            @endif
-                            @if (count($row['projectMilestones']) === 0)
-                                {{ __('projectOverview.no_project_milestones') }}
-                            @endif
-                        </td>
-                        <td class="spacious">
-                            <div class="input-group input-group-sm mb-3">
-                                <input onchange="changeTags(event, {{ $row['id'] }}, this.value)" type="text"
-                                    class="form-control" value="{{ $row['tags'] }}">
-                            </div>
-                        </td>
-                    </tr>
-                @endforeach
+                        @endif
+                        @if (count($row['projectMilestones']) === 0)
+                            {{ __('projectOverview.no_project_milestones') }}
+                        @endif
+                    </td>
+                    <td class="spacious">
+                        <div class="input-group input-group-sm mb-3">
+                            <input type="text" id="tags-{{ $row['id'] }}" class="form-control" value="{{ $row['tags'] }}">
+                        </div>
+                    </td>
+                </tr>
+            @endforeach
+            @if (count($allTickets) === 0)
+                <td colspan="99">{{ __('projectOverview.empty_list') }}</td>
+            @endif
             </tbody>
         </table>
     </div>

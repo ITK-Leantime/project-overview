@@ -3,6 +3,7 @@ dist
 .DS_Store
 node_modules
 *.cache
+composer.lock
 
 # Release artifacts
 release/
