@@ -1,7 +1,7 @@
 import 'select2';
 import 'select2/dist/css/select2.css';
 
-$(document).ready(function() {
+$(document).ready(function () {
   $.fn.select2.amd.require(['select2/selection/search'], function (Search) {
     const oldRemoveChoice = Search.prototype.searchRemoveChoice;
 
@@ -10,88 +10,95 @@ $(document).ready(function() {
       $(select2).select2('close');
     };
 
-    const select2 = $('.project-overview-assignee-select').select2({
-      closeOnSelect: true,
-      tags: false,
-    }).on('select2:unselect', function (e) {
-      let self = this;
+    const select2 = $('.project-overview-assignee-select')
+      .select2({
+        closeOnSelect: true,
+        tags: false,
+      })
+      .on('select2:unselect', function (e) {
+        let self = this;
 
-      // after a delay, refresh the select2
-      setTimeout(function() {
-        $(self).data('select2').$container.find('.select2-search__field').val('');
-      }, 100);
-    });
+        // after a delay, refresh the select2
+        setTimeout(function () {
+          $(self)
+            .data('select2')
+            .$container.find('.select2-search__field')
+            .val('');
+        }, 100);
+      });
 
-    select2.data('select2').$container.find('.select2-search__field').on('keydown', function() {
-      setTimeout(function() {
-        let select2Results = $('.select2-results__option:not(.select2-results__option--selected)');
-        if (select2Results.length === 1){
-          select2Results.trigger('mouseenter');
-        }
-      }, 100);
-    });
+    select2
+      .data('select2')
+      .$container.find('.select2-search__field')
+      .on('keydown', function () {
+        setTimeout(function () {
+          let select2Results = $(
+            '.select2-results__option:not(.select2-results__option--selected)'
+          );
+          if (select2Results.length === 1) {
+            select2Results.trigger('mouseenter');
+          }
+        }, 100);
+      });
 
     // Assign event handlers to dynamic elements
-    $(document).on('click', '.dropdown-item .table-button', function() {
+    $(document).on('click', '.dropdown-item .table-button', function () {
       const idArgs = $(this).data('args').split(',');
       changeStatus(idArgs[0], idArgs[1], idArgs[2], idArgs[3]);
     });
 
-    $(document).on('change', '[id^=due-date-]', function() {
+    $(document).on('change', '[id^=due-date-]', function () {
       const idArg = $(this).attr('id').split('-')[2];
       changeDueDate(event, idArg, this.value);
     });
 
-    $(document).on('change', '[id^=assigned-user-]', function() {
+    $(document).on('change', '[id^=assigned-user-]', function () {
       const idArg = $(this).attr('id').split('-')[2];
       changeAssignedUser(event, idArg, this.value);
     });
 
-    $(document).on('change', '[id^=plan-hours-]', function() {
+    $(document).on('change', '[id^=plan-hours-]', function () {
       const idArg = $(this).attr('id').split('-')[2];
       changePlanHours(event, idArg, this.value);
     });
 
-    $(document).on('change', '[id^=remaining-hours-]', function() {
+    $(document).on('change', '[id^=remaining-hours-]', function () {
       const idArg = $(this).attr('id').split('-')[2];
       changeHoursRemaining(event, idArg, this.value);
     });
 
-    $(document).on('change', '[id^=milestone-select-]', function() {
+    $(document).on('change', '[id^=milestone-select-]', function () {
       const idArg = $(this).attr('id').split('-')[2];
       changeMilestone(event, idArg, this.value);
     });
 
-    $(document).on('change', '[id^=tags-]', function() {
+    $(document).on('change', '[id^=tags-]', function () {
       const idArg = $(this).attr('id').split('-')[1];
       changeTags(event, idArg, this.value);
     });
 
     // Event handlers for static elements
-    $('#search-term').on('change', function() {
+    $('#search-term').on('change', function () {
       redirectWithSearchTerm(this.value);
     });
 
-    $('#user-filter').on('change', function() {
+    $('#user-filter').on('change', function () {
       let values = $(select2).select2('data');
-      let ids = values.map(function(item) {
+      let ids = values.map(function (item) {
         return item.id;
       });
       redirectWithUserId(ids);
     });
 
-    $('#date-from').on('change', function() {
+    $('#date-from').on('change', function () {
       changeDateFrom(this.value);
     });
 
-    $('#date-to').on('change', function() {
+    $('#date-to').on('change', function () {
       changeDateTo(this.value);
     });
   });
-
 });
-
-
 
 function changeStatus(ticketId, newStatusId, newClass, newLabel) {
   if (newStatusId !== undefined && ticketId) {

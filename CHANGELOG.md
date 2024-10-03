@@ -4,7 +4,7 @@
 
 * [PR-20](https://github.com/ITK-Leantime/project-overview/pull/20)
   * Add empty option for milestone select
-  * Add project column between id and taskname 
+  * Add project column between id and taskname
   * Add multiselect for user filter
 
 ## [2.0.3] - 2024-09-19

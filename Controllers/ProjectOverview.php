@@ -61,7 +61,6 @@ class ProjectOverview extends Controller
 
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
             $userIdArray = explode(',', $_GET['userIds']);
-
         }
 
         if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
