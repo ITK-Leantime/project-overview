@@ -31,9 +31,9 @@ class ProjectOverview
      * getTasks - retrieve tasks based on given parameters
      *
      * @param array<int, string>|null $userIdArray - array of user IDs to filter tasks by, defaults to null
-     * @param string|null $searchTerm - search term to filter tasks by, defaults to null
-     * @param CarbonImmutable $dateFrom - start date to filter tasks by
-     * @param CarbonImmutable $dateTo - end date to filter tasks by
+     * @param string|null             $searchTerm  - search term to filter tasks by, defaults to null
+     * @param CarbonImmutable         $dateFrom    - start date to filter tasks by
+     * @param CarbonImmutable         $dateTo      - end date to filter tasks by
      * @return array<int, string> - array containing the retrieved tasks
      */
     public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
