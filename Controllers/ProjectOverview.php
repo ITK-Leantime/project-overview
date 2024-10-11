@@ -23,9 +23,10 @@ class ProjectOverview extends Controller
 
     /**
      * @param ProjectOverviewService $projectOverviewService
-     * @param TicketService          $ticketService
-     * @param UserService            $userService
-     * @param DateTimeHelper         $dateTimeHelper
+     * @param TicketService $ticketService
+     * @param UserService $userService
+     * @param DateTimeHelper $dateTimeHelper
+     * @param Template $tpl
      * @return void
      */
     public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, DateTimeHelper $dateTimeHelper, Template $tpl): void
