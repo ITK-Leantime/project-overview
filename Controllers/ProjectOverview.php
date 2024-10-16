@@ -3,6 +3,7 @@
 namespace Leantime\Plugins\ProjectOverview\Controllers;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonTimeZone;
 use Leantime\Core\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Domain\Tickets\Services\Tickets as TicketService;
@@ -51,14 +52,17 @@ class ProjectOverview extends Controller
         $dateFromForFilter = CarbonImmutable::now();
         $dateToForFilter = CarbonImmutable::now()->addDays(7);
         $allProjects = $this->projectOverviewService->getAllProjects();
+        $userTimeZone = $this->dateTimeHelper->getTimezone();
 
         if (isset($_GET['dateFrom'])) {
-            $dateFromForFilter = $this->getCarbonImmutable($_GET['dateFrom'], 'start');
+            $dateFromForFilter = $this->getCarbonImmutable($_GET['dateFrom'], 'start', $userTimeZone);
         }
 
         if (isset($_GET['dateTo'])) {
-            $dateToForFilter = $this->getCarbonImmutable($_GET['dateTo'], 'end');
+            $dateToForFilter = $this->getCarbonImmutable($_GET['dateTo'], 'end', $userTimeZone);
         }
+
+        die('<pre>' . print_r($dateFromForFilter, true) . '</pre>');
 
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
             $userIdArray = explode(',', $_GET['userIds']);
@@ -112,25 +116,27 @@ class ProjectOverview extends Controller
         return $this->tpl->display('ProjectOverview.projectOverview');
     }
 
+
     /**
-     * Creates a CarbonImmutable instance based on the input date and time of day.
+     * Creates a CarbonImmutable object based on the input date, time of day, and timezone.
      *
-     * @param string $inputDate Date string
-     * @param string $timeOfDay Time of day indicator ('start' or 'end')
-     * @return CarbonImmutable CarbonImmutable instance
+     * @param string         $inputDate The input date in the format 'd/m/Y'
+     * @param string         $timeOfDay Determines whether to set the time to start or end of the day
+     * @param CarbonTimeZone $timezone  The timezone for the date
+     * @return CarbonImmutable The CarbonImmutable object with the adjusted time
      */
-    private function getCarbonImmutable(string $inputDate, string $timeOfDay)
+    private function getCarbonImmutable(string $inputDate, string $timeOfDay, CarbonTimeZone $timezone)
     {
-        $date = CarbonImmutable::createFromFormat('d/m/Y', $inputDate);
+        $date = CarbonImmutable::createFromFormat('d/m/Y', $inputDate, $timezone);
 
-        if ($timeOfDay == 'start') {
-            return $date->startOfDay();
+        if ($timeOfDay === 'start') {
+            $date = $date->startOfDay();
         }
 
-        if ($timeOfDay == 'end') {
-            return $date->endOfDay();
+        if ($timeOfDay === 'end') {
+            $date = $date->endOfDay();
         }
 
-        return $date;
+        return $date->setTimeZone('UTC');
     }
 }
