@@ -62,8 +62,6 @@ class ProjectOverview extends Controller
             $dateToForFilter = $this->getCarbonImmutable($_GET['dateTo'], 'end', $userTimeZone);
         }
 
-        die('<pre>' . print_r($dateFromForFilter, true) . '</pre>');
-
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
             $userIdArray = explode(',', $_GET['userIds']);
         }
