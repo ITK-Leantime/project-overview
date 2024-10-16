@@ -123,7 +123,7 @@ class ProjectOverview extends Controller
      * @param CarbonTimeZone $timezone  The timezone for the date
      * @return CarbonImmutable The CarbonImmutable object with the adjusted time
      */
-    private function getCarbonImmutable(string $inputDate, string $timeOfDay, CarbonTimeZone $timezone)
+    private function getCarbonImmutable(string $inputDate, string $timeOfDay, CarbonTimeZone $timezone): CarbonImmutable
     {
         $date = CarbonImmutable::createFromFormat('d/m/Y', $inputDate, $timezone);
 
