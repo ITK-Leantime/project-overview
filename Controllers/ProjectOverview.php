@@ -23,10 +23,10 @@ class ProjectOverview extends Controller
 
     /**
      * @param ProjectOverviewService $projectOverviewService
-     * @param TicketService $ticketService
-     * @param UserService $userService
-     * @param DateTimeHelper $dateTimeHelper
-     * @param Template $tpl
+     * @param TicketService          $ticketService
+     * @param UserService            $userService
+     * @param DateTimeHelper         $dateTimeHelper
+     * @param Template               $tpl
      * @return void
      */
     public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, DateTimeHelper $dateTimeHelper, Template $tpl): void
@@ -53,11 +53,11 @@ class ProjectOverview extends Controller
         $allProjects = $this->projectOverviewService->getAllProjects();
 
         if (isset($_GET['dateFrom'])) {
-            $dateFromForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateFrom'], 'start');
+            $dateFromForFilter = $this->getCarbonImmutable($_GET['dateFrom'], 'start');
         }
 
         if (isset($_GET['dateTo'])) {
-            $dateToForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateTo'], 'end');
+            $dateToForFilter = $this->getCarbonImmutable($_GET['dateTo'], 'end');
         }
 
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
@@ -110,5 +110,27 @@ class ProjectOverview extends Controller
         $this->tpl->assign('allTickets', $allTickets);
 
         return $this->tpl->display('ProjectOverview.projectOverview');
+    }
+
+    /**
+     * Creates a CarbonImmutable instance based on the input date and time of day.
+     *
+     * @param string $inputDate Date string
+     * @param string $timeOfDay Time of day indicator ('start' or 'end')
+     * @return CarbonImmutable CarbonImmutable instance
+     */
+    private function getCarbonImmutable(string $inputDate, string $timeOfDay)
+    {
+        $date = CarbonImmutable::createFromFormat('d/m/Y', $inputDate);
+
+        if ($timeOfDay == 'start') {
+            return $date->startOfDay();
+        }
+
+        if ($timeOfDay == 'end') {
+            return $date->endOfDay();
+        }
+
+        return $date;
     }
 }
