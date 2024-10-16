@@ -6,6 +6,8 @@
   * Add empty option for milestone select
   * Add project column between id and taskname
   * Add multiselect for user filter
+* [PR-19](https://github.com/ITK-Leantime/project-overview/pull/19)
+  Fix milestone text color so it is always white when a milestone is chosen, always black when not.
 
 ## [2.0.3] - 2024-09-19
 
