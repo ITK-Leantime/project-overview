@@ -51,9 +51,6 @@ EventDispatcher::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
 
-        $url = '/dist/js/plugin-AllTimesheetsDataExport.js?' . http_build_query(['v' => '%%VERSION%%']);
-        echo '<script src="' . htmlspecialchars($url) . '"></script>';
-
         if (null !== (session('userdata.id')) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/projectOverview')) {
             $jsUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => '%%VERSION%%']);
             echo '<script src="' . htmlspecialchars($jsUrl) . '"></script>';
