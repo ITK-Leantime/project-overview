@@ -164,7 +164,7 @@ class ProjectOverview
      */
     public function getAllProjects(): array
     {
-        $sql = 'SELECT * FROM zp_projects WHERE state != "1" LIMIT 200';
+        $sql = 'SELECT * FROM zp_projects WHERE state != "1" OR state IS NULL LIMIT 200';
 
         $stmn = $this->db->database->prepare($sql);
 
