@@ -15,8 +15,8 @@ class ProjectOverview
      */
     private static array $assets = [
         // source => target
-        __DIR__ . '/../assets/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.v%%VERSION%%.css',
-        __DIR__ . '/../assets/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.v%%VERSION%%.js',
+        __DIR__ . '/../assets/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
+        __DIR__ . '/../dist/js/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.js',
     ];
 
     /** Constructor method for the class.
@@ -66,11 +66,17 @@ class ProjectOverview
     }
 
     /**
-     * @return array<string, mixed>
+     * Get tasks based on the given parameters.
+     *
+     * @param array<int, string>|null $userIdArray An array of user IDs to filter the tasks. Can be null.
+     * @param string|null             $searchTerm  The search term to filter the tasks. Can be null.
+     * @param CarbonImmutable         $dateFrom    The start date to filter the tasks.
+     * @param CarbonImmutable         $dateTo      The end date to filter the tasks.
+     * @return array<int, mixed> An array of tasks based on the given parameters.
      */
-    public function getTasks(?string $userId, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
+    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
-        return $this->projectOverviewRepository->getTasks($userId, $searchTerm, $dateFrom, $dateTo);
+        return $this->projectOverviewRepository->getTasks($userIdArray, $searchTerm, $dateFrom, $dateTo);
     }
 
     /**
@@ -91,5 +97,15 @@ class ProjectOverview
         } else {
             return null;
         }
+    }
+
+    /**
+     * Get all projects.
+     *
+     * @return array<string, mixed> An array containing all projects.
+     */
+    public function getAllProjects(): array
+    {
+        return $this->projectOverviewRepository->getAllProjects();
     }
 }

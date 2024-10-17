@@ -3,6 +3,7 @@
 namespace Leantime\Plugins\ProjectOverview\Controllers;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonTimeZone;
 use Leantime\Core\Controller\Controller;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Domain\Tickets\Services\Tickets as TicketService;
@@ -26,6 +27,7 @@ class ProjectOverview extends Controller
      * @param TicketService          $ticketService
      * @param UserService            $userService
      * @param DateTimeHelper         $dateTimeHelper
+     * @param Template               $tpl
      * @return void
      */
     public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, DateTimeHelper $dateTimeHelper, Template $tpl): void
@@ -45,21 +47,23 @@ class ProjectOverview extends Controller
     public function get(): Response
     {
         // Filters for the sql select
-        $userIdForFilter = null;
+        $userIdArray = [];
         $searchTermForFilter = null;
         $dateFromForFilter = CarbonImmutable::now();
         $dateToForFilter = CarbonImmutable::now()->addDays(7);
+        $allProjects = $this->projectOverviewService->getAllProjects();
+        $userTimeZone = $this->dateTimeHelper->getTimezone();
 
         if (isset($_GET['dateFrom'])) {
-            $dateFromForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateFrom'], 'start');
+            $dateFromForFilter = $this->getCarbonImmutable($_GET['dateFrom'], 'start', $userTimeZone);
         }
 
         if (isset($_GET['dateTo'])) {
-            $dateToForFilter = $this->dateTimeHelper->parseUserDateTime($_GET['dateTo'], 'end');
+            $dateToForFilter = $this->getCarbonImmutable($_GET['dateTo'], 'end', $userTimeZone);
         }
 
-        if (isset($_GET['userId']) && $_GET['userId'] !== '') {
-            $userIdForFilter = $_GET['userId'];
+        if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
+            $userIdArray = explode(',', $_GET['userIds']);
         }
 
         if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
@@ -68,10 +72,10 @@ class ProjectOverview extends Controller
 
         $this->tpl->assign('selectedDateFrom', $dateFromForFilter->toDateString());
         $this->tpl->assign('selectedDateTo', $dateToForFilter->toDateString());
-        $this->tpl->assign('selectedFilterUser', $userIdForFilter);
+        $this->tpl->assign('selectedFilterUser', $userIdArray);
         $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
 
-        $allTickets = $this->projectOverviewService->getTasks($userIdForFilter, $searchTermForFilter, $dateFromForFilter, $dateToForFilter);
+        $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $dateFromForFilter, $dateToForFilter);
 
         // A list of unique projectids
         $projectIds = array_unique(array_column($allTickets, 'projectId'));
@@ -90,7 +94,7 @@ class ProjectOverview extends Controller
         foreach ($allTickets as &$ticket) {
             $ticket['projectUsers'] = $userAndProject[$ticket['projectId']];
             $ticket['projectMilestones'] = $milestonesAndProject[$ticket['projectId']];
-
+            $ticket['projectName'] = $allProjects[$ticket['projectId']]['name'];
             if (isset($ticket['milestoneid'])) {
                 // If the ticket has a milestone, then the color of that milestone is retrieved here.
                 // selectedMilestoneColor is only used for styling
@@ -108,5 +112,29 @@ class ProjectOverview extends Controller
         $this->tpl->assign('allTickets', $allTickets);
 
         return $this->tpl->display('ProjectOverview.projectOverview');
+    }
+
+
+    /**
+     * Creates a CarbonImmutable object based on the input date, time of day, and timezone.
+     *
+     * @param string         $inputDate The input date in the format 'd/m/Y'
+     * @param string         $timeOfDay Determines whether to set the time to start or end of the day
+     * @param CarbonTimeZone $timezone  The timezone for the date
+     * @return CarbonImmutable The CarbonImmutable object with the adjusted time
+     */
+    private function getCarbonImmutable(string $inputDate, string $timeOfDay, CarbonTimeZone $timezone): CarbonImmutable
+    {
+        $date = CarbonImmutable::createFromFormat('d/m/Y', $inputDate, $timezone);
+
+        if ($timeOfDay === 'start') {
+            $date = $date->startOfDay();
+        }
+
+        if ($timeOfDay === 'end') {
+            $date = $date->endOfDay();
+        }
+
+        return $date->setTimeZone('UTC');
     }
 }

@@ -28,11 +28,21 @@ class ProjectOverview
     }
 
     /**
-     * @return array<string, mixed>
+     * getTasks - retrieve tasks based on given parameters
+     *
+     * @param array<int, string>|null $userIdArray - array of user IDs to filter tasks by, defaults to null
+     * @param string|null             $searchTerm  - search term to filter tasks by, defaults to null
+     * @param CarbonImmutable         $dateFrom    - start date to filter tasks by
+     * @param CarbonImmutable         $dateTo      - end date to filter tasks by
+     * @return array<int, string> - array containing the retrieved tasks
      */
-    public function getTasks(?string $userId, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
+    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
     {
-        $userIdQuery = isset($userId) ? ' AND editorId = :userId ' : '';
+        $userIdQuery = '';
+        if (!empty($userIdArray)) {
+            $placeholders = ':' . implode(', :', array_values($userIdArray));
+            $userIdQuery = ' AND editorId IN (' . $placeholders . ') ';
+        }
         $searchTermQuery = isset($searchTerm)
             ? " AND
         ticket.id LIKE CONCAT( '%', :searchTerm, '%') OR
@@ -71,8 +81,10 @@ class ProjectOverview
             'ORDER BY ticket.priority ASC';
         $stmn = $this->db->database->prepare($sql);
 
-        if (isset($userId) && $userId !== '') {
-            $stmn->bindValue(':userId', $userId, PDO::PARAM_INT);
+        if (!empty($userIdArray)) {
+            foreach ($userIdArray as $id) {
+                $stmn->bindValue(':' . $id, $id, PDO::PARAM_INT);
+            }
         }
 
         if (isset($searchTerm) && $searchTerm !== '') {
@@ -142,5 +154,40 @@ class ProjectOverview
         $stmn->closeCursor();
 
         return $values;
+    }
+
+    /**
+     * Get all projects from the database
+     *
+     * @access public
+     * @return array<string, mixed> Returns an array of all projects
+     */
+    public function getAllProjects(): array
+    {
+        $sql = 'SELECT * FROM zp_projects WHERE state != "1" LIMIT 200';
+
+        $stmn = $this->db->database->prepare($sql);
+
+        $stmn->execute();
+        $values = $stmn->fetchAll(PDO::FETCH_ASSOC);
+        $stmn->closeCursor();
+
+        $projects = [];
+
+        foreach ($values as $value) {
+            $id = $value['id'];
+            unset($value[0]); // Remove numeric index
+
+            // Remove all numeric indices
+            foreach ($value as $key => $item) {
+                if (is_numeric($key)) {
+                    unset($value[$key]);
+                }
+            }
+
+            $projects[$id] = $value;
+        }
+
+        return $projects;
     }
 }
