@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.1.1] - 2024-10-17
+
 * [PR-22](https://github.com/ITK-Leantime/project-overview/pull/22)
   * Correctly build assets
 
@@ -92,7 +94,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.1...HEAD
+[2.1.1]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.3...2.1.0
 [2.0.3]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.1...2.0.2
