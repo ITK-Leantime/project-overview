@@ -55,7 +55,7 @@ release_dir=release
 target_dir="$release_dir/$plugin_name"
 mkdir -p "$target_dir"
 
-rsync --verbose --archive --compress --filter=':- .gitignore' --exclude-from "$script_dir/release-exclude.txt" . "$target_dir"
+rsync --verbose --archive --compress --exclude-from "$script_dir/release-exclude.txt" . "$target_dir"
 
 # Replace %%VERSION%% with actual version in build
 find "${target_dir}" -type f -exec sed -i "s/%%VERSION%%/${tag}/g" {} \;

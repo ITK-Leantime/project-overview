@@ -15,7 +15,7 @@ class ProjectOverview
      */
     private static array $assets = [
         // source => target
-        __DIR__ . '/../assets/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
+        __DIR__ . '/../dist/css/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
         __DIR__ . '/../dist/js/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.js',
     ];
 
