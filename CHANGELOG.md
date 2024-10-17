@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-24](https://github.com/ITK-Leantime/project-overview/pull/24)
+  * Fixed issue where not all projects were returned from repo
+
 ## [2.1.1] - 2024-10-17
 
 * [PR-22](https://github.com/ITK-Leantime/project-overview/pull/22)
