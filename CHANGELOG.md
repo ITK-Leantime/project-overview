@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.1.0] - 2024-10-17
+
 * [PR-20](https://github.com/ITK-Leantime/project-overview/pull/20)
   * Add empty option for milestone select
   * Add project column between id and taskname
@@ -87,7 +89,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.3...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.3...2.1.0
 [2.0.3]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/v2.0.0...2.0.1
