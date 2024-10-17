@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-22](https://github.com/ITK-Leantime/project-overview/pull/22)
+  * Correctly build assets
+
 ## [2.1.0] - 2024-10-17
 
 * [PR-20](https://github.com/ITK-Leantime/project-overview/pull/20)
