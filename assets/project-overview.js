@@ -247,6 +247,7 @@ function changeHoursRemaining(event, ticketId, newHoursRemaining) {
 }
 
 function changeMilestone(event, ticketId, newMilestoneId) {
+  const parentElement = jQuery(event.target).closest('td');
   if (newMilestoneId && ticketId) {
     jQuery
       .ajax({
@@ -257,27 +258,11 @@ function changeMilestone(event, ticketId, newMilestoneId) {
           milestoneid: newMilestoneId,
         },
       })
-      .done(() => {
-        // In this way, the UI does not reflect the actual data, which is not good.
-        // But if I instead create a get-request it returns 200 and an otherwise empty
-        // response. So this is what I chose to do, and is also what is done in
-        // in other places (I am looking at you ticketcontroller.js).
-        const parentElement = event.target;
-        const hexColorRegExp = new RegExp('^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$');
-        const newMilestoneColor = jQuery(
-          `#milestone-option-${newMilestoneId}`
-        ).attr('data-color');
-
-        const isItAHexColor = hexColorRegExp.exec(newMilestoneColor);
-        if (isItAHexColor) {
-          jQuery(parentElement).css('background', newMilestoneColor);
-          jQuery('#milestone-select').addClass('milestone-select-white-text');
-        } else {
-          jQuery('#milestone-select').removeClass(
-            'milestone-select-white-text'
-          );
-          jQuery(parentElement).css('background', 'transparent');
-        }
+      .then(() => {
+        saveSuccess(parentElement);
+      })
+      .fail(() => {
+        saveError(parentElement);
       });
   }
 }
