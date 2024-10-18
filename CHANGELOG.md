@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+* [PR-26](https://github.com/ITK-Leantime/project-overview/pull/26)
+  * Fixed broken status and priority selectors
+  * Removed colouring of milestones due to recurring issues with white text on white background
+
 ## [2.1.2] - 2024-10-18
 
 * [PR-24](https://github.com/ITK-Leantime/project-overview/pull/24)
