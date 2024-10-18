@@ -78,8 +78,8 @@
                             <div class="dropdown-menu" id="status-dropdown-menu">
                                 @foreach ($statusLabels[$row['projectId']] as $newStatusId => $label)
                                     <li class="dropdown-item">
-                                        <button class="table-button {!! $label['class'] !!}"
-                                                {{ $row['id'] }}, {{ $newStatusId }}, '{{ $label['class'] }}', '{{ $label['name'] }}'">
+                                        <button class="table-button status {!! $label['class'] !!}"
+                                              data-args="{{ $row['id'] }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
                                         {{ $label['name'] }}
                                         </button>
                                     </li>
@@ -104,8 +104,8 @@
                             <div class="dropdown-menu">
                                 @foreach ($priorities as $newPriorityId => $priorityLabel)
                                     <li class="dropdown-item">
-                                        <button type="button"
-                                                class="table-button priority-bg-{!! $newPriorityId !!}">
+                                        <button type="button" data-args="{{ $row['id'] }},{{ $newPriorityId }},{{ $priorityLabel }}"
+                                                class="table-button priority priority-bg-{!! $newPriorityId !!}">
                                             <div> {{ $priorityLabel }}</div>
                                         </button>
                                     </li>
@@ -114,7 +114,7 @@
                         </div>
                     </td>
                     <td class="specific">
-                        <input type="date" id="due-date-{{ $row['id'] }}" value="{{ date($row['dueDate']) }}" />
+                        <input type="date" data-ticketid="{{ $row['id'] }}" id="due-date-{{ $row['id'] }}" value="{{ date($row['dueDate']) }}" />
                     </td>
                     <td class="spacious">
                         <select class="form-select" id="assigned-user-{{ $row['id'] }}">
