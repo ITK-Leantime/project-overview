@@ -42,14 +42,20 @@ $(document).ready(function () {
       });
 
     // Assign event handlers to dynamic elements
-    $(document).on('click', '.dropdown-item .table-button', function () {
+    $(document).on('click', '.dropdown-item .table-button.status', function () {
       const idArgs = $(this).data('args').split(',');
       changeStatus(idArgs[0], idArgs[1], idArgs[2], idArgs[3]);
     });
 
+    $(document).on('click', '.dropdown-item .table-button.priority', function () {
+      const idArgs = $(this).data('args').split(',');
+      changePriority(idArgs[0], idArgs[1], idArgs[2]);
+    });
+
     $(document).on('change', '[id^=due-date-]', function () {
-      const idArg = $(this).attr('id').split('-')[2];
-      changeDueDate(event, idArg, this.value);
+      const date = $(this).val();
+      const ticketId = $(this).data('ticketid');
+      changeDueDate(event, ticketId, date);
     });
 
     $(document).on('change', '[id^=assigned-user-]', function () {
@@ -94,7 +100,7 @@ $(document).ready(function () {
       changeDateFrom(this.value);
     });
 
-    $('#date-to').on('change', function () {
+    $('#date-to').on('focusout', function () {
       changeDateTo(this.value);
     });
   });
@@ -152,7 +158,7 @@ function changeDueDate(event, ticketId, newDueDate) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (newDueDate && ticketId) {
-    const dueDate = jQuery.datepicker.formatDate(
+    const dueDate = window.jQuery.datepicker.formatDate(
       leantime.dateHelper.getFormatFromSettings('dateformat', 'jquery'),
       new Date(newDueDate)
     );
