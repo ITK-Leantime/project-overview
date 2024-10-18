@@ -47,10 +47,14 @@ $(document).ready(function () {
       changeStatus(idArgs[0], idArgs[1], idArgs[2], idArgs[3]);
     });
 
-    $(document).on('click', '.dropdown-item .table-button.priority', function () {
-      const idArgs = $(this).data('args').split(',');
-      changePriority(idArgs[0], idArgs[1], idArgs[2]);
-    });
+    $(document).on(
+      'click',
+      '.dropdown-item .table-button.priority',
+      function () {
+        const idArgs = $(this).data('args').split(',');
+        changePriority(idArgs[0], idArgs[1], idArgs[2]);
+      }
+    );
 
     $(document).on('change', '[id^=due-date-]', function () {
       const date = $(this).val();
