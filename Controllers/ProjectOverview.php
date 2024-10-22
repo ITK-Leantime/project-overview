@@ -50,15 +50,19 @@ class ProjectOverview extends Controller
         $userIdArray = [];
         $searchTermForFilter = null;
         $dateFromForFilter = CarbonImmutable::now();
+        $dateFromForSelect = CarbonImmutable::now()->addDays(7);
+        $dateToForSelect = CarbonImmutable::now();
         $dateToForFilter = CarbonImmutable::now()->addDays(7);
         $allProjects = $this->projectOverviewService->getAllProjects();
         $userTimeZone = $this->dateTimeHelper->getTimezone();
 
         if (isset($_GET['dateFrom'])) {
+            $dateFromForSelect = CarbonImmutable::createFromFormat('d/m/Y', $_GET['dateFrom']);
             $dateFromForFilter = $this->getCarbonImmutable($_GET['dateFrom'], 'start', $userTimeZone);
         }
 
         if (isset($_GET['dateTo'])) {
+            $dateToForSelect = CarbonImmutable::createFromFormat('d/m/Y', $_GET['dateTo']);
             $dateToForFilter = $this->getCarbonImmutable($_GET['dateTo'], 'end', $userTimeZone);
         }
 
@@ -70,8 +74,8 @@ class ProjectOverview extends Controller
             $searchTermForFilter = $_GET['searchTerm'];
         }
 
-        $this->tpl->assign('selectedDateFrom', $dateFromForFilter->toDateString());
-        $this->tpl->assign('selectedDateTo', $dateToForFilter->toDateString());
+        $this->tpl->assign('selectedDateFrom', $dateFromForSelect->toDateString());
+        $this->tpl->assign('selectedDateTo', $dateToForSelect->toDateString());
         $this->tpl->assign('selectedFilterUser', $userIdArray);
         $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
 
