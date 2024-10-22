@@ -141,14 +141,13 @@
                     <td>
                         @if (count($row['projectMilestones']) > 0)
                             <select id="milestone-select-{{ $row['id'] }}"
-                                    class="form-select {{ isset($row['selectedMilestoneColor']) ? 'milestone-select-white-text' : '' }}"
-                                    @if (!empty($row['selectedMilestoneColor'])) style="background: {{ $row['selectedMilestoneColor'] }}" @endif
+                                    class="form-select"
+
                             >
                                 <option value="-1"></option>
                                 @foreach ($row['projectMilestones'] as $projectMilestone)
                                     <option value={{ $projectMilestone['id'] }}
                                         id="milestone-option-{{ $projectMilestone['id'] }}"
-                                            data-color="{!! $projectMilestone['color'] !!}"
                                         {{ (int) $row['milestoneid'] === (int) $projectMilestone['id'] ? 'selected' : '' }}>
                                         {{ $projectMilestone['headline'] }}
                                     </option>
