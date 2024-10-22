@@ -86,18 +86,6 @@ class ProjectOverview
     {
         return $this->projectOverviewRepository->getMilestonesByProjectId($projectId);
     }
-    /**
-     * @return string|null
-     */
-    public function getSelectedMilestoneColor(string $milestoneId): ?string
-    {
-        $milestone = $this->projectOverviewRepository->getSelectedMilestoneColor($milestoneId);
-        if (is_array($milestone) && count($milestone) > 0) {
-            return $milestone[0]['color'];
-        } else {
-            return null;
-        }
-    }
 
     /**
      * Get all projects.
