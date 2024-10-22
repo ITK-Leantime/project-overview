@@ -130,32 +130,6 @@ class ProjectOverview
         return $values;
     }
 
- /**
-     * @return array<array<string, string>>
-     */
-    public function getSelectedMilestoneColor(string $milestoneId)
-    {
-        $sql = 'SELECT
-        -- I dont know if this is considered bad practice, but renaming tags
-        -- makes the code more understandable in the rest of the module
-        ticket.tags AS color
-        FROM
-        zp_tickets AS ticket
-        WHERE ticket.id = :milestoneId';
-
-        $stmn = $this->db->database->prepare($sql);
-
-        if ($milestoneId != '') {
-            $stmn->bindValue(':milestoneId', $milestoneId, PDO::PARAM_INT);
-        }
-
-        $stmn->execute();
-        $values = $stmn->fetchAll();
-        $stmn->closeCursor();
-
-        return $values;
-    }
-
     /**
      * Get all projects from the database
      *
