@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.1.3] - 2024-10-22
+
 * [PR-26](https://github.com/ITK-Leantime/project-overview/pull/26)
   * Fixed broken status and priority selectors
   * Removed colouring of milestones due to recurring issues with white text on white background
@@ -103,7 +105,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.2...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.3...HEAD
+[2.1.3]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.2...2.1.3
 [2.1.2]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.1...2.1.2
 [2.1.1]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.0...2.1.1
 [2.1.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.3...2.1.0
