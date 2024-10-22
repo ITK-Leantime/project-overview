@@ -99,11 +99,6 @@ class ProjectOverview extends Controller
             $ticket['projectUsers'] = $userAndProject[$ticket['projectId']];
             $ticket['projectMilestones'] = $milestonesAndProject[$ticket['projectId']];
             $ticket['projectName'] = $allProjects[$ticket['projectId']]['name'];
-            if (isset($ticket['milestoneid'])) {
-                // If the ticket has a milestone, then the color of that milestone is retrieved here.
-                // selectedMilestoneColor is only used for styling
-                $ticket['selectedMilestoneColor'] = $this->projectOverviewService->getSelectedMilestoneColor($ticket['milestoneid']);
-            }
         }
 
         // The two below gets hardcoded labels from the ticket repo.
