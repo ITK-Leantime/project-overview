@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-28](https://github.com/ITK-Leantime/project-overview/pull/28)
+  * Remove last trace of milestone coloring
+
 ## [2.1.3] - 2024-10-22
 
 * [PR-26](https://github.com/ITK-Leantime/project-overview/pull/26)
