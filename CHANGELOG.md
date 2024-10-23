@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-30](https://github.com/ITK-Leantime/project-overview/pull/30)
+  * Fix search while user filter is active
+
 ## [2.1.4] - 2024-10-22
 
 * [PR-28](https://github.com/ITK-Leantime/project-overview/pull/28)

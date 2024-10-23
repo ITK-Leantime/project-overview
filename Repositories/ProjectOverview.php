@@ -45,9 +45,9 @@ class ProjectOverview
         }
         $searchTermQuery = isset($searchTerm)
             ? " AND
-        ticket.id LIKE CONCAT( '%', :searchTerm, '%') OR
+        (ticket.id LIKE CONCAT( '%', :searchTerm, '%') OR
         ticket.tags LIKE CONCAT( '%', :searchTerm, '%') OR
-        ticket.headline LIKE CONCAT( '%', :searchTerm, '%') "
+        ticket.headline LIKE CONCAT( '%', :searchTerm, '%')) "
             : '';
 
         $sql =
