@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.1.5] - 2024-10-23
+
 * [PR-30](https://github.com/ITK-Leantime/project-overview/pull/30)
   * Fix search while user filter is active
 
@@ -113,7 +115,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.4...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.5...HEAD
+[2.1.5]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.4...2.1.5
 [2.1.4]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.3...2.1.4
 [2.1.3]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.2...2.1.3
 [2.1.2]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.1...2.1.2
