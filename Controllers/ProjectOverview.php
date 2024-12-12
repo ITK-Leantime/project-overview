@@ -10,7 +10,7 @@ use Leantime\Domain\Tickets\Services\Tickets as TicketService;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Core\Support\DateTimeHelper;
-use Leantime\Core\Template;
+use Leantime\Core\UI\Template;
 
 /**
  * ProjectOverview
