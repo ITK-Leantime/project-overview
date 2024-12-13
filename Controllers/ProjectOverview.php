@@ -5,6 +5,11 @@ namespace Leantime\Plugins\ProjectOverview\Controllers;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonTimeZone;
 use Leantime\Core\Controller\Controller;
+use Leantime\Core\Controller\Frontcontroller;
+use Leantime\Domain\Auth\Models\Roles;
+use Leantime\Domain\Auth\Services\Auth as AuthService;
+use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
+use Leantime\Plugins\TimeTable\Helpers\TimeTableActionHandler;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Domain\Tickets\Services\Tickets as TicketService;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
@@ -40,6 +45,35 @@ class ProjectOverview extends Controller
     }
 
     /**
+     * @return Response
+     * @throws \Exception
+     */
+    public function post(): Response
+    {
+        if (!AuthService::userIsAtLeast(Roles::$editor)) {
+            return $this->tpl->displayJson(['Error' => 'Not Authorized'], 403);
+        }
+        $redirectUrl = BASE_URL . '/ProjectOverview/projectOverview';
+
+        $actionHandler = new ProjectOverviewActionHandler();
+
+        if (isset($_POST['action'])) {
+            if ($_POST['action'] == 'adjustPeriod') {
+                $redirectUrl = $actionHandler->adjustPeriod($_POST, $redirectUrl);
+            }
+        }
+
+        if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
+            $queryParams = explode(',', $_GET['userIds']);
+        }
+
+        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
+            $queryParams = $_GET['searchTerm'];
+        }
+
+        return Frontcontroller::redirect($redirectUrl);
+    }
+    /**
      * Gathers data and feeds it to the template.
      *
      * @return Response
@@ -49,14 +83,55 @@ class ProjectOverview extends Controller
         // Filters for the sql select
         $userIdArray = [];
         $searchTermForFilter = null;
-        $dateFromForFilter = CarbonImmutable::now();
+        /*$dateFromForFilter = CarbonImmutable::now();
         $dateFromForSelect = CarbonImmutable::now();
         $dateToForSelect = CarbonImmutable::now()->addDays(7);
-        $dateToForFilter = CarbonImmutable::now()->addDays(7);
+        $dateToForFilter = CarbonImmutable::now()->addDays(7);*/
         $allProjects = $this->projectOverviewService->getAllProjects();
         $userTimeZone = $this->dateTimeHelper->getTimezone();
 
-        if (isset($_GET['dateFrom'])) {
+        try {
+            if (isset($_GET['fromDate']) && $_GET['fromDate'] !== '') {
+                if ($_GET['fromDate'][0] === '+' || $_GET['fromDate'][0] === '-') {
+                    // If relative date format
+
+                    $fromDate = CarbonImmutable::now()->startOfDay()->modify($_GET['fromDate']);
+                } else {
+                    // Try specific date format
+                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['fromDate'])->startOfDay();
+                    if ($fromDate === false) {
+                        // If 'Y-m-d' format fails, try 'd/m/Y' format
+                        $fromDate = CarbonImmutable::createFromFormat('d/m/Y', $_GET['fromDate'])->startOfDay();
+                    }
+                }
+            } else {
+                // Default to start of current week
+                $fromDate = CarbonImmutable::now()->startOfWeek()->startOfDay();
+            }
+
+            if (isset($_GET['toDate']) && $_GET['toDate'] !== '') {
+                if ($_GET['toDate'][0] === '+' || $_GET['toDate'][0] === '-') {
+                    // If relative date format
+
+                    $toDate = CarbonImmutable::now()->endOfDay()->modify($_GET['toDate']);
+                } else {
+                    // Try specific date format
+                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['toDate'])->endOfDay();
+                    if ($toDate === false) {
+                        // If 'Y-m-d' format fails, try 'd/m/Y' format
+                        $toDate = CarbonImmutable::createFromFormat('d/m/Y', $_GET['toDate'])->endOfDay();
+                    }
+                }
+            } else {
+                // Default to end of current week
+                $toDate = CarbonImmutable::now()->endOfWeek()->endOfDay();
+            }
+        } catch (InvalidArgumentException $e) {
+            // Handle exception
+            echo 'Invalid Date: ' . $e->getMessage();
+        }
+
+ /*       if (isset($_GET['dateFrom'])) {
             $dateFromForSelect = CarbonImmutable::createFromFormat('d/m/Y', $_GET['dateFrom']);
             $dateFromForFilter = $this->getCarbonImmutable($_GET['dateFrom'], 'start', $userTimeZone);
         }
@@ -64,7 +139,7 @@ class ProjectOverview extends Controller
         if (isset($_GET['dateTo'])) {
             $dateToForSelect = CarbonImmutable::createFromFormat('d/m/Y', $_GET['dateTo']);
             $dateToForFilter = $this->getCarbonImmutable($_GET['dateTo'], 'end', $userTimeZone);
-        }
+        }*/
 
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
             $userIdArray = explode(',', $_GET['userIds']);
@@ -74,12 +149,14 @@ class ProjectOverview extends Controller
             $searchTermForFilter = $_GET['searchTerm'];
         }
 
-        $this->tpl->assign('selectedDateFrom', $dateFromForSelect->toDateString());
-        $this->tpl->assign('selectedDateTo', $dateToForSelect->toDateString());
+        /*$this->tpl->assign('selectedDateFrom', $dateFromForSelect->toDateString());
+        $this->tpl->assign('selectedDateTo', $dateToForSelect->toDateString());*/
+        $this->tpl->assign('fromDate', $fromDate);
+        $this->tpl->assign('toDate', $toDate);
         $this->tpl->assign('selectedFilterUser', $userIdArray);
         $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
 
-        $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $dateFromForFilter, $dateToForFilter);
+        $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate);
 
         // A list of unique projectids
         $projectIds = array_unique(array_column($allTickets, 'projectId'));
@@ -101,6 +178,8 @@ class ProjectOverview extends Controller
             $ticket['projectName'] = $allProjects[$ticket['projectId']]['name'];
         }
 
+        $this->tpl->assign('fromDate', $fromDate);
+        $this->tpl->assign('toDate', $toDate);
         // The two below gets hardcoded labels from the ticket repo.
         $this->tpl->assign('priorities', $this->ticketService->getPriorityLabels());
         $this->tpl->assign('statusLabels', $projectTicketStatuses);
