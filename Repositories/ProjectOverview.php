@@ -3,6 +3,7 @@
 namespace Leantime\Plugins\ProjectOverview\Repositories;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Leantime\Core\Db\Db as DbCore;
 use PDO;
 
@@ -32,11 +33,11 @@ class ProjectOverview
      *
      * @param array<int, string>|null $userIdArray - array of user IDs to filter tasks by, defaults to null
      * @param string|null             $searchTerm  - search term to filter tasks by, defaults to null
-     * @param CarbonImmutable         $dateFrom    - start date to filter tasks by
-     * @param CarbonImmutable         $dateTo      - end date to filter tasks by
+     * @param CarbonInterface         $dateFrom    - start date to filter tasks by
+     * @param CarbonInterface         $dateTo      - end date to filter tasks by
      * @return array<int, string> - array containing the retrieved tasks
      */
-    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
+    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonInterface $dateFrom, CarbonInterface $dateTo): array
     {
         $userIdQuery = '';
         if (!empty($userIdArray)) {
