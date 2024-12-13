@@ -3,6 +3,7 @@
 namespace Leantime\Plugins\ProjectOverview\Services;
 
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
 
 /**
@@ -70,11 +71,11 @@ class ProjectOverview
      *
      * @param array<int, string>|null $userIdArray An array of user IDs to filter the tasks. Can be null.
      * @param string|null             $searchTerm  The search term to filter the tasks. Can be null.
-     * @param CarbonImmutable         $dateFrom    The start date to filter the tasks.
-     * @param CarbonImmutable         $dateTo      The end date to filter the tasks.
+     * @param CarbonInterface         $dateFrom    The start date to filter the tasks.
+     * @param CarbonInterface         $dateTo      The end date to filter the tasks.
      * @return array<int, mixed> An array of tasks based on the given parameters.
      */
-    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonImmutable $dateFrom, CarbonImmutable $dateTo): array
+    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonInterface $dateFrom, CarbonInterface $dateTo): array
     {
         return $this->projectOverviewRepository->getTasks($userIdArray, $searchTerm, $dateFrom, $dateTo);
     }
