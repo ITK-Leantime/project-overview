@@ -12,7 +12,7 @@
             <form method="POST">
                 <input type="hidden" name="action" value="adjustPeriod">
                 <div class="date-range-filter">
-                    <label>{{ __('projectOverview.search_label') }}</label>
+                    <label>{{ __('projectOverview.date_label') }}</label>
                     <input type="text" name="dateRange" id="dateRange"
                            value="{{ $fromDate->format('d-m-Y') }} til {{ $toDate->format('d-m-Y') }}">
                 </div>
