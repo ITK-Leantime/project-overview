@@ -50,8 +50,8 @@ class ProjectOverview extends Controller
         $userIdArray = [];
         $searchTermForFilter = null;
         $dateFromForFilter = CarbonImmutable::now();
-        $dateFromForSelect = CarbonImmutable::now()->addDays(7);
-        $dateToForSelect = CarbonImmutable::now();
+        $dateFromForSelect = CarbonImmutable::now();
+        $dateToForSelect = CarbonImmutable::now()->addDays(7);
         $dateToForFilter = CarbonImmutable::now()->addDays(7);
         $allProjects = $this->projectOverviewService->getAllProjects();
         $userTimeZone = $this->dateTimeHelper->getTimezone();
