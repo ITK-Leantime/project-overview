@@ -4,6 +4,9 @@
 
 ## [2.1.5] - 2024-10-23
 
+* [PR-32](https://github.com/ITK-Leantime/project-overview/pull/32)
+  * Added compatability for Leantime 3.3x
+
 * [PR-30](https://github.com/ITK-Leantime/project-overview/pull/30)
   * Fix search while user filter is active
 
