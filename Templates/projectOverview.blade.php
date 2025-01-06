@@ -9,35 +9,39 @@
     </div>
     <div class="project-overview-container">
         <div class="search-and-filter">
-            <div class="input-group">
-                <div>
-                    <i class="fa fa-search"></i>
-                    <div class="input-group-prepend"></div>
-                    <label>{{ __('projectOverview.search_label') }}</label>
-                    <input value="{!! $currentSearchTerm !!}" type="text" class="form-control"
-                           placeholder="{{ __('projectOverview.empty_search_label') }}" id="search-term" aria-describedby="basic-addon1">
+            <form method="POST">
+                <input type="hidden" name="action" value="adjustPeriod">
+                <div class="date-range-filter">
+                    <label>{{ __('projectOverview.date_label') }}</label>
+                    <input type="text" name="dateRange" id="dateRange"
+                           value="{{ $fromDate->format('d-m-Y') }} til {{ $toDate->format('d-m-Y') }}">
                 </div>
-            </div>
-            <div>
-                <label>{{ __('projectOverview.filter_user_label') }}</label>
+                <div class="employee-and-search-filter">
+                    <div>
+                        <label>{{ __('projectOverview.filter_user_label') }}</label>
 
-                <select class="form-select project-overview-assignee-select" id="user-filter" multiple="multiple">
-                    @foreach ($allUsers as $user)
-                        <option value={{ $user['id'] }} {{ ($selectedFilterUser !== null && in_array($user['id'], $selectedFilterUser)) ? 'selected' : '' }}>
-                            {{ $user['firstname'] }}
-                            {{ $user['lastname'] }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="margin-left">
-                <label>{{ __('projectOverview.from_label') }}</label>
-                <input type="date" class="form-control" id="date-from" value="{{ $selectedDateFrom }}" />
-            </div>
-            <div class="margin-left">
-                <label>{{ __('projectOverview.to_label') }}</label>
-                <input type="date" id="date-to" value="{{ $selectedDateTo }}" />
-            </div>
+                        <select class="form-select project-overview-assignee-select" id="user-filter" multiple="multiple">
+                            @foreach ($allUsers as $user)
+                                <option
+                                    value={{ $user['id'] }} {{ ($selectedFilterUser !== null && in_array($user['id'], $selectedFilterUser)) ? 'selected' : '' }}>
+                                    {{ $user['firstname'] }}
+                                    {{ $user['lastname'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="margin-left">
+                        <div class="input-group">
+                            <i class="fa fa-search"></i>
+                            <div class="input-group-prepend"></div>
+                            <label>{{ __('projectOverview.search_label') }}</label>
+                            <input value="{!! $currentSearchTerm !!}" type="text" class="form-control"
+                                   placeholder="{{ __('projectOverview.empty_search_label') }}" id="search-term"
+                                   aria-describedby="basic-addon1">
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
         <table class="table table-striped">
             <thead>
@@ -65,22 +69,26 @@
                             {{ $row['headline'] }}
                         </a>
                         @if (isset($row['dependingTicketId']) && $row['dependingTicketId'] > 0)
-                            (<a href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">{{ $row['parentHeadline'] }}</a>)
+                            (
+                            <a href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">{{ $row['parentHeadline'] }}</a>
+                            )
                         @endif
                     </td>
                     <td>
                         <div class="btn-group">
                             <button type="button" id="status-ticket-{{ $row['id'] }}"
-                                    class="table-button {!! $statusLabels[$row['projectId']][$row['status']]['class'] ?? '' !!}" data-toggle="dropdown">
-                                <span id="status-label">{!! $statusLabels[$row['projectId']][$row['status']]['name'] !!} </span>
+                                    class="table-button {!! $statusLabels[$row['projectId']][$row['status']]['class'] ?? '' !!}"
+                                    data-toggle="dropdown">
+                                <span
+                                    id="status-label">{!! $statusLabels[$row['projectId']][$row['status']]['name'] !!} </span>
                                 <i class="fa fa-caret-down"></i>
                             </button>
                             <div class="dropdown-menu" id="status-dropdown-menu">
                                 @foreach ($statusLabels[$row['projectId']] as $newStatusId => $label)
                                     <li class="dropdown-item">
                                         <button class="table-button status {!! $label['class'] !!}"
-                                              data-args="{{ $row['id'] }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
-                                        {{ $label['name'] }}
+                                                data-args="{{ $row['id'] }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
+                                            {{ $label['name'] }}
                                         </button>
                                     </li>
                                 @endforeach
@@ -104,7 +112,8 @@
                             <div class="dropdown-menu">
                                 @foreach ($priorities as $newPriorityId => $priorityLabel)
                                     <li class="dropdown-item">
-                                        <button type="button" data-args="{{ $row['id'] }},{{ $newPriorityId }},{{ $priorityLabel }}"
+                                        <button type="button"
+                                                data-args="{{ $row['id'] }},{{ $newPriorityId }},{{ $priorityLabel }}"
                                                 class="table-button priority priority-bg-{!! $newPriorityId !!}">
                                             <div> {{ $priorityLabel }}</div>
                                         </button>
@@ -114,7 +123,8 @@
                         </div>
                     </td>
                     <td class="specific">
-                        <input type="date" data-ticketid="{{ $row['id'] }}" id="due-date-{{ $row['id'] }}" value="{{ date($row['dueDate']) }}" />
+                        <input type="date" data-ticketid="{{ $row['id'] }}" id="due-date-{{ $row['id'] }}"
+                               value="{{ date($row['dueDate']) }}"/>
                     </td>
                     <td class="spacious">
                         <select class="form-select" id="assigned-user-{{ $row['id'] }}">
@@ -130,12 +140,14 @@
                     </td>
                     <td class="confined">
                         <div class="input-group input-group-sm mb-3">
-                            <input type="number" id="plan-hours-{{ $row['id'] }}" class="form-control" value="{{ $row['planHours'] }}">
+                            <input type="number" id="plan-hours-{{ $row['id'] }}" class="form-control"
+                                   value="{{ $row['planHours'] }}">
                         </div>
                     </td>
                     <td class="confined">
                         <div class="input-group input-group-sm mb-3">
-                            <input type="number" id="remaining-hours-{{ $row['id'] }}" class="form-control" value="{{ $row['hourRemaining'] }}">
+                            <input type="number" id="remaining-hours-{{ $row['id'] }}" class="form-control"
+                                   value="{{ $row['hourRemaining'] }}">
                         </div>
                     </td>
                     <td>
@@ -160,7 +172,8 @@
                     </td>
                     <td class="spacious">
                         <div class="input-group input-group-sm mb-3">
-                            <input type="text" id="tags-{{ $row['id'] }}" class="form-control" value="{{ $row['tags'] }}">
+                            <input type="text" id="tags-{{ $row['id'] }}" class="form-control"
+                                   value="{{ $row['tags'] }}">
                         </div>
                     </td>
                 </tr>
@@ -170,5 +183,6 @@
             @endif
             </tbody>
         </table>
+
     </div>
 @endsection

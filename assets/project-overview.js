@@ -1,7 +1,24 @@
 import 'select2';
 import 'select2/dist/css/select2.css';
+import flatpickr from 'flatpickr';
+import { Danish } from 'flatpickr/dist/l10n/da.js';
+import 'flatpickr/dist/flatpickr.min.css';
 
 $(document).ready(function () {
+  flatpickr('#dateRange', {
+    mode: 'range',
+    dateFormat: 'd-m-Y',
+    allowInput: false,
+    readonly: false,
+    weekNumbers: true,
+    locale: Danish,
+    onChange: function (selectedDates, dateStr, instance) {
+      if (selectedDates && selectedDates.length === 2) {
+        instance.element.form.submit();
+      }
+    },
+  });
+
   $.fn.select2.amd.require(['select2/selection/search'], function (Search) {
     const oldRemoveChoice = Search.prototype.searchRemoveChoice;
 

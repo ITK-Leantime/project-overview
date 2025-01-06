@@ -72,6 +72,28 @@
     display: flex;
     width: 100%;
 
+    form {
+      display: flex;
+      width: 100%;
+
+      .date-range-filter {
+        margin-right: auto;
+
+        #dateRange {
+          margin: auto 0;
+          border-radius: 0;
+          opacity: 1;
+          border: 1px solid var(--main-border-color);
+          text-align: center;
+        }
+      }
+
+      .employee-and-search-filter {
+        display: flex;
+        flex-direction: row;
+      }
+    }
+
     select,
     input {
       border-radius: 3px;
@@ -99,7 +121,7 @@
       i {
         position: absolute;
         right: 15px;
-        top: 35px;
+        top: 45px;
         color: var(--main-border-color);
       }
     }
