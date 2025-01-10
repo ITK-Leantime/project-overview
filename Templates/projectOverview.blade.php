@@ -11,25 +11,27 @@
         <div class="search-and-filter">
             <form method="POST">
                 <input type="hidden" name="action" value="adjustPeriod">
+
+                <div>
+                    <label>{{ __('projectOverview.filter_user_label') }}</label>
+
+                    <select class="form-select project-overview-assignee-select" id="user-filter" multiple="multiple">
+                        @foreach ($allUsers as $user)
+                            <option
+                                value={{ $user['id'] }} {{ ($selectedFilterUser !== null && in_array($user['id'], $selectedFilterUser)) ? 'selected' : '' }}>
+                                {{ $user['firstname'] }}
+                                {{ $user['lastname'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="date-range-filter">
                     <label>{{ __('projectOverview.date_label') }}</label>
                     <input type="text" name="dateRange" id="dateRange"
                            value="{{ $fromDate->format('d-m-Y') }} til {{ $toDate->format('d-m-Y') }}">
                 </div>
                 <div class="employee-and-search-filter">
-                    <div>
-                        <label>{{ __('projectOverview.filter_user_label') }}</label>
 
-                        <select class="form-select project-overview-assignee-select" id="user-filter" multiple="multiple">
-                            @foreach ($allUsers as $user)
-                                <option
-                                    value={{ $user['id'] }} {{ ($selectedFilterUser !== null && in_array($user['id'], $selectedFilterUser)) ? 'selected' : '' }}>
-                                    {{ $user['firstname'] }}
-                                    {{ $user['lastname'] }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
                     <div class="margin-left">
                         <div class="input-group">
                             <i class="fa fa-search"></i>

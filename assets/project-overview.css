@@ -77,10 +77,10 @@
       width: 100%;
 
       .date-range-filter {
-        margin-right: auto;
+        margin-left: 10px;
 
         #dateRange {
-          margin: auto 0;
+          margin: 3px 0;
           border-radius: 0;
           opacity: 1;
           border: 1px solid var(--main-border-color);
@@ -91,6 +91,7 @@
       .employee-and-search-filter {
         display: flex;
         flex-direction: row;
+          margin-left: auto;
       }
     }
 
@@ -121,7 +122,7 @@
       i {
         position: absolute;
         right: 15px;
-        top: 45px;
+        top: 47px;
         color: var(--main-border-color);
       }
     }
