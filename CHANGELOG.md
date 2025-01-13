@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-34](https://github.com/ITK-Leantime/project-overview/pull/34)
+  * Reordered filters
+
 ## [2.2.0] - 2025-01-06
 
 * [PR-32](https://github.com/ITK-Leantime/project-overview/pull/32)
