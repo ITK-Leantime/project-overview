@@ -62,14 +62,6 @@ class ProjectOverview extends Controller
             }
         }
 
-        if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
-            $queryParams = explode(',', $_GET['userIds']);
-        }
-
-        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
-            $queryParams = $_GET['searchTerm'];
-        }
-
         return Frontcontroller::redirect($redirectUrl);
     }
     /**
@@ -79,66 +71,46 @@ class ProjectOverview extends Controller
      */
     public function get(): Response
     {
-        // Filters for the sql select
         $userIdArray = [];
         $searchTermForFilter = null;
-        /*$dateFromForFilter = CarbonImmutable::now();
-        $dateFromForSelect = CarbonImmutable::now();
-        $dateToForSelect = CarbonImmutable::now()->addDays(7);
-        $dateToForFilter = CarbonImmutable::now()->addDays(7);*/
         $allProjects = $this->projectOverviewService->getAllProjects();
-        $userTimeZone = $this->dateTimeHelper->getTimezone();
 
         try {
             if (isset($_GET['fromDate']) && $_GET['fromDate'] !== '') {
                 if ($_GET['fromDate'][0] === '+' || $_GET['fromDate'][0] === '-') {
-                    // If relative date format
-
                     $fromDate = CarbonImmutable::now()->startOfDay()->modify($_GET['fromDate']);
                 } else {
-                    // Try specific date format
-                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['fromDate'])->startOfDay();
-                    if ($fromDate === false) {
-                        // If 'Y-m-d' format fails, try 'd/m/Y' format
-                        $fromDate = CarbonImmutable::createFromFormat('d/m/Y', $_GET['fromDate'])->startOfDay();
+                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['fromDate']);
+                    if ($fromDate !== false) {
+                        $fromDate = $fromDate->startOfDay();
+                    } else {
+                        $fromDate = CarbonImmutable::createFromFormat('d/m/Y', $_GET['fromDate']);
+                        $fromDate = $fromDate !== false ? $fromDate->startOfDay() : CarbonImmutable::now()->startOfWeek()->startOfDay();
                     }
                 }
             } else {
-                // Default to start of current week
                 $fromDate = CarbonImmutable::now()->startOfWeek()->startOfDay();
             }
 
             if (isset($_GET['toDate']) && $_GET['toDate'] !== '') {
                 if ($_GET['toDate'][0] === '+' || $_GET['toDate'][0] === '-') {
-                    // If relative date format
-
-                    $toDate = CarbonImmutable::now()->endOfDay()->modify($_GET['toDate']);
+                    $toDate = CarbonImmutable::now()->startOfDay()->modify($_GET['toDate']);
                 } else {
-                    // Try specific date format
-                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['toDate'])->endOfDay();
-                    if ($toDate === false) {
-                        // If 'Y-m-d' format fails, try 'd/m/Y' format
-                        $toDate = CarbonImmutable::createFromFormat('d/m/Y', $_GET['toDate'])->endOfDay();
+                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['toDate']);
+                    if ($toDate !== false) {
+                        $toDate = $toDate->endOfDay();
+                    } else {
+                        $toDate = CarbonImmutable::createFromFormat('d/m/Y', $_GET['toDate']);
+                        $toDate = $toDate !== false ? $toDate->endOfDay() : CarbonImmutable::now()->endOfWeek()->endOfDay();
                     }
                 }
             } else {
-                // Default to end of current week
                 $toDate = CarbonImmutable::now()->endOfWeek()->endOfDay();
             }
-        } catch (InvalidArgumentException $e) {
-            // Handle exception
-            echo 'Invalid Date: ' . $e->getMessage();
+        } catch (\Exception $e) {
+            $fromDate = CarbonImmutable::now()->startOfWeek()->startOfDay();
+            $toDate = CarbonImmutable::now()->endOfWeek()->endOfDay();
         }
-
- /*       if (isset($_GET['dateFrom'])) {
-            $dateFromForSelect = CarbonImmutable::createFromFormat('d/m/Y', $_GET['dateFrom']);
-            $dateFromForFilter = $this->getCarbonImmutable($_GET['dateFrom'], 'start', $userTimeZone);
-        }
-
-        if (isset($_GET['dateTo'])) {
-            $dateToForSelect = CarbonImmutable::createFromFormat('d/m/Y', $_GET['dateTo']);
-            $dateToForFilter = $this->getCarbonImmutable($_GET['dateTo'], 'end', $userTimeZone);
-        }*/
 
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
             $userIdArray = explode(',', $_GET['userIds']);
@@ -148,8 +120,6 @@ class ProjectOverview extends Controller
             $searchTermForFilter = $_GET['searchTerm'];
         }
 
-        /*$this->tpl->assign('selectedDateFrom', $dateFromForSelect->toDateString());
-        $this->tpl->assign('selectedDateTo', $dateToForSelect->toDateString());*/
         $this->tpl->assign('fromDate', $fromDate);
         $this->tpl->assign('toDate', $toDate);
         $this->tpl->assign('selectedFilterUser', $userIdArray);
@@ -189,29 +159,5 @@ class ProjectOverview extends Controller
         $this->tpl->assign('allTickets', $allTickets);
 
         return $this->tpl->display('ProjectOverview.projectOverview');
-    }
-
-
-    /**
-     * Creates a CarbonImmutable object based on the input date, time of day, and timezone.
-     *
-     * @param string         $inputDate The input date in the format 'd/m/Y'
-     * @param string         $timeOfDay Determines whether to set the time to start or end of the day
-     * @param CarbonTimeZone $timezone  The timezone for the date
-     * @return CarbonImmutable The CarbonImmutable object with the adjusted time
-     */
-    private function getCarbonImmutable(string $inputDate, string $timeOfDay, CarbonTimeZone $timezone): CarbonImmutable
-    {
-        $date = CarbonImmutable::createFromFormat('d/m/Y', $inputDate, $timezone);
-
-        if ($timeOfDay === 'start') {
-            $date = $date->startOfDay();
-        }
-
-        if ($timeOfDay === 'end') {
-            $date = $date->endOfDay();
-        }
-
-        return $date->setTimeZone('UTC');
     }
 }
