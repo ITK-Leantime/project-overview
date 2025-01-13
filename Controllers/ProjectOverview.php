@@ -9,7 +9,6 @@ use Leantime\Core\Controller\Frontcontroller;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth as AuthService;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
-use Leantime\Plugins\TimeTable\Helpers\TimeTableActionHandler;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Domain\Tickets\Services\Tickets as TicketService;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
