@@ -65,7 +65,8 @@ docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck sh
 ### Code analysis
 
 ```shell name=code-analysis
-docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer code-analysis
+# This analysis takes a bit more than the default allocated ram.
+docker run --interactive --rm --volume ${PWD}:/app PHP_MEMORY_LIMIT=256M itkdev/php8.3-fpm:latest composer code-analysis
 ```
 
 ## Test release build
