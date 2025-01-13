@@ -3,7 +3,6 @@
 namespace Leantime\Plugins\ProjectOverview\Controllers;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonTimeZone;
 use Leantime\Core\Controller\Controller;
 use Leantime\Core\Controller\Frontcontroller;
 use Leantime\Domain\Auth\Models\Roles;
@@ -13,7 +12,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Leantime\Domain\Tickets\Services\Tickets as TicketService;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 use Leantime\Domain\Users\Services\Users as UserService;
-use Leantime\Core\Support\DateTimeHelper;
 use Leantime\Core\UI\Template;
 
 /**
@@ -24,22 +22,19 @@ class ProjectOverview extends Controller
     private ProjectOverviewService $projectOverviewService;
     private TicketService $ticketService;
     private UserService $userService;
-    private DateTimeHelper $dateTimeHelper;
 
     /**
      * @param ProjectOverviewService $projectOverviewService
      * @param TicketService          $ticketService
      * @param UserService            $userService
-     * @param DateTimeHelper         $dateTimeHelper
      * @param Template               $tpl
      * @return void
      */
-    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, DateTimeHelper $dateTimeHelper, Template $tpl): void
+    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, Template $tpl): void
     {
         $this->projectOverviewService = $projectOverviewService;
         $this->ticketService = $ticketService;
         $this->userService = $userService;
-        $this->dateTimeHelper = $dateTimeHelper;
         $this->tpl = $tpl;
     }
 
