@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [2.3.0] - 2025-01-14
+
 * [PR-36](https://github.com/ITK-Leantime/project-overview/pull/36)
   * Added sort by column
 
@@ -128,7 +130,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.2.1...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.3.0...HEAD
+[2.3.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.2.1...2.3.0
 [2.2.1]: https://github.com/olivierlacan/keep-a-changelog/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.5...2.2.0
 [2.1.5]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.4...2.1.5
