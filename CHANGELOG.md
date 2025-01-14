@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-36](https://github.com/ITK-Leantime/project-overview/pull/36)
+  * Added sort by column
+
 ## [2.2.1] - 2025-01-14
 
 * [PR-34](https://github.com/ITK-Leantime/project-overview/pull/34)

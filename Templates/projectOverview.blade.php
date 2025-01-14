@@ -45,20 +45,20 @@
                 </div>
             </form>
         </div>
-        <table class="table table-striped">
+        <table id="sortable-table" class="table table-striped">
             <thead>
             <tr>
-                <th scope="col">{{ __('projectOverview.id_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.project_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.todo_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.status_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.priority_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.due_date_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.todo_assigned_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.todo_planned_hours_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.todo_remaining_hours_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.todo_milestone_table_header') }}</th>
-                <th scope="col">{{ __('projectOverview.todo_tags_table_header') }}</th>
+                <th data-sort="number" scope="col">{{ __('projectOverview.id_table_header') }}</th>
+                <th data-sort="string" scope="col">{{ __('projectOverview.project_table_header') }}</th>
+                <th data-sort="string"  scope="col">{{ __('projectOverview.todo_table_header') }}</th>
+                <th data-sort="string"  scope="col">{{ __('projectOverview.status_table_header') }}</th>
+                <th data-sort="string"  scope="col">{{ __('projectOverview.priority_table_header') }}</th>
+                <th data-sort="date" scope="col">{{ __('projectOverview.due_date_table_header') }}</th>
+                <th data-sort="user" scope="col">{{ __('projectOverview.todo_assigned_table_header') }}</th>
+                <th data-sort="number-input" scope="col">{{ __('projectOverview.todo_planned_hours_table_header') }}</th>
+                <th data-sort="number-input" scope="col">{{ __('projectOverview.todo_remaining_hours_table_header') }}</th>
+                <th data-sort="select" scope="col">{{ __('projectOverview.todo_milestone_table_header') }}</th>
+                <th data-sort="text-input" scope="col">{{ __('projectOverview.todo_tags_table_header') }}</th>
             </tr>
             </thead>
             <tbody>
@@ -128,14 +128,21 @@
                         <input type="date" data-ticketid="{{ $row['id'] }}" id="due-date-{{ $row['id'] }}"
                                value="{{ date($row['dueDate']) }}"/>
                     </td>
-                    <td class="spacious">
-                        <select class="form-select" id="assigned-user-{{ $row['id'] }}">
+                    @php
+                        $selectedUser = $row['editorId'] !== null && $row['editorId'] !== -1
+                            ? collect($row['projectUsers'])->firstWhere('id', $row['editorId'])
+                            : null;
+                    @endphp
+
+                    <td class="spacious"
+                        data-selected-name="{{ $selectedUser ? $selectedUser['firstname'] . ' ' . $selectedUser['lastname'] : '' }}">
+
+                        <select class="form-select assigned-user-select" id="assigned-user-{{ $row['id'] }}" data-ticket-id="{{ $row['id'] }}">
                             <option value="-1"></option>
                             @foreach ($row['projectUsers'] as $projectUser)
-                                <option value={{ $projectUser['id'] }}
+                                <option value="{{ $projectUser['id'] }}"
                                     {{ (int) $row['editorId'] === (int) $projectUser['id'] ? 'selected' : '' }}>
-                                    {{ $projectUser['firstname'] }}
-                                    {{ $projectUser['lastname'] }}
+                                    {{ $projectUser['firstname'] }} {{ $projectUser['lastname'] }}
                                 </option>
                             @endforeach
                         </select>

@@ -5,6 +5,74 @@ import { Danish } from 'flatpickr/dist/l10n/da.js';
 import 'flatpickr/dist/flatpickr.min.css';
 
 $(document).ready(function () {
+  const table = document.getElementById('sortable-table');
+  const headers = table.querySelectorAll('thead th');
+  const tbody = table.querySelector('tbody');
+
+  headers.forEach((header, columnIndex) => {
+    header.addEventListener('click', () => {
+      const isAscending = header.dataset.order !== 'asc';
+      const type = header.dataset.sort || 'string';
+
+      const sortedRows = Array.from(tbody.querySelectorAll('tr')).sort(
+        (a, b) => {
+          const cellA = a.children[columnIndex];
+          const cellB = b.children[columnIndex];
+
+          const getValue = (cell) => {
+            switch (type) {
+              case 'number':
+                return parseFloat(cell.textContent.trim()) || 0;
+              case 'date':
+                return new Date(
+                  cell.querySelector("input[type='date']")?.value || ''
+                );
+              case 'user':
+                return cell.dataset.selectedName?.toLowerCase() || '';
+              case 'select':
+                return (
+                  cell
+                    .querySelector('select')
+                    ?.selectedOptions[0]?.textContent.trim()
+                    .toLowerCase() || ''
+                );
+              case 'text-input':
+                return (
+                  cell
+                    .querySelector("input[type='text']")
+                    ?.value.toLowerCase() || ''
+                );
+              case 'number-input':
+                return (
+                  parseFloat(
+                    cell.querySelector("input[type='number']")?.value
+                  ) || 0
+                );
+              default:
+                return cell.textContent.trim().toLowerCase();
+            }
+          };
+
+          const valueA = getValue(cellA);
+          const valueB = getValue(cellB);
+
+          if (type === 'number' || type === 'date' || type === 'number-input') {
+            return isAscending ? valueA - valueB : valueB - valueA;
+          }
+          return isAscending
+            ? valueA.localeCompare(valueB)
+            : valueB.localeCompare(valueA);
+        }
+      );
+
+      tbody.innerHTML = '';
+      sortedRows.forEach((row) => tbody.appendChild(row));
+
+      headers.forEach((h) => delete h.dataset.order);
+      header.dataset.order = isAscending ? 'asc' : 'desc';
+    });
+  });
+
   flatpickr('#dateRange', {
     mode: 'range',
     dateFormat: 'd-m-Y',
