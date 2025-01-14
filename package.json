@@ -4,9 +4,7 @@
     "license": "MIT",
     "dependencies": {
         "jquery": "^3.7.1",
-        "select2": "^4.1.0-rc.0",
-        "simple-datatables": "^9.2.1",
-        "tabulator-tables": "^6.3.0"
+        "select2": "^4.1.0-rc.0"
     },
     "scripts": {
         "coding-standards-apply": "prettier assets --write",
