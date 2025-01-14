@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+* [PR-36](https://github.com/ITK-Leantime/project-overview/pull/36)
+  * Added sort by column
 * [PR-34](https://github.com/ITK-Leantime/project-overview/pull/34)
   * Reordered filters
 
