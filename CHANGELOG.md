@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-38](https://github.com/ITK-Leantime/project-overview/pull/38)
+  * Filtered out status archived.
+
 ## [2.3.0] - 2025-01-14
 
 * [PR-36](https://github.com/ITK-Leantime/project-overview/pull/36)
