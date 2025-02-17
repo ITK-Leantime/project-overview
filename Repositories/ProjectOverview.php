@@ -75,8 +75,8 @@ class ProjectOverview
         FROM
         zp_tickets AS ticket
         LEFT JOIN zp_user AS t1 ON ticket.userId = t1.id
-        LEFT JOIN zp_user AS t2 ON ticket.editorId = t2.id
-        WHERE ticket.type <> 'milestone' AND ticket.status <> '0' AND (ticket.dateToFinish BETWEEN :dateFrom AND :dateTo) " .
+LEFT JOIN zp_user AS t2 ON ticket.editorId = t2.id
+        WHERE ticket.type <> 'milestone' AND ticket.status NOT IN ('0', '-1') AND (ticket.dateToFinish BETWEEN :dateFrom AND :dateTo)" .
             $userIdQuery .
             $searchTermQuery .
             'ORDER BY ticket.priority ASC';
