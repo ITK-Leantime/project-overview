@@ -54,11 +54,11 @@ docker run --rm -v "$(pwd):/work" tmknom/prettier:latest --write assets
 #### Check and apply markdownlint
 
 ```shell name=markdown-check
-docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md '**/*.md'
+docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md --ignore node_modules '**/*.md'
 ```
 
 ```shell name=markdown-apply
-docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md '**/*.md' --fix
+docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md --ignore node_modules '**/*.md' --fix
 ```
 
 #### Check with shellcheck
