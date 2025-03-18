@@ -10,9 +10,6 @@
       "email": "sinejespersen@gmail.com"
     }
   ],
-  "extra": {
-    "installer-name": "ProjectOverview"
-  },
   "homepage": "https://github.com/ITK-Leantime/project-overview",
   "require-dev": {
     "ergebnis/composer-normalize": "^2.42",
