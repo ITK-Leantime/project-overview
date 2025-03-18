@@ -16,6 +16,13 @@ Run composer install
 docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
 ```
 
+Working with JS/css...
+
+```shell
+docker compose run --rm php npm install
+docker compose run --rm php npm run dev
+```
+
 ### Composer normalize
 
 ```shell name=composer-normalize
