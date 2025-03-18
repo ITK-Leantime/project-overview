@@ -197,7 +197,20 @@
   > input {
     border-radius: 3px !important;
   }
-
+  .fa.fa-caret-down {
+    padding-left: 3px;
+    align-self: center;
+    padding-bottom: 2px;
+  }
+  .btn-group.open {
+    .dropdown-menu {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-width: initial;
+      border-radius: 0;
+    }
+  }
   .dropdown-item > button,
   button.label-,
   button,
@@ -222,6 +235,7 @@
       background: var(--yellow) !important;
       color: var(--yellow-text-color) !important;
       border-radius: 0;
+      margin-left: 0px;
     }
 
     &.label-default.milestone {
@@ -232,9 +246,14 @@
       color: white !important;
     }
   }
+  .dropdown-item > .table-button:hover {
+    opacity: 0.7;
+  }
 
   .table-button {
     border: 0;
+    display: flex;
+    width: 100%;
 
     &.priority-bg-1 {
       background: var(--dark-red);
