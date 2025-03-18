@@ -75,13 +75,7 @@ class ProjectOverview extends Controller
                 if ($_GET['fromDate'][0] === '+' || $_GET['fromDate'][0] === '-') {
                     $fromDate = CarbonImmutable::now()->startOfDay()->modify($_GET['fromDate']);
                 } else {
-                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['fromDate']);
-                    if ($fromDate !== false) {
-                        $fromDate = $fromDate->startOfDay();
-                    } else {
-                        $fromDate = CarbonImmutable::createFromFormat('d/m/Y', $_GET['fromDate']);
-                        $fromDate = $fromDate !== false ? $fromDate->startOfDay() : CarbonImmutable::now()->startOfWeek()->startOfDay();
-                    }
+                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['fromDate'])->startOfDay();
                 }
             } else {
                 $fromDate = CarbonImmutable::now()->startOfWeek()->startOfDay();
@@ -91,13 +85,7 @@ class ProjectOverview extends Controller
                 if ($_GET['toDate'][0] === '+' || $_GET['toDate'][0] === '-') {
                     $toDate = CarbonImmutable::now()->startOfDay()->modify($_GET['toDate']);
                 } else {
-                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['toDate']);
-                    if ($toDate !== false) {
-                        $toDate = $toDate->endOfDay();
-                    } else {
-                        $toDate = CarbonImmutable::createFromFormat('d/m/Y', $_GET['toDate']);
-                        $toDate = $toDate !== false ? $toDate->endOfDay() : CarbonImmutable::now()->endOfWeek()->endOfDay();
-                    }
+                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['toDate'])->endOfDay();
                 }
             } else {
                 $toDate = CarbonImmutable::now()->endOfWeek()->endOfDay();
