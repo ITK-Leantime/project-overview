@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+* [PR-39](https://github.com/ITK-Leantime/project-overview/pull/39)
+  * Npm audit fix
+  * Update leantime to 3.4.3
+
 ## [2.3.0] - 2025-01-14
 
 * [PR-36](https://github.com/ITK-Leantime/project-overview/pull/36)

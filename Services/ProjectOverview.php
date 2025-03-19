@@ -2,7 +2,6 @@
 
 namespace Leantime\Plugins\ProjectOverview\Services;
 
-use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
 
@@ -11,7 +10,7 @@ use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOver
  */
 class ProjectOverview
 {
-        /**
+    /**
      * @var array<string, string>
      */
     private static array $assets = [
@@ -27,7 +26,8 @@ class ProjectOverview
     public function __construct(private ProjectOverviewRepository $projectOverviewRepository)
     {
     }
-/**
+
+    /**
      * Install plugin.
      *
      * @return void
