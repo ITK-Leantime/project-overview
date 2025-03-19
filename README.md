@@ -16,7 +16,7 @@ Run composer install
 docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
 ```
 
-Working with JS/css...
+Building and watching the frontend JS/css for development
 
 ```shell
 docker compose run --rm php npm install
