@@ -58,8 +58,8 @@ class ProjectOverview
         $orderBy = 'ORDER BY ticket.priority ASC';
         if ($sortBy && $sortOrder) {
             // We treat editorLastname different than the other sorts, as this is a property on user.
-            // Furthermore, if we want to sort projects by title and not id, we should do something similar. 
-            // But for now we are sorting projects by id, let's see if that works. 
+            // Furthermore, if we want to sort projects by title and not id, we should do something similar.
+            // But for now we are sorting projects by id, let's see if that works.
             if ($sortBy === 'editorLastname') {
                 $orderBy = 'ORDER BY t2.lastname ' . $sortOrder;
             } else {
