@@ -31,6 +31,16 @@ docker run --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer normalize
 
 ### Coding standards
 
+#### Blade lint
+
+```shell name=blade-apply
+docker run --rm --volume "$PWD:/app" -w /app shufo/blade-formatter:1.11.11 Templates/*.blade.php --write
+```
+
+```shell name=blade-check
+docker run --rm --volume "$PWD:/app" -w /app shufo/blade-formatter:1.11.11 Templates/*.blade.php --check-formatted
+```
+
 #### Check and apply with phpcs
 
 ```shell name=check-coding-standards
@@ -54,11 +64,11 @@ docker run --rm -v "$(pwd):/work" tmknom/prettier:latest --write assets
 #### Check and apply markdownlint
 
 ```shell name=markdown-check
-docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md --ignore node_modules '**/*.md'
+docker run --rm --volume "$PWD:/md" itkdev/markdownlint '**/*.md'
 ```
 
 ```shell name=markdown-apply
-docker run --rm --volume $PWD:/md peterdavehello/markdownlint markdownlint --ignore vendor --ignore LICENSE.md --ignore node_modules '**/*.md' --fix
+docker run --rm --volume "$PWD:/md" itkdev/markdownlint '**/*.md' --fix
 ```
 
 #### Check with shellcheck

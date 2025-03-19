@@ -68,6 +68,10 @@ class ProjectOverview extends Controller
     {
         $userIdArray = [];
         $searchTermForFilter = null;
+        $sortByForFilter = null;
+        $sortOrderForFilter = null;
+        $noDueDateForFilter = 'true';
+        $overdueTicketsForFilter = 'true';
         $allProjects = $this->projectOverviewService->getAllProjects();
 
         try {
@@ -98,17 +102,30 @@ class ProjectOverview extends Controller
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
             $userIdArray = explode(',', $_GET['userIds']);
         }
-
         if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
             $searchTermForFilter = $_GET['searchTerm'];
+        }
+        if (isset($_GET['noDueDate']) && $_GET['noDueDate'] !== '') {
+            $noDueDateForFilter = $_GET['noDueDate'];
+        }
+        if (isset($_GET['overdueTickets']) && $_GET['overdueTickets'] !== '') {
+            $overdueTicketsForFilter = $_GET['overdueTickets'];
+        }
+        if (isset($_GET['sortBy']) && isset($_GET['sortOrder']) && $_GET['sortBy'] !== '' && $_GET['sortOrder'] !== '') {
+            $sortByForFilter = $_GET['sortBy'];
+            $sortOrderForFilter = $_GET['sortOrder'];
         }
 
         $this->tpl->assign('fromDate', $fromDate);
         $this->tpl->assign('toDate', $toDate);
         $this->tpl->assign('selectedFilterUser', $userIdArray);
         $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
+        $this->tpl->assign('overdueTickets', $overdueTicketsForFilter);
+        $this->tpl->assign('noDueDate', $noDueDateForFilter);
 
-        $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate);
+        $noDueDate = $noDueDateForFilter === 'false' ? 0 : 1;
+        $overdueTickets = $overdueTicketsForFilter === 'false' ? 0 : 1;
+        $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
 
         // A list of unique projectids
         $projectIds = array_unique(array_column($allTickets, 'projectId'));
@@ -135,6 +152,8 @@ class ProjectOverview extends Controller
         // The two below gets hardcoded labels from the ticket repo.
         $this->tpl->assign('priorities', $this->ticketService->getPriorityLabels());
         $this->tpl->assign('statusLabels', $projectTicketStatuses);
+        $this->tpl->assign('sortBy', $sortByForFilter);
+        $this->tpl->assign('sortOrder', $sortOrderForFilter);
 
         $this->tpl->assign('allUsers', $this->userService->getAll());
 

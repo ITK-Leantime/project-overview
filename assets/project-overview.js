@@ -6,72 +6,6 @@ import 'flatpickr/dist/flatpickr.min.css';
 
 $(document).ready(function () {
   const table = document.getElementById('sortable-table');
-  const headers = table.querySelectorAll('thead th');
-  const tbody = table.querySelector('tbody');
-
-  headers.forEach((header, columnIndex) => {
-    header.addEventListener('click', () => {
-      const isAscending = header.dataset.order !== 'asc';
-      const type = header.dataset.sort || 'string';
-
-      const sortedRows = Array.from(tbody.querySelectorAll('tr')).sort(
-        (a, b) => {
-          const cellA = a.children[columnIndex];
-          const cellB = b.children[columnIndex];
-
-          const getValue = (cell) => {
-            switch (type) {
-              case 'number':
-                return parseFloat(cell.textContent.trim()) || 0;
-              case 'date':
-                return new Date(
-                  cell.querySelector("input[type='date']")?.value || ''
-                );
-              case 'user':
-                return cell.dataset.selectedName?.toLowerCase() || '';
-              case 'select':
-                return (
-                  cell
-                    .querySelector('select')
-                    ?.selectedOptions[0]?.textContent.trim()
-                    .toLowerCase() || ''
-                );
-              case 'text-input':
-                return (
-                  cell
-                    .querySelector("input[type='text']")
-                    ?.value.toLowerCase() || ''
-                );
-              case 'number-input':
-                return (
-                  parseFloat(
-                    cell.querySelector("input[type='number']")?.value
-                  ) || 0
-                );
-              default:
-                return cell.textContent.trim().toLowerCase();
-            }
-          };
-
-          const valueA = getValue(cellA);
-          const valueB = getValue(cellB);
-
-          if (type === 'number' || type === 'date' || type === 'number-input') {
-            return isAscending ? valueA - valueB : valueB - valueA;
-          }
-          return isAscending
-            ? valueA.localeCompare(valueB)
-            : valueB.localeCompare(valueA);
-        }
-      );
-
-      tbody.innerHTML = '';
-      sortedRows.forEach((row) => tbody.appendChild(row));
-
-      headers.forEach((h) => delete h.dataset.order);
-      header.dataset.order = isAscending ? 'asc' : 'desc';
-    });
-  });
 
   flatpickr('#dateRange', {
     mode: 'range',
@@ -140,7 +74,9 @@ $(document).ready(function () {
         changePriority(idArgs[0], idArgs[1], idArgs[2]);
       }
     );
-
+    $(document).on('click', '[id^=sort_]', function () {
+      changeSortBy(this.id.replace('sort_', ''));
+    });
     $(document).on('change', '[id^=due-date-]', function () {
       const date = $(this).val();
       const ticketId = $(this).data('ticketid');
@@ -176,6 +112,13 @@ $(document).ready(function () {
     $('#search-term').on('change', function () {
       redirectWithSearchTerm(this.value);
     });
+    $('#overdue-tickets').on('change', function () {
+      changeOverdueTickets(this.checked);
+    });
+
+    $('#empty-due-date').on('change', function () {
+      changeTicketsWithoutDueDateIncluded(this.checked);
+    });
 
     $('#user-filter').on('change', function () {
       let values = $(select2).select2('data');
@@ -194,7 +137,6 @@ $(document).ready(function () {
     });
   });
 });
-
 function changeStatus(ticketId, newStatusId, newClass, newLabel) {
   if (newStatusId !== undefined && ticketId) {
     jQuery
@@ -399,6 +341,35 @@ function changeDateFrom(dateFrom) {
     : updateLocation('dateFrom', formatDate(dateFrom));
 }
 
+function changeTicketsWithoutDueDateIncluded(checked) {
+  checked
+    ? updateLocation('noDueDate', true)
+    : updateLocation('noDueDate', false);
+}
+
+function changeSortBy(sortBy) {
+  const params = new URLSearchParams(document.location.search);
+  const url = new URL(window.location.href);
+  const currentSortOrder = params.get('sortOrder');
+  const currentSortBy = params.get('sortBy');
+
+  if (currentSortBy === sortBy) {
+    const newSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+    url.searchParams.set('sortOrder', newSortOrder);
+  } else {
+    url.searchParams.set('sortOrder', 'asc');
+    url.searchParams.set('sortBy', sortBy);
+  }
+
+  window.location.assign(url);
+}
+
+function changeOverdueTickets(checked) {
+  checked
+    ? updateLocation('overdueTickets', true)
+    : updateLocation('overdueTickets', false);
+}
+
 function changeDateTo(dateTo) {
   dateTo === ''
     ? updateLocation('dateTo', '')
@@ -413,8 +384,12 @@ function updateLocation(key, value) {
     url.searchParams.delete(key);
   }
 
-  if (value !== '') {
+  if (value !== '' && typeof value === 'string' && value.includes(',')) {
     url.searchParams.set(key, value.split(','));
+  }
+
+  if (value !== '') {
+    url.searchParams.set(key, value);
   }
 
   window.location.assign(url);
