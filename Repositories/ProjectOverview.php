@@ -31,13 +31,17 @@ class ProjectOverview
     /**
      * getTasks - retrieve tasks based on given parameters
      *
-     * @param array<int, string>|null $userIdArray - array of user IDs to filter tasks by, defaults to null
-     * @param string|null             $searchTerm  - search term to filter tasks by, defaults to null
-     * @param CarbonInterface         $dateFrom    - start date to filter tasks by
-     * @param CarbonInterface         $dateTo      - end date to filter tasks by
+     * @param array<int, string>|null $userIdArray    - array of user IDs to filter tasks by, defaults to null
+     * @param string|null             $searchTerm     - search term to filter tasks by, defaults to null
+     * @param CarbonInterface         $dateFrom       - start date to filter tasks by
+     * @param CarbonInterface         $dateTo         - end date to filter tasks by
+     * @param int                     $noDueDate      include tasks without due date set
+     * @param int                     $overdueTickets include overdue tasks
+     * @param string                  $sortBy         sort tickets by.
+     * @param string                  $sortOrder      sort order.
      * @return array<int, string> - array containing the retrieved tasks
      */
-    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonInterface $dateFrom, CarbonInterface $dateTo): array
+    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonInterface $dateFrom, CarbonInterface $dateTo, int $noDueDate, int $overdueTickets, ?string $sortBy, ?string $sortOrder): array
     {
         $userIdQuery = '';
         if (!empty($userIdArray)) {
@@ -51,6 +55,21 @@ class ProjectOverview
         ticket.headline LIKE CONCAT( '%', :searchTerm, '%')) "
             : '';
 
+        $orderBy = 'ORDER BY ticket.priority ASC';
+        if ($sortBy && $sortOrder) {
+            // We treat editorLastname different than the other sorts, as this is a property on user.
+            // Furthermore, if we want to sort projects by title and not id, we should do something similar. 
+            // But for now we are sorting projects by id, let's see if that works. 
+            if ($sortBy === 'editorLastname') {
+                $orderBy = 'ORDER BY t2.lastname ' . $sortOrder;
+            } else {
+                $orderBy = 'ORDER BY ticket.' . $sortBy .  ' ' . $sortOrder;
+            }
+        }
+        // In the database, if a task does not have a due date, it has "0000-00-00 00:00:00" (as opposed to the more logical NULL)
+        $dateQuery = $noDueDate === 1 ? "OR ticket.dateToFinish = '0000-00-00 00:00:00'" : '';
+        // Todo: Hardcoded date to a time before we used Leantime.
+        $fromDateForQuery = $overdueTickets === 1 ? CarbonImmutable::createFromFormat('Y-m-d', '2023-03-14')->endOfDay() : $dateFrom;
         $sql =
             "SELECT
         ticket.id,
@@ -76,10 +95,10 @@ class ProjectOverview
         zp_tickets AS ticket
         LEFT JOIN zp_user AS t1 ON ticket.userId = t1.id
         LEFT JOIN zp_user AS t2 ON ticket.editorId = t2.id
-        WHERE ticket.type <> 'milestone' AND ticket.status <> '0' AND (ticket.dateToFinish BETWEEN :dateFrom AND :dateTo) " .
+        WHERE ticket.type <> 'milestone' AND ticket.status <> '0' AND (ticket.dateToFinish BETWEEN :dateFrom AND :dateTo " . $dateQuery . ') ' .
             $userIdQuery .
             $searchTermQuery .
-            'ORDER BY ticket.priority ASC';
+            $orderBy;
         $stmn = $this->db->database->prepare($sql);
 
         if (!empty($userIdArray)) {
@@ -92,7 +111,7 @@ class ProjectOverview
             $stmn->bindParam(':searchTerm', $searchTerm, PDO::PARAM_STR);
         }
 
-        $stmn->bindValue(':dateFrom', $dateFrom, PDO::PARAM_STR);
+        $stmn->bindValue(':dateFrom', $fromDateForQuery, PDO::PARAM_STR);
         $stmn->bindValue(':dateTo', $dateTo, PDO::PARAM_STR);
 
         $stmn->execute();

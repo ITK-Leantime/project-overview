@@ -10,6 +10,16 @@
   margin-top: -85px;
   width: calc(100% - 30px);
 
+  .label-and-caret-wrapper {
+    display: flex;
+
+    .fa {
+      display: flex;
+      align-self: center;
+      margin-left: 3px;
+    }
+  }
+
   .project-overview-assignee-select:not(.select2-hidden-accessible) {
     width: 250px;
     max-width: none;
@@ -114,6 +124,19 @@
     form {
       display: flex;
       width: 100%;
+
+      .checkboxes {
+        margin-left: 10px;
+
+        div {
+          display: flex;
+          align-items: flex-end;
+
+          label {
+            margin-left: 3px;
+          }
+        }
+      }
 
       .date-range-filter {
         margin-left: 10px;
