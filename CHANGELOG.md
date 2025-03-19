@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+* [PR-40](https://github.com/ITK-Leantime/project-overview/pull/40)
+  * A little css
 * [PR-39](https://github.com/ITK-Leantime/project-overview/pull/39)
   * Npm audit fix
   * Update leantime to 3.4.3
