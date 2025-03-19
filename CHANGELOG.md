@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+* [PR-41](https://github.com/ITK-Leantime/project-overview/pull/41)
+  * Added sort to url (sortby and sortorder)
+  * Added the possibility to see tickets without due date
+  * Added the possibility to see tickets exceeded due date
+  * Added some blade linting to readme (and linted the blade file)
 * [PR-40](https://github.com/ITK-Leantime/project-overview/pull/40)
   * A little css
 * [PR-39](https://github.com/ITK-Leantime/project-overview/pull/39)
