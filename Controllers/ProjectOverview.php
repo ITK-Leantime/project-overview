@@ -123,8 +123,8 @@ class ProjectOverview extends Controller
         $this->tpl->assign('overdueTickets', $overdueTicketsForFilter);
         $this->tpl->assign('noDueDate', $noDueDateForFilter);
 
-        $noDueDate = $noDueDateForFilter === 'false' ? false : true;
-        $overdueTickets = $overdueTicketsForFilter === 'false' ? false : true;
+        $noDueDate = $noDueDateForFilter === 'false' ? 0 : 1;
+        $overdueTickets = $overdueTicketsForFilter === 'false' ? 0 : 1;
         $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
 
         // A list of unique projectids
