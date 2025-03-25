@@ -69,15 +69,19 @@ class ProjectOverview
     /**
      * Get tasks based on the given parameters.
      *
-     * @param array<int, string>|null $userIdArray An array of user IDs to filter the tasks. Can be null.
-     * @param string|null             $searchTerm  The search term to filter the tasks. Can be null.
-     * @param CarbonInterface         $dateFrom    The start date to filter the tasks.
-     * @param CarbonInterface         $dateTo      The end date to filter the tasks.
+     * @param array<int, string>|null $userIdArray    An array of user IDs to filter the tasks. Can be null.
+     * @param string|null             $searchTerm     The search term to filter the tasks. Can be null.
+     * @param CarbonInterface         $dateFrom       The start date to filter the tasks.
+     * @param CarbonInterface         $dateTo         The end date to filter the tasks.
+     * @param int                     $noDueDate      include tasks without due date set
+     * @param int                     $overdueTickets include overdue tasks
+     * @param string                  $sortBy         sort tickets by.
+     * @param string                  $sortOrder      sort order.
      * @return array<int, mixed> An array of tasks based on the given parameters.
      */
-    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonInterface $dateFrom, CarbonInterface $dateTo): array
+    public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonInterface $dateFrom, CarbonInterface $dateTo, int $noDueDate, int $overdueTickets, ?string $sortBy, ?string $sortOrder): array
     {
-        return $this->projectOverviewRepository->getTasks($userIdArray, $searchTerm, $dateFrom, $dateTo);
+        return $this->projectOverviewRepository->getTasks($userIdArray, $searchTerm, $dateFrom, $dateTo, $noDueDate, $overdueTickets, $sortBy, $sortOrder);
     }
 
     /**
