@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.0.0] - 2025-03-27
+
 * [PR-41](https://github.com/ITK-Leantime/project-overview/pull/41)
   * Added sort to url (sortby and sortorder)
   * Added the possibility to see tickets without due date
@@ -141,7 +143,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/2.3.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.0...HEAD
+[3.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.3.0...3.0.0
 [2.3.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.2.1...2.3.0
 [2.2.1]: https://github.com/olivierlacan/keep-a-changelog/compare/2.2.0...2.2.1
 [2.2.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.5...2.2.0
