@@ -4,6 +4,8 @@
 
 ## [3.0.0] - 2025-03-27
 
+* [PR-43](https://github.com/ITK-Leantime/project-overview/pull/43)
+  * Changed order of project name and ticket title
 * [PR-41](https://github.com/ITK-Leantime/project-overview/pull/41)
   * Added sort to url (sortby and sortorder)
   * Added the possibility to see tickets without due date
