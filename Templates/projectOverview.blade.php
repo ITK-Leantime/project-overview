@@ -71,18 +71,6 @@
                             @endif
                         </div>
                     </th>
-                    <th id="sort_projectId" scope="col">
-                        <div class="label-and-caret-wrapper">
-                            {{ __('projectOverview.project_table_header') }}
-                            @if ($sortBy === 'projectId' && $sortOrder === 'desc')
-                                <i class="fa fa-caret-up"></i>
-                            @endif
-                            @if ($sortBy === 'projectId' && $sortOrder === 'asc')
-                                <i class="fa fa-caret-down"></i>
-                            @endif
-                        </div>
-                    </th>
-                    </th>
                     <th id="sort_headline" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.todo_table_header') }}
@@ -94,6 +82,16 @@
                             @endif
                         </div>
                     </th>
+                    <th id="sort_projectId" scope="col">
+                        <div class="label-and-caret-wrapper">
+                            {{ __('projectOverview.project_table_header') }}
+                            @if ($sortBy === 'projectId' && $sortOrder === 'desc')
+                                <i class="fa fa-caret-up"></i>
+                            @endif
+                            @if ($sortBy === 'projectId' && $sortOrder === 'asc')
+                                <i class="fa fa-caret-down"></i>
+                            @endif
+                        </div>
                     </th>
                     <th id="sort_status" scope="col">
                         <div class="label-and-caret-wrapper">
@@ -106,7 +104,6 @@
                             @endif
                         </div>
                     </th>
-                    </th>
                     <th id="sort_dateToFinish" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.due_date_table_header') }}
@@ -118,7 +115,6 @@
                             @endif
                         </div>
                     </th>
-                    </th>
                     <th id="sort_dateToFinish" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.due_date_table_header') }}
@@ -129,7 +125,6 @@
                                 <i class="fa fa-caret-down"></i>
                             @endif
                         </div>
-                    </th>
                     </th>
                     <th id="sort_editorLastname" scope="col">
                         <div class="label-and-caret-wrapper">
@@ -142,7 +137,6 @@
                             @endif
                         </div>
                     </th>
-                    </th>
                     <th id="sort_planHours" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.todo_planned_hours_table_header') }}
@@ -153,7 +147,6 @@
                                 <i class="fa fa-caret-down"></i>
                             @endif
                         </div>
-                    </th>
                     </th>
                     <th id="sort_hourRemaining" scope="col">
                         <div class="label-and-caret-wrapper">
@@ -166,7 +159,6 @@
                             @endif
                         </div>
                     </th>
-                    </th>
                     <th id="sort_milestoneid" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.todo_milestone_table_header') }}
@@ -177,7 +169,6 @@
                                 <i class="fa fa-caret-down"></i>
                             @endif
                         </div>
-                    </th>
                     </th>
                     <th id="sort_tags" scope="col">
                         <div class="label-and-caret-wrapper">
@@ -194,9 +185,9 @@
             </thead>
             <tbody>
                 @foreach ($allTickets as $key => $row)
+                    @php if (!isset( $row['projectName'])) {die('<pre>'.print_r($row,true).'</pre>');} @endphp
                     <tr>
                         <th scope="row">{{ $row['id'] }}</th>
-                        <th scope="row">{{ $row['projectName'] }}</th>
                         <td>
                             <a href="#/tickets/showTicket/{{ $row['id'] }}">
                                 {{ $row['headline'] }}
@@ -208,6 +199,7 @@
                                 )
                             @endif
                         </td>
+                        <th scope="row">{{ $row['projectName'] }}</th>
                         <td>
                             <div class="btn-group">
                                 <button type="button" id="status-ticket-{{ $row['id'] }}"
