@@ -5,7 +5,7 @@
 ## [3.0.1] - 2025-04-01
 
 * [PR-43](https://github.com/ITK-Leantime/project-overview/pull/43)
-    * Changed order of project name and ticket title
+  * Changed order of project name and ticket title
 
 ## [3.0.0] - 2025-03-27
 
