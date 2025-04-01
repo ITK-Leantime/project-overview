@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.0.2] - 2025-04-01
+
 * [PR-45](https://github.com/ITK-Leantime/project-overview/pull/45)
   * Corrected header of priority
 
@@ -151,7 +153,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.1...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.2...HEAD
+[3.0.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.1...3.0.2
 [3.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.0...3.0.1
 [3.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.3.0...3.0.0
 [2.3.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.2.1...2.3.0
