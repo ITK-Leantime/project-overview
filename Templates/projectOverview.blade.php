@@ -104,13 +104,13 @@
                             @endif
                         </div>
                     </th>
-                    <th id="sort_dateToFinish" scope="col">
+                    <th id="sort_priority" scope="col">
                         <div class="label-and-caret-wrapper">
-                            {{ __('projectOverview.due_date_table_header') }}
-                            @if ($sortBy === 'dateToFinish' && $sortOrder === 'desc')
+                            {{ __('projectOverview.priority_table_header') }}
+                            @if ($sortBy === 'priority' && $sortOrder === 'desc')
                                 <i class="fa fa-caret-up"></i>
                             @endif
-                            @if ($sortBy === 'dateToFinish' && $sortOrder === 'asc')
+                            @if ($sortBy === 'priority' && $sortOrder === 'asc')
                                 <i class="fa fa-caret-down"></i>
                             @endif
                         </div>
