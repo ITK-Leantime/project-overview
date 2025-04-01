@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-45](https://github.com/ITK-Leantime/project-overview/pull/45)
+  * Corrected header of priority
+
 ## [3.0.1] - 2025-04-01
 
 * [PR-43](https://github.com/ITK-Leantime/project-overview/pull/43)
