@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-47](https://github.com/ITK-Leantime/project-overview/pull/47)
+  * Explicitly defined start and end of week
+
 ## [3.0.2] - 2025-04-01
 
 * [PR-45](https://github.com/ITK-Leantime/project-overview/pull/45)

@@ -82,7 +82,7 @@ class ProjectOverview extends Controller
                     $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['fromDate'])->startOfDay();
                 }
             } else {
-                $fromDate = CarbonImmutable::now()->startOfWeek()->startOfDay();
+                $fromDate = CarbonImmutable::now()->startOfWeek(CarbonImmutable::MONDAY)->startOfDay();
             }
 
             if (isset($_GET['toDate']) && $_GET['toDate'] !== '') {
@@ -92,11 +92,11 @@ class ProjectOverview extends Controller
                     $toDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['toDate'])->endOfDay();
                 }
             } else {
-                $toDate = CarbonImmutable::now()->endOfWeek()->endOfDay();
+                $toDate = CarbonImmutable::now()->endOfWeek(CarbonImmutable::SUNDAY)->endOfDay();
             }
         } catch (\Exception $e) {
-            $fromDate = CarbonImmutable::now()->startOfWeek()->startOfDay();
-            $toDate = CarbonImmutable::now()->endOfWeek()->endOfDay();
+            $fromDate = CarbonImmutable::now()->startOfWeek(CarbonImmutable::MONDAY)->startOfDay();
+            $toDate = CarbonImmutable::now()->endOfWeek(CarbonImmutable::SUNDAY)->endOfDay();
         }
 
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
