@@ -31,14 +31,14 @@ class ProjectOverview
     /**
      * getTasks - Retrieve a list of tasks based on the provided filter criteria and sorting options.
      *
-     * @param array|null $userIdArray An array of user IDs to filter tasks by editor, or null for no filtering.
-     * @param string|null $searchTerm A string to search for in task attributes like ID, tags, or headline, or null for no search.
-     * @param CarbonInterface $dateFrom The starting date for filtering tasks by their due date range.
-     * @param CarbonInterface $dateTo The ending date for filtering tasks by their due date range.
-     * @param int $noDueDate Indicates whether to include tasks with no due date (set to 1 to include, 0 to exclude).
-     * @param int $overdueTickets Indicates whether to include only overdue tasks (set to 1 for overdue, 0 otherwise).
-     * @param string|null $sortBy The column to sort by, or null for the default ordering.
-     * @param string|null $sortOrder The direction of sorting (e.g., 'ASC' or 'DESC'), or null for default ordering.
+     * @param array|null      $userIdArray    An array of user IDs to filter tasks by editor, or null for no filtering.
+     * @param string|null     $searchTerm     A string to search for in task attributes like ID, tags, or headline, or null for no search.
+     * @param CarbonInterface $dateFrom       The starting date for filtering tasks by their due date range.
+     * @param CarbonInterface $dateTo         The ending date for filtering tasks by their due date range.
+     * @param int             $noDueDate      Indicates whether to include tasks with no due date (set to 1 to include, 0 to exclude).
+     * @param int             $overdueTickets Indicates whether to include only overdue tasks (set to 1 for overdue, 0 otherwise).
+     * @param string|null     $sortBy         The column to sort by, or null for the default ordering.
+     * @param string|null     $sortOrder      The direction of sorting (e.g., 'ASC' or 'DESC'), or null for default ordering.
      *
      * @return array An array of tasks matching the filter criteria and sorted as specified.
      */
@@ -99,9 +99,9 @@ class ProjectOverview
 
         if ($searchTerm) {
             $query->where(function ($query) use ($searchTerm) {
-                $query->where('ticket.id', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('ticket.tags', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('ticket.headline', 'LIKE', "%{$searchTerm}%");
+                $query->where('ticket.id', 'LIKE', '%' . $searchTerm . '%')
+                    ->orWhere('ticket.tags', 'LIKE', '%' . $searchTerm . '%')
+                    ->orWhere('ticket.headline', 'LIKE', '%' . $searchTerm . '%');
             });
         }
 
@@ -109,7 +109,7 @@ class ProjectOverview
             if ($sortBy === 'editorLastname') {
                 $query->orderBy('t2.lastname', $sortOrder);
             } else {
-                $query->orderBy("ticket.{$sortBy}", $sortOrder);
+                $query->orderBy('ticket.' . $sortBy, $sortOrder);
             }
         } else {
             $query->orderBy('ticket.priority', 'ASC');
