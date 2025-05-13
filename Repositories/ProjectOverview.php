@@ -28,6 +28,20 @@ class ProjectOverview
         $this->db = $db;
     }
 
+    /**
+     * getTasks - Retrieve a list of tasks based on the provided filter criteria and sorting options.
+     *
+     * @param array|null $userIdArray An array of user IDs to filter tasks by editor, or null for no filtering.
+     * @param string|null $searchTerm A string to search for in task attributes like ID, tags, or headline, or null for no search.
+     * @param CarbonInterface $dateFrom The starting date for filtering tasks by their due date range.
+     * @param CarbonInterface $dateTo The ending date for filtering tasks by their due date range.
+     * @param int $noDueDate Indicates whether to include tasks with no due date (set to 1 to include, 0 to exclude).
+     * @param int $overdueTickets Indicates whether to include only overdue tasks (set to 1 for overdue, 0 otherwise).
+     * @param string|null $sortBy The column to sort by, or null for the default ordering.
+     * @param string|null $sortOrder The direction of sorting (e.g., 'ASC' or 'DESC'), or null for default ordering.
+     *
+     * @return array An array of tasks matching the filter criteria and sorted as specified.
+     */
     public function getTasks(
         ?array $userIdArray,
         ?string $searchTerm,
@@ -43,7 +57,6 @@ class ProjectOverview
             : $dateFrom;
 
         $connection = $this->db->getConnection();
-
 
         $query = $connection
             ->table('zp_tickets AS ticket')
@@ -66,14 +79,14 @@ class ProjectOverview
                 't1.lastname AS authorLastname',
                 't2.id AS editorId',
                 't2.firstname AS editorFirstname',
-                't2.lastname AS editorLastname'
+                't2.lastname AS editorLastname',
             ])
             ->leftJoin('zp_user AS t1', 'ticket.userId', '=', 't1.id')
             ->leftJoin('zp_user AS t2', 'ticket.editorId', '=', 't2.id')
             ->where('ticket.type', '<>', 'milestone')
             ->where('ticket.status', '<>', '0')
-            ->where(function ($query) use ($dateFrom, $dateTo, $noDueDate) {
-                $query->whereBetween('ticket.dateToFinish', [$dateFrom, $dateTo]);
+            ->where(function ($query) use ($fromDateForQuery, $dateTo, $noDueDate) {
+                $query->whereBetween('ticket.dateToFinish', [$fromDateForQuery, $dateTo]);
 
                 if ($noDueDate === 1) {
                     $query->orWhere('ticket.dateToFinish', '=', '0000-00-00 00:00:00');
@@ -116,7 +129,7 @@ class ProjectOverview
                 'ticket.id',
                 'ticket.headline',
                 'ticket.projectId',
-                'ticket.tags AS color'
+                'ticket.tags AS color',
             ])
             ->where('ticket.type', '=', 'milestone')
             ->where('projectId', '=', $projectId)
