@@ -85,7 +85,7 @@ class ProjectOverview
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<int, mixed>
      */
     public function getMilestonesByProjectId(string $projectId): array
     {
@@ -95,7 +95,7 @@ class ProjectOverview
     /**
      * Get all projects.
      *
-     * @return array<string, mixed> An array containing all projects.
+     * @return array<int, mixed> An array containing all projects.
      */
     public function getAllProjects(): array
     {
