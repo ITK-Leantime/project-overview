@@ -128,7 +128,7 @@ class ProjectOverview extends Controller
         $overdueTickets = $overdueTicketsForFilter === 'false' ? 0 : 1;
         $allTickets = [];
         $projectIds = [];
-        
+
         // Then the milestones/users are set into the tickets array on each ticket by project.
         if (!empty($userIdArray) || $loadAllConfirm) {
             $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
