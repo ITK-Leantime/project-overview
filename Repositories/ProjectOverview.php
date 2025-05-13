@@ -99,7 +99,7 @@ class ProjectOverview
             $userIdQuery .
             $searchTermQuery .
             $orderBy;
-        $stmn = $this->db->database->prepare($sql);
+        $stmn = $this->db->getConnection()->getPdo()->prepare($sql);
 
         if (!empty($userIdArray)) {
             foreach ($userIdArray as $id) {
@@ -137,7 +137,7 @@ class ProjectOverview
         zp_tickets AS ticket
         WHERE ticket.type = 'milestone' AND projectId = :projectId";
 
-        $stmn = $this->db->database->prepare($sql);
+        $stmn = $this->db->getConnection()->getPdo()->prepare($sql);
 
         if ($projectId != '') {
             $stmn->bindValue(':projectId', $projectId, PDO::PARAM_INT);
@@ -160,7 +160,7 @@ class ProjectOverview
     {
         $sql = 'SELECT * FROM zp_projects WHERE state != "1" OR state IS NULL LIMIT 200';
 
-        $stmn = $this->db->database->prepare($sql);
+        $stmn = $this->db->getConnection()->getPdo()->prepare($sql);
 
         $stmn->execute();
         $values = $stmn->fetchAll(PDO::FETCH_ASSOC);

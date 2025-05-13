@@ -310,15 +310,17 @@
                 @endforeach
                 @if (count($allTickets) === 0)
                     <td colspan="99">
+                        {{ __('projectOverview.empty_list') }}
 
-                        <form method="GET">
-                            <input type="hidden" name="loadAllConfirm" value="1">
-                            {{ __('projectOverview.empty_list') }}
-                            <br />
-                            {{ __('projectOverview.load-list-anyway') }}
-                            <strong><a href="#" class="link"
-                                    onclick="this.closest('form').submit(); return false;">{{ __('projectOverview.show-all-button') }}</a></strong>
-                        </form>
+                        @if (count($allSelectedUsers) === 0)
+                            <form method="GET">
+                                <input type="hidden" name="loadAllConfirm" value="1">
+                                <br/>
+                                {{ __('projectOverview.load-list-anyway') }}
+                                <strong><a href="#" class="link"
+                                           onclick="this.closest('form').submit(); return false;">{{ __('projectOverview.show-all-button') }}</a></strong>
+                            </form>
+                        @endif
                     </td>
                 @endif
             </tbody>

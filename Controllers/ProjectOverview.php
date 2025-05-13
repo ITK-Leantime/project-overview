@@ -161,6 +161,7 @@ class ProjectOverview extends Controller
         $this->tpl->assign('statusLabels', $projectTicketStatuses);
         $this->tpl->assign('sortBy', $sortByForFilter);
         $this->tpl->assign('sortOrder', $sortOrderForFilter);
+        $this->tpl->assign('allSelectedUsers', $userIdArray);
 
         $this->tpl->assign('allUsers', $this->userService->getAll());
 
