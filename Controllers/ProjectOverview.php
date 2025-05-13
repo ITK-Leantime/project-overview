@@ -147,11 +147,10 @@ class ProjectOverview extends Controller
             $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
         }
 
-        // Then the milestones/users are set into the tickets array on each ticket by project.
-        foreach ($allTickets as &$ticket) {
-            $ticket['projectUsers'] = $userAndProject[$ticket['projectId']];
-            $ticket['projectMilestones'] = $milestonesAndProject[$ticket['projectId']];
-            $ticket['projectName'] = $allProjects[$ticket['projectId']]['name'];
+        foreach ($allTickets as $ticket) {
+            $ticket->projectUsers = $userAndProject[$ticket->projectId];
+            $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
+            $ticket->projectName = $allProjects[$ticket->projectId]['name'];
         }
 
         $this->tpl->assign('fromDate', $fromDate);

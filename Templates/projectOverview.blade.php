@@ -184,130 +184,132 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach ($allTickets as $key => $row)
-                    @php
-                        if (!isset($row['projectName'])) {
-                            die('<pre>' . print_r($row, true) . '</pre>');
-                        }
-                    @endphp
-                    <tr>
-                        <th scope="row">{{ $row['id'] }}</th>
-                        <td>
-                            <a href="#/tickets/showTicket/{{ $row['id'] }}">
-                                {{ $row['headline'] }}
-                            </a>
-                            @if (isset($row['dependingTicketId']) && $row['dependingTicketId'] > 0)
-                                (
-                                <a
-                                    href="#/tickets/showTicket/{{ $row['dependingTicketId'] }}">{{ $row['parentHeadline'] }}</a>
-                                )
-                            @endif
-                        </td>
-                        <th scope="row">{{ $row['projectName'] }}</th>
-                        <td>
-                            <div class="btn-group">
-                                <button type="button" id="status-ticket-{{ $row['id'] }}"
-                                    class="table-button {!! $statusLabels[$row['projectId']][$row['status']]['class'] ?? '' !!}" data-toggle="dropdown">
-                                    <span id="status-label">{!! $statusLabels[$row['projectId']][$row['status']]['name'] !!} </span>
+            @foreach ($allTickets as $key => $row)
+                @php
+                    if (!isset($row->projectName)) {
+                        die('<pre>' . print_r($row, true) . '</pre>');
+                    }
+                @endphp
+                <tr>
+                    <th scope="row">{{ $row->id }}</th>
+                    <td>
+                        <a href="#/tickets/showTicket/{{ $row->id }}">
+                            {{ $row->headline }}
+                        </a>
+                        @if (isset($row->dependingTicketId) && $row->dependingTicketId > 0)
+                            (
+                            <a
+                                href="#/tickets/showTicket/{{ $row->dependingTicketId }}">{{ $row->parentHeadline }}</a>
+                            )
+                        @endif
+                    </td>
+                    <th scope="row">{{ $row->projectName }}</th>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" id="status-ticket-{{ $row->id }}"
+                                    class="table-button {!! $statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"
+                                    data-toggle="dropdown">
+                                <span
+                                    id="status-label">{!! $statusLabels[$row->projectId][$row->status]['name'] !!} </span>
+                                <i class="fa fa-caret-down"></i>
+                            </button>
+                            <div class="dropdown-menu" id="status-dropdown-menu">
+                                @foreach ($statusLabels[$row->projectId] as $newStatusId => $label)
+                                    <li class="dropdown-item">
+                                        <button class="table-button status {!! $label['class'] !!}"
+                                                data-args="{{ $row->id }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
+                                            {{ $label['name'] }}
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" id="priority-ticket-{{ $row->id }}"
+                                    class="table-button priority-bg-{!! $row->priority !!}" data-toggle="dropdown">
+                                @if (is_numeric($row->priority) && isset($priorities[$row->priority]))
+                                    <span id="priority-label">{!! $priorities[$row->priority] !!}</span>
                                     <i class="fa fa-caret-down"></i>
-                                </button>
-                                <div class="dropdown-menu" id="status-dropdown-menu">
-                                    @foreach ($statusLabels[$row['projectId']] as $newStatusId => $label)
-                                        <li class="dropdown-item">
-                                            <button class="table-button status {!! $label['class'] !!}"
-                                                data-args="{{ $row['id'] }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
-                                                {{ $label['name'] }}
-                                            </button>
-                                        </li>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button type="button" id="priority-ticket-{{ $row['id'] }}"
-                                    class="table-button priority-bg-{!! $row['priority'] !!}" data-toggle="dropdown">
-                                    @if (is_numeric($row['priority']) && isset($priorities[$row['priority']]))
-                                        <span id="priority-label">{!! $priorities[$row['priority']] !!}</span>
-                                        <i class="fa fa-caret-down"></i>
-                                    @endif
-                                    @if (!is_numeric($row['priority']))
-                                        <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
-                                        <i class="fa fa-caret-down"></i>
-                                    @endif
-                                </button>
-                                <div class="dropdown-menu">
-                                    @foreach ($priorities as $newPriorityId => $priorityLabel)
-                                        <li class="dropdown-item">
-                                            <button type="button"
-                                                data-args="{{ $row['id'] }},{{ $newPriorityId }},{{ $priorityLabel }}"
+                                @endif
+                                @if (!is_numeric($row->priority))
+                                    <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
+                                    <i class="fa fa-caret-down"></i>
+                                @endif
+                            </button>
+                            <div class="dropdown-menu">
+                                @foreach ($priorities as $newPriorityId => $priorityLabel)
+                                    <li class="dropdown-item">
+                                        <button type="button"
+                                                data-args="{{ $row->id }},{{ $newPriorityId }},{{ $priorityLabel }}"
                                                 class="table-button priority priority-bg-{!! $newPriorityId !!}">
-                                                <div> {{ $priorityLabel }}</div>
-                                            </button>
-                                        </li>
-                                    @endforeach
-                                </div>
+                                            <div> {{ $priorityLabel }}</div>
+                                        </button>
+                                    </li>
+                                @endforeach
                             </div>
-                        </td>
-                        <td class="specific">
-                            <input type="date" data-ticketid="{{ $row['id'] }}" id="due-date-{{ $row['id'] }}"
-                                value="{{ date($row['dueDate']) }}" />
-                        </td>
-                        @php
-                            $selectedUser = $row['editorId'] !== null && $row['editorId'] !== -1 ? collect($row['projectUsers'])->firstWhere('id', $row['editorId']) : null;
-                        @endphp
+                        </div>
+                    </td>
+                    <td class="specific">
+                        <input type="date" data-ticketid="{{ $row->id }}" id="due-date-{{ $row->id }}"
+                               value="{{ date($row->dueDate) }}"/>
+                    </td>
+                    @php
+                        $selectedUser = $row->editorId !== null && $row->editorId !== -1 ? collect($row->projectUsers)->firstWhere('id', $row->editorId) : null;
+                    @endphp
 
-                        <td class="spacious"
-                            data-selected-name="{{ $selectedUser ? $selectedUser['firstname'] . ' ' . $selectedUser['lastname'] : '' }}">
+                    <td class="spacious"
+                        data-selected-name="{{ $selectedUser ? $selectedUser['firstname'] . ' ' . $selectedUser['lastname'] : '' }}">
 
-                            <select class="form-select assigned-user-select" id="assigned-user-{{ $row['id'] }}"
-                                data-ticket-id="{{ $row['id'] }}">
+                        <select class="form-select assigned-user-select" id="assigned-user-{{ $row->id }}"
+                                data-ticket-id="{{ $row->id }}">
+                            <option value="-1"></option>
+                            @foreach ($row->projectUsers as $projectUser)
+                                <option value="{{ $projectUser['id'] }}"
+                                    {{ (int) $row->editorId === (int) $projectUser['id'] ? 'selected' : '' }}>
+                                    {{ $projectUser['firstname'] }} {{ $projectUser['lastname'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </td>
+                    <td class="confined">
+                        <div class="input-group input-group-sm mb-3">
+                            <input type="number" id="plan-hours-{{ $row->id }}" class="form-control"
+                                   value="{{ $row->planHours }}">
+                        </div>
+                    </td>
+                    <td class="confined">
+                        <div class="input-group input-group-sm mb-3">
+                            <input type="number" id="remaining-hours-{{ $row->id }}" class="form-control"
+                                   value="{{ $row->hourRemaining }}">
+                        </div>
+                    </td>
+                    <td>
+                        @if (count($row->projectMilestones) > 0)
+                            <select id="milestone-select-{{ $row->id }}" class="form-select">
                                 <option value="-1"></option>
-                                @foreach ($row['projectUsers'] as $projectUser)
-                                    <option value="{{ $projectUser['id'] }}"
-                                        {{ (int) $row['editorId'] === (int) $projectUser['id'] ? 'selected' : '' }}>
-                                        {{ $projectUser['firstname'] }} {{ $projectUser['lastname'] }}
+                                @foreach ($row->projectMilestones as $projectMilestone)
+                                    <option value={{ $projectMilestone->id }}
+                                            id="milestone-option-{{ $projectMilestone->id }}"
+                                        {{ (int) $row->milestoneid === (int) $projectMilestone->id ? 'selected' : '' }}>
+                                        {{ $projectMilestone->headline }}
                                     </option>
                                 @endforeach
                             </select>
-                        </td>
-                        <td class="confined">
-                            <div class="input-group input-group-sm mb-3">
-                                <input type="number" id="plan-hours-{{ $row['id'] }}" class="form-control"
-                                    value="{{ $row['planHours'] }}">
-                            </div>
-                        </td>
-                        <td class="confined">
-                            <div class="input-group input-group-sm mb-3">
-                                <input type="number" id="remaining-hours-{{ $row['id'] }}" class="form-control"
-                                    value="{{ $row['hourRemaining'] }}">
-                            </div>
-                        </td>
-                        <td>
-                            @if (count($row['projectMilestones']) > 0)
-                                <select id="milestone-select-{{ $row['id'] }}" class="form-select">
-                                    <option value="-1"></option>
-                                    @foreach ($row['projectMilestones'] as $projectMilestone)
-                                        <option value={{ $projectMilestone['id'] }}
-                                            id="milestone-option-{{ $projectMilestone['id'] }}"
-                                            {{ (int) $row['milestoneid'] === (int) $projectMilestone['id'] ? 'selected' : '' }}>
-                                            {{ $projectMilestone['headline'] }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            @endif
-                            @if (count($row['projectMilestones']) === 0)
-                                {{ __('projectOverview.no_project_milestones') }}
-                            @endif
-                        </td>
-                        <td class="spacious">
-                            <div class="input-group input-group-sm mb-3">
-                                <input type="text" id="tags-{{ $row['id'] }}" class="form-control"
-                                    value="{{ $row['tags'] }}">
-                            </div>
-                        </td>
-                    </tr>
-                @endforeach
+                        @endif
+                        @if (count($row->projectMilestones) === 0)
+                            {{ __('projectOverview.no_project_milestones') }}
+                        @endif
+                    </td>
+                    <td class="spacious">
+                        <div class="input-group input-group-sm mb-3">
+                            <input type="text" id="tags-{{ $row->id }}" class="form-control"
+                                   value="{{ $row->tags }}">
+                        </div>
+                    </td>
+                </tr>
+            @endforeach
                 @if (count($allTickets) === 0)
                     <td colspan="99">
                         {{ __('projectOverview.empty_list') }}
