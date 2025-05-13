@@ -185,7 +185,11 @@
             </thead>
             <tbody>
                 @foreach ($allTickets as $key => $row)
-                    @php if (!isset( $row['projectName'])) {die('<pre>'.print_r($row,true).'</pre>');} @endphp
+                    @php
+                        if (!isset($row['projectName'])) {
+                            die('<pre>' . print_r($row, true) . '</pre>');
+                        }
+                    @endphp
                     <tr>
                         <th scope="row">{{ $row['id'] }}</th>
                         <td>
@@ -307,12 +311,13 @@
                 @if (count($allTickets) === 0)
                     <td colspan="99">
 
-                    <form method="GET">
-                        <input type="hidden" name="loadAllConfirm" value="1">
-                        {{ __('projectOverview.empty_list') }}
-                        <br />
-                        {{ __('projectOverview.load-list-anyway') }}
-                        <strong><a href="#" class="link" onclick="this.closest('form').submit(); return false;" >{{ __('projectOverview.show-all-button') }}</a></strong>
+                        <form method="GET">
+                            <input type="hidden" name="loadAllConfirm" value="1">
+                            {{ __('projectOverview.empty_list') }}
+                            <br />
+                            {{ __('projectOverview.load-list-anyway') }}
+                            <strong><a href="#" class="link"
+                                    onclick="this.closest('form').submit(); return false;">{{ __('projectOverview.show-all-button') }}</a></strong>
                         </form>
                     </td>
                 @endif
