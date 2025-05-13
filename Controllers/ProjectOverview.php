@@ -72,6 +72,7 @@ class ProjectOverview extends Controller
         $sortOrderForFilter = null;
         $noDueDateForFilter = 'true';
         $overdueTicketsForFilter = 'true';
+        $loadAllConfirm = $_GET['loadAllConfirm'] ?? false;
         $allProjects = $this->projectOverviewService->getAllProjects();
 
         try {
@@ -125,10 +126,16 @@ class ProjectOverview extends Controller
 
         $noDueDate = $noDueDateForFilter === 'false' ? 0 : 1;
         $overdueTickets = $overdueTicketsForFilter === 'false' ? 0 : 1;
-        $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
+        $allTickets = [];
+        $projectIds = [];
+        if (!empty($userIdArray) || $loadAllConfirm) {
+            $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
 
-        // A list of unique projectids
-        $projectIds = array_unique(array_column($allTickets, 'projectId'));
+            // A list of unique projectids
+            $projectIds = array_unique(array_column($allTickets, 'projectId'));
+        }
+
+
         $userAndProject = [];
         $milestonesAndProject = [];
 
