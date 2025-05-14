@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-49](https://github.com/ITK-Leantime/project-overview/pull/49)
+  * Make full list load require confirmation
+
 ## [3.0.3] - 2025-05-06
 
 * [PR-47](https://github.com/ITK-Leantime/project-overview/pull/47)

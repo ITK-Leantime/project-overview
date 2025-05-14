@@ -72,6 +72,7 @@ class ProjectOverview extends Controller
         $sortOrderForFilter = null;
         $noDueDateForFilter = 'true';
         $overdueTicketsForFilter = 'true';
+        $loadAllConfirm = $_GET['loadAllConfirm'] ?? false;
         $allProjects = $this->projectOverviewService->getAllProjects();
 
         try {
@@ -125,10 +126,15 @@ class ProjectOverview extends Controller
 
         $noDueDate = $noDueDateForFilter === 'false' ? 0 : 1;
         $overdueTickets = $overdueTicketsForFilter === 'false' ? 0 : 1;
-        $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
+        $allTickets = [];
+        $projectIds = [];
 
-        // A list of unique projectids
-        $projectIds = array_unique(array_column($allTickets, 'projectId'));
+        // Get all tickets, and their corresponding projects.
+        if (!empty($userIdArray) || $loadAllConfirm) {
+            $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
+            $projectIds = array_unique(array_column($allTickets, 'projectId'));
+        }
+
         $userAndProject = [];
         $milestonesAndProject = [];
 
@@ -140,11 +146,10 @@ class ProjectOverview extends Controller
             $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
         }
 
-        // Then the milestones/users are set into the tickets array on each ticket by project.
-        foreach ($allTickets as &$ticket) {
-            $ticket['projectUsers'] = $userAndProject[$ticket['projectId']];
-            $ticket['projectMilestones'] = $milestonesAndProject[$ticket['projectId']];
-            $ticket['projectName'] = $allProjects[$ticket['projectId']]['name'];
+        foreach ($allTickets as $ticket) {
+            $ticket->projectUsers = $userAndProject[$ticket->projectId];
+            $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
+            $ticket->projectName = $allProjects[$ticket->projectId]['name'];
         }
 
         $this->tpl->assign('fromDate', $fromDate);
@@ -154,6 +159,7 @@ class ProjectOverview extends Controller
         $this->tpl->assign('statusLabels', $projectTicketStatuses);
         $this->tpl->assign('sortBy', $sortByForFilter);
         $this->tpl->assign('sortOrder', $sortOrderForFilter);
+        $this->tpl->assign('allSelectedUsers', $userIdArray);
 
         $this->tpl->assign('allUsers', $this->userService->getAll());
 
