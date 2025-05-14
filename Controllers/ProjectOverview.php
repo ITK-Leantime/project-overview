@@ -129,14 +129,11 @@ class ProjectOverview extends Controller
         $allTickets = [];
         $projectIds = [];
 
-        // Then the milestones/users are set into the tickets array on each ticket by project.
+        // Get all tickets, and their corresponding projects.
         if (!empty($userIdArray) || $loadAllConfirm) {
             $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
-
-            // A list of unique projectids
             $projectIds = array_unique(array_column($allTickets, 'projectId'));
         }
-
 
         $userAndProject = [];
         $milestonesAndProject = [];
