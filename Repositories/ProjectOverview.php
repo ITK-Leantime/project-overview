@@ -4,8 +4,7 @@ namespace Leantime\Plugins\ProjectOverview\Repositories;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
-use Leantime\Core\Db\Db as DbCore;
-use PDO;
+use Illuminate\Database\Query\Builder;
 
 /**
  * This is the project overview repository, that makes (hopefully) the relevant sql queries.
@@ -13,19 +12,13 @@ use PDO;
 class ProjectOverview
 {
     /**
-     * @var DbCore|null - db connection
-     */
-    private null|DbCore $db = null;
-
-    /**
-     * __construct - get db connection
+     * Executes a database query using the specified database connection.
      *
-     * @access public
-     * @return void
+     * @return Builder Returns an instance of the query builder.
      */
-    public function __construct(DbCore $db)
+    private function query(): Builder
     {
-        $this->db = $db;
+        return app('db')->connection()->query();
     }
 
     /**
@@ -56,10 +49,8 @@ class ProjectOverview
             ? CarbonImmutable::createFromFormat('Y-m-d', '2023-03-14')->endOfDay()
             : $dateFrom;
 
-        $connection = $this->db->getConnection();
-
-        $query = $connection
-            ->table('zp_tickets AS ticket')
+        $query = $this->query()
+            ->from('zp_tickets AS ticket')
             ->select([
                 'ticket.id',
                 'ticket.headline',
@@ -69,7 +60,7 @@ class ProjectOverview
                 'ticket.hourRemaining',
                 'ticket.date',
                 'ticket.milestoneid',
-                $connection->raw('CAST(ticket.dateToFinish AS DATE) as dueDate'),
+                app('db')->connection()->raw('CAST(ticket.dateToFinish AS DATE) as dueDate'),
                 'ticket.projectId',
                 'ticket.tags',
                 'ticket.priority',
@@ -123,8 +114,8 @@ class ProjectOverview
      */
     public function getMilestonesByProjectId(string $projectId): array
     {
-        return $this->db->getConnection()
-            ->table('zp_tickets AS ticket')
+        return $this->query()
+            ->from('zp_tickets AS ticket')
             ->select([
                 'ticket.id',
                 'ticket.headline',
@@ -145,8 +136,8 @@ class ProjectOverview
      */
     public function getAllProjects(): array
     {
-        return $this->db->getConnection()
-            ->table('zp_projects')
+        return $this->query()
+            ->from('zp_projects')
             ->where(function ($query) {
                 $query->where('state', '!=', '1')
                     ->orWhereNull('state');
@@ -155,7 +146,7 @@ class ProjectOverview
             ->get()
             ->keyBy('id')
             ->map(function ($item) {
-                return (array) $item;
+                return (array)$item;
             })
             ->toArray();
     }
