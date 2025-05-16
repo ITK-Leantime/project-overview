@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.1.1] - 2025-05-16
+
 * [PR-51](https://github.com/ITK-Leantime/project-overview/pull/51)
   * Downgrade method requirements to match current code base.
 
@@ -166,7 +168,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.1...HEAD
+[3.1.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.0...3.1.1
 [3.1.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.3...3.1.0
 [3.0.3]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.2...3.0.3
 [3.0.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.1...3.0.2
