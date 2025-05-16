@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-51](https://github.com/ITK-Leantime/project-overview/pull/51)
+  * Downgrade method requirements to match current code base.
+
 ## [3.1.0] - 2025-05-14
 
 * [PR-49](https://github.com/ITK-Leantime/project-overview/pull/49)
