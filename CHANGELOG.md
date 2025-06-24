@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.1.2] - 2025-06-24
+
 * [PR-53](https://github.com/ITK-Leantime/project-overview/pull/53)
   * Autofocus user filter on load
 
@@ -171,7 +173,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.1...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.2...HEAD
+[3.1.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.1...3.1.2
 [3.1.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.0...3.1.1
 [3.1.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.3...3.1.0
 [3.0.3]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.2...3.0.3
