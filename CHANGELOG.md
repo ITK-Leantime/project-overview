@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-53](https://github.com/ITK-Leantime/project-overview/pull/53)
+  * Autofocus user filter on load
+
 ## [3.1.1] - 2025-05-16
 
 * [PR-51](https://github.com/ITK-Leantime/project-overview/pull/51)

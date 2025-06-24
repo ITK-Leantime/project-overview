@@ -135,8 +135,10 @@ $(document).ready(function () {
     $('#date-to').on('focusout', function () {
       changeDateTo(this.value);
     });
+    $(document).find('select.project-overview-assignee-select').select2('open');
   });
 });
+
 function changeStatus(ticketId, newStatusId, newClass, newLabel) {
   if (newStatusId !== undefined && ticketId) {
     jQuery
