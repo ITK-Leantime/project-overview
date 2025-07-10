@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-56](https://github.com/ITK-Leantime/project-overview/pull/56)
+  * Correctly set status when creating new ticket.
+
 ## [3.1.2] - 2025-06-24
 
 * [PR-53](https://github.com/ITK-Leantime/project-overview/pull/53)
