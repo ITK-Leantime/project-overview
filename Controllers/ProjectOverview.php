@@ -83,8 +83,7 @@ class ProjectOverview extends Controller
                 } else {
                     $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $fromDateValue)->startOfDay();
                 }
-            }
-            else {
+            } else {
                 $fromDate = CarbonImmutable::now()->startOfWeek(CarbonImmutable::MONDAY)->startOfDay();
             }
 
