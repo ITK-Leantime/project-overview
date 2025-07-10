@@ -7,12 +7,12 @@
   padding: 15px;
   margin-right: 10px;
   margin-left: 15px;
-    overflow: auto;
+  overflow: auto;
   width: calc(100% - 30px);
 
   .label-and-caret-wrapper {
     display: flex;
-      white-space: nowrap;
+    white-space: nowrap;
 
     .fa {
       display: flex;
@@ -200,20 +200,19 @@
 
     td {
       position: relative;
-        vertical-align: middle;
+      vertical-align: middle;
 
-        .center-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
+      .center-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
 
-            span.logged-hours {
-                margin: auto;
-                user-select: none;
-            }
+        span.logged-hours {
+          margin: auto;
+          user-select: none;
         }
-
+      }
 
       select,
       input {
@@ -361,25 +360,25 @@ ul.select2-results__options {
 }
 
 @media screen and (max-width: 1200px) {
-    .leftpanel {
-        display: none;
-    }
-    .rightpanel {
-        width: 100%;
-    }
+  .leftpanel {
+    display: none;
+  }
+  .rightpanel {
+    width: 100%;
+  }
 
-    .search-and-filter {
-        form {
-            .checkboxes {
-                padding: 0 15px;
-                div {
-                    label {
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                    }
-                }
-            }
+  .search-and-filter {
+    form {
+      .checkboxes {
+        padding: 0 15px;
+        div {
+          label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
         }
+      }
     }
+  }
 }

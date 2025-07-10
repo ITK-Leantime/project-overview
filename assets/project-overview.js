@@ -32,26 +32,26 @@ $(document).ready(function () {
     const select2 = $('.project-overview-assignee-select')
       .select2({
         closeOnSelect: true,
-          tags: false,
-          matcher: function (params, data) {
-              if ($.trim(params.term) === '') {
-                  return data;
-              }
-
-              if (!params.term) {
-                  return data;
-              }
-
-              const keywords = params.term.split(" ");
-              const text = data.text.toUpperCase();
-
-              for (const keyword of keywords) {
-                  if (text.indexOf(keyword.toUpperCase()) === -1) {
-                      return null;
-                  }
-              }
-              return data;
+        tags: false,
+        matcher: function (params, data) {
+          if ($.trim(params.term) === '') {
+            return data;
           }
+
+          if (!params.term) {
+            return data;
+          }
+
+          const keywords = params.term.split(' ');
+          const text = data.text.toUpperCase();
+
+          for (const keyword of keywords) {
+            if (text.indexOf(keyword.toUpperCase()) === -1) {
+              return null;
+            }
+          }
+          return data;
+        },
       })
       .on('select2:unselect', function (e) {
         let self = this;
@@ -154,12 +154,15 @@ $(document).ready(function () {
     $('#date-to').on('focusout', function () {
       changeDateTo(this.value);
     });
-      const userSelecthasSelectedValues = select2.val() && select2.val().length > 0;
-      if (!userSelecthasSelectedValues) {
-          $(document).find('select.project-overview-assignee-select').select2('open');
-      } else {
-          $(document).find('select.project-overview-assignee-select').focus();
-      }
+    const userSelecthasSelectedValues =
+      select2.val() && select2.val().length > 0;
+    if (!userSelecthasSelectedValues) {
+      $(document)
+        .find('select.project-overview-assignee-select')
+        .select2('open');
+    } else {
+      $(document).find('select.project-overview-assignee-select').focus();
+    }
   });
 });
 
