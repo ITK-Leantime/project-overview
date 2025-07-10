@@ -1,12 +1,5 @@
 @extends($layout)
 @section('content')
-    <div class="pageheader">
-        <div class="pageicon"><span class="fa fa-cogs"></span></div>
-        <div class="pagetitle">
-            <h5>{{ __('label.table-columns') }}</h5>
-            <h1>{{ __('projectOverview.dashboard_title') }}</h1>
-        </div>
-    </div>
     <div class="project-overview-container">
         <div class="search-and-filter">
             <form method="POST">
