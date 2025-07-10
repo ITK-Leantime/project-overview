@@ -155,6 +155,7 @@ class ProjectOverview extends Controller
             $ticket->projectUsers = $userAndProject[$ticket->projectId];
             $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
             $ticket->projectName = $allProjects[$ticket->projectId]['name'];
+            $ticket->sumHours = round($ticket->sumHours, 2);
         }
 
         $this->tpl->assign('fromDate', $fromDate);

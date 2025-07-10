@@ -137,6 +137,18 @@
                             @endif
                         </div>
                     </th>
+                    <th id="sort_sumHours" scope="col">
+                        <div class="label-and-caret-wrapper">
+                            {{ __('projectOverview.todo_logged_hours_table_header') }}
+                            @if ($sortBy === 'sumHours' && $sortOrder === 'desc')
+                                <i class="fa fa-caret-up"></i>
+                            @endif
+                            @if ($sortBy === 'sumHours' && $sortOrder === 'asc')
+                                <i class="fa fa-caret-down"></i>
+                            @endif
+                        </div>
+                    </th>
+
                     <th id="sort_milestoneid" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.todo_milestone_table_header') }}
@@ -256,6 +268,11 @@
                         <div class="input-group input-group-sm mb-3">
                             <input type="number" id="remaining-hours-{{ $row->id }}" class="form-control"
                                    value="{{ $row->hourRemaining }}">
+                        </div>
+                    </td>
+                    <td class="confined">
+                        <div class="center-wrapper">
+                            <span class="logged-hours">{{ $row->sumHours }}</span>
                         </div>
                     </td>
                     <td class="spacious">

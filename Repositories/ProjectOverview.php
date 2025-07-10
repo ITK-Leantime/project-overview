@@ -71,6 +71,7 @@ class ProjectOverview
                 't2.id AS editorId',
                 't2.firstname AS editorFirstname',
                 't2.lastname AS editorLastname',
+                app('db')->connection()->raw('(SELECT SUM(hours) FROM zp_timesheets WHERE ticketId = ticket.id) as sumHours')
             ])
             ->leftJoin('zp_user AS t1', 'ticket.userId', '=', 't1.id')
             ->leftJoin('zp_user AS t2', 'ticket.editorId', '=', 't2.id')

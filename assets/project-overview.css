@@ -12,6 +12,7 @@
 
   .label-and-caret-wrapper {
     display: flex;
+      white-space: nowrap;
 
     .fa {
       display: flex;
@@ -199,6 +200,20 @@
 
     td {
       position: relative;
+        vertical-align: middle;
+
+        .center-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+
+            span.logged-hours {
+                margin: auto;
+                user-select: none;
+            }
+        }
+
 
       select,
       input {
