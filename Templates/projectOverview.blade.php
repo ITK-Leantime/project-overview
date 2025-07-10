@@ -60,17 +60,6 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th id="sort_id" scope="col">
-                        <div class="label-and-caret-wrapper">
-                            {{ __('projectOverview.id_table_header') }}
-                            @if ($sortBy === 'id' && $sortOrder === 'desc')
-                                <i class="fa fa-caret-up"></i>
-                            @endif
-                            @if ($sortBy === 'id' && $sortOrder === 'asc')
-                                <i class="fa fa-caret-down"></i>
-                            @endif
-                        </div>
-                    </th>
                     <th id="sort_headline" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.todo_table_header') }}
@@ -78,17 +67,6 @@
                                 <i class="fa fa-caret-up"></i>
                             @endif
                             @if ($sortBy === 'headline' && $sortOrder === 'asc')
-                                <i class="fa fa-caret-down"></i>
-                            @endif
-                        </div>
-                    </th>
-                    <th id="sort_projectId" scope="col">
-                        <div class="label-and-caret-wrapper">
-                            {{ __('projectOverview.project_table_header') }}
-                            @if ($sortBy === 'projectId' && $sortOrder === 'desc')
-                                <i class="fa fa-caret-up"></i>
-                            @endif
-                            @if ($sortBy === 'projectId' && $sortOrder === 'asc')
                                 <i class="fa fa-caret-down"></i>
                             @endif
                         </div>
@@ -185,17 +163,12 @@
             </thead>
             <tbody>
             @foreach ($allTickets as $key => $row)
-                @php
-                    if (!isset($row->projectName)) {
-                        die('<pre>' . print_r($row, true) . '</pre>');
-                    }
-                @endphp
                 <tr>
-                    <th scope="row">{{ $row->id }}</th>
-                    <td>
+                    <td style="width: 400px;">
                         <a href="#/tickets/showTicket/{{ $row->id }}">
                             {{ $row->headline }}
                         </a>
+                        <p><small>{{ $row->projectName }}</small></p>
                         @if (isset($row->dependingTicketId) && $row->dependingTicketId > 0)
                             (
                             <a
@@ -203,7 +176,7 @@
                             )
                         @endif
                     </td>
-                    <th scope="row">{{ $row->projectName }}</th>
+                    {{--<th scope="row">{{ $row->projectName }}</th>--}}
                     <td>
                         <div class="btn-group">
                             <button type="button" id="status-ticket-{{ $row->id }}"
@@ -285,7 +258,7 @@
                                    value="{{ $row->hourRemaining }}">
                         </div>
                     </td>
-                    <td>
+                    <td class="spacious">
                         @if (count($row->projectMilestones) > 0)
                             <select id="milestone-select-{{ $row->id }}" class="form-select">
                                 <option value="-1"></option>
