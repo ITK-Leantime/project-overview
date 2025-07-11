@@ -382,3 +382,7 @@ ul.select2-results__options {
     }
   }
 }
+
+.select2-search__field {
+    border-radius: 0;
+}
