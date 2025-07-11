@@ -121,7 +121,6 @@ class ProjectOverview extends Controller
         }
 
         $this->tpl->assign('fromDate', $fromDate);
-
         $this->tpl->assign('toDate', $toDate);
         $this->tpl->assign('selectedFilterUser', $userIdArray);
         $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
