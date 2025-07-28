@@ -1,0 +1,148 @@
+version: '3'
+
+dotenv: [".task.env", ".env"]
+
+vars:
+  DOCKER_COMPOSE: '{{ .TASK_DOCKER_COMPOSE | default "docker compose" }}'
+  PHP_IMAGE: itkdev/php8.3-fpm:latest
+
+tasks:
+  docker:
+    desc: "Run docker command"
+    cmds:
+      - docker {{.CLI_ARGS}}
+    silent: true
+
+  compose:
+    desc: "Run docker compose command"
+    cmds:
+      - '{{.DOCKER_COMPOSE}} {{.CLI_ARGS}}'
+    silent: true
+
+  install:
+    desc: "Install npm and composer dependencies"
+    cmds:
+      - task: compose
+        vars: { CLI_ARGS: "run --rm php npm install" }
+      - task: docker
+        vars: { CLI_ARGS: "run --interactive --rm --volume {{.PWD}}:/app {{.PHP_IMAGE}} composer install" }
+
+  composer:normalize:
+    desc: "Normalize composer.json file"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --rm --volume {{.PWD}}:/app {{.PHP_IMAGE}} composer normalize" }
+
+  coding-standards:check:
+    desc: "Check coding standards"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --interactive --rm --volume {{.PWD}}:/app {{.PHP_IMAGE}} composer coding-standards-check" }
+
+  coding-standards:apply:
+    desc: "Apply coding standards fixes"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --interactive --rm --volume {{.PWD}}:/app {{.PHP_IMAGE}} composer coding-standards-apply" }
+
+  prettier:check:
+    desc: "Check files with prettier"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --rm -v {{.PWD}}:/work tmknom/prettier:latest --check assets" }
+
+  prettier:apply:
+    desc: "Apply prettier fixes"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --rm -v {{.PWD}}:/work tmknom/prettier:latest --write assets" }
+
+  markdown:check:
+    desc: "Check markdown files"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --rm --volume {{.PWD}}:/md itkdev/markdownlint '**/*.md'" }
+
+  markdown:apply:
+    desc: "Fix markdown files"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --rm --volume {{.PWD}}:/md itkdev/markdownlint '**/*.md' --fix" }
+
+  blade:check:
+    desc: "Check blade templates"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --rm --volume {{.PWD}}:/app -w /app shufo/blade-formatter:1.11.11 Templates/*.blade.php --check-formatted" }
+
+  blade:apply:
+    desc: "Format blade templates"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --rm --volume {{.PWD}}:/app -w /app shufo/blade-formatter:1.11.11 Templates/*.blade.php --write" }
+
+  shellcheck:
+    desc: "Run shellcheck on scripts"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --rm --volume {{.PWD}}:/app --workdir /app peterdavehello/shellcheck shellcheck bin/create-release" }
+      - task: docker
+        vars: { CLI_ARGS: "run --rm --volume {{.PWD}}:/app --workdir /app peterdavehello/shellcheck shellcheck bin/deploy" }
+      - task: docker
+        vars: { CLI_ARGS: "run --rm --volume {{.PWD}}:/app --workdir /app peterdavehello/shellcheck shellcheck bin/local.create-release" }
+
+  code-analysis:
+    desc: "Run PHP static code analysis"
+    cmds:
+      - task: docker
+        vars: { CLI_ARGS: "run --interactive --rm --volume {{.PWD}}:/app --env PHP_MEMORY_LIMIT=256M {{.PHP_IMAGE}} composer code-analysis" }
+
+  release:test:
+    desc: "Create a test release"
+    cmds:
+      - task: compose
+        vars: { CLI_ARGS: "build" }
+      - task: compose
+        vars: { CLI_ARGS: "run --rm php bin/create-release dev-test" }
+
+  check:all:
+    desc: "Run all checks"
+    cmds:
+      - task: coding-standards:check
+      - task: prettier:check
+      - task: markdown:check
+      - task: blade:check
+      - task: shellcheck
+      - task: code-analysis
+
+  fix:all:
+    desc: "Run all fixes"
+    cmds:
+      - task: coding-standards:apply
+      - task: prettier:apply
+      - task: markdown:apply
+      - task: blade:apply
+
+  coding-standards:
+    desc: "Check and fix coding standards"
+    cmds:
+      - task: coding-standards:check
+      - task: coding-standards:apply
+
+  prettier:
+    desc: "Check and fix with prettier"
+    cmds:
+      - task: prettier:check
+      - task: prettier:apply
+
+  markdown:
+    desc: "Check and fix markdown files"
+    cmds:
+      - task: markdown:check
+      - task: markdown:apply
+
+  blade:
+    desc: "Check and fix blade templates"
+    cmds:
+      - task: blade:check
+      - task: blade:apply

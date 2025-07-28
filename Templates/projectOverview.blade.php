@@ -1,12 +1,5 @@
 @extends($layout)
 @section('content')
-    <div class="pageheader">
-        <div class="pageicon"><span class="fa fa-cogs"></span></div>
-        <div class="pagetitle">
-            <h5>{{ __('label.table-columns') }}</h5>
-            <h1>{{ __('projectOverview.dashboard_title') }}</h1>
-        </div>
-    </div>
     <div class="project-overview-container">
         <div class="search-and-filter">
             <form method="POST">
@@ -60,17 +53,6 @@
         <table class="table table-striped">
             <thead>
                 <tr>
-                    <th id="sort_id" scope="col">
-                        <div class="label-and-caret-wrapper">
-                            {{ __('projectOverview.id_table_header') }}
-                            @if ($sortBy === 'id' && $sortOrder === 'desc')
-                                <i class="fa fa-caret-up"></i>
-                            @endif
-                            @if ($sortBy === 'id' && $sortOrder === 'asc')
-                                <i class="fa fa-caret-down"></i>
-                            @endif
-                        </div>
-                    </th>
                     <th id="sort_headline" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.todo_table_header') }}
@@ -78,17 +60,6 @@
                                 <i class="fa fa-caret-up"></i>
                             @endif
                             @if ($sortBy === 'headline' && $sortOrder === 'asc')
-                                <i class="fa fa-caret-down"></i>
-                            @endif
-                        </div>
-                    </th>
-                    <th id="sort_projectId" scope="col">
-                        <div class="label-and-caret-wrapper">
-                            {{ __('projectOverview.project_table_header') }}
-                            @if ($sortBy === 'projectId' && $sortOrder === 'desc')
-                                <i class="fa fa-caret-up"></i>
-                            @endif
-                            @if ($sortBy === 'projectId' && $sortOrder === 'asc')
                                 <i class="fa fa-caret-down"></i>
                             @endif
                         </div>
@@ -159,6 +130,18 @@
                             @endif
                         </div>
                     </th>
+                    <th id="sort_sumHours" scope="col">
+                        <div class="label-and-caret-wrapper">
+                            {{ __('projectOverview.todo_logged_hours_table_header') }}
+                            @if ($sortBy === 'sumHours' && $sortOrder === 'desc')
+                                <i class="fa fa-caret-up"></i>
+                            @endif
+                            @if ($sortBy === 'sumHours' && $sortOrder === 'asc')
+                                <i class="fa fa-caret-down"></i>
+                            @endif
+                        </div>
+                    </th>
+
                     <th id="sort_milestoneid" scope="col">
                         <div class="label-and-caret-wrapper">
                             {{ __('projectOverview.todo_milestone_table_header') }}
@@ -184,132 +167,130 @@
                 </tr>
             </thead>
             <tbody>
-            @foreach ($allTickets as $key => $row)
-                @php
-                    if (!isset($row->projectName)) {
-                        die('<pre>' . print_r($row, true) . '</pre>');
-                    }
-                @endphp
-                <tr>
-                    <th scope="row">{{ $row->id }}</th>
-                    <td>
-                        <a href="#/tickets/showTicket/{{ $row->id }}">
-                            {{ $row->headline }}
-                        </a>
-                        @if (isset($row->dependingTicketId) && $row->dependingTicketId > 0)
-                            (
-                            <a
-                                href="#/tickets/showTicket/{{ $row->dependingTicketId }}">{{ $row->parentHeadline }}</a>
-                            )
-                        @endif
-                    </td>
-                    <th scope="row">{{ $row->projectName }}</th>
-                    <td>
-                        <div class="btn-group">
-                            <button type="button" id="status-ticket-{{ $row->id }}"
-                                    class="table-button {!! $statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"
-                                    data-toggle="dropdown">
-                                <span
-                                    id="status-label">{!! $statusLabels[$row->projectId][$row->status]['name'] !!} </span>
-                                <i class="fa fa-caret-down"></i>
-                            </button>
-                            <div class="dropdown-menu" id="status-dropdown-menu">
-                                @foreach ($statusLabels[$row->projectId] as $newStatusId => $label)
-                                    <li class="dropdown-item">
-                                        <button class="table-button status {!! $label['class'] !!}"
+                @foreach ($allTickets as $key => $row)
+                    <tr>
+                        <td style="width: 400px;">
+                            <a href="#/tickets/showTicket/{{ $row->id }}">
+                                {{ $row->headline }}
+                            </a>
+                            <p><small>{{ $row->projectName }}</small></p>
+                            @if (isset($row->dependingTicketId) && $row->dependingTicketId > 0)
+                                (
+                                <a
+                                    href="#/tickets/showTicket/{{ $row->dependingTicketId }}">{{ $row->parentHeadline }}</a>
+                                )
+                            @endif
+                        </td>
+                        {{-- <th scope="row">{{ $row->projectName }}</th> --}}
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" id="status-ticket-{{ $row->id }}"
+                                    class="table-button {!! $statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}" data-toggle="dropdown">
+                                    <span id="status-label">{!! $statusLabels[$row->projectId][$row->status]['name'] !!} </span>
+                                    <i class="fa fa-caret-down"></i>
+                                </button>
+                                <div class="dropdown-menu" id="status-dropdown-menu">
+                                    @foreach ($statusLabels[$row->projectId] as $newStatusId => $label)
+                                        <li class="dropdown-item">
+                                            <button class="table-button status {!! $label['class'] !!}"
                                                 data-args="{{ $row->id }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
-                                            {{ $label['name'] }}
-                                        </button>
-                                    </li>
-                                @endforeach
+                                                {{ $label['name'] }}
+                                            </button>
+                                        </li>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="btn-group">
-                            <button type="button" id="priority-ticket-{{ $row->id }}"
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" id="priority-ticket-{{ $row->id }}"
                                     class="table-button priority-bg-{!! $row->priority !!}" data-toggle="dropdown">
-                                @if (is_numeric($row->priority) && isset($priorities[$row->priority]))
-                                    <span id="priority-label">{!! $priorities[$row->priority] !!}</span>
-                                    <i class="fa fa-caret-down"></i>
-                                @endif
-                                @if (!is_numeric($row->priority))
-                                    <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
-                                    <i class="fa fa-caret-down"></i>
-                                @endif
-                            </button>
-                            <div class="dropdown-menu">
-                                @foreach ($priorities as $newPriorityId => $priorityLabel)
-                                    <li class="dropdown-item">
-                                        <button type="button"
+                                    @if (is_numeric($row->priority) && isset($priorities[$row->priority]))
+                                        <span id="priority-label">{!! $priorities[$row->priority] !!}</span>
+                                        <i class="fa fa-caret-down"></i>
+                                    @endif
+                                    @if (!is_numeric($row->priority))
+                                        <span id="priority-label">{{ __('projectOverview.no_priority_label') }} </span>
+                                        <i class="fa fa-caret-down"></i>
+                                    @endif
+                                </button>
+                                <div class="dropdown-menu">
+                                    @foreach ($priorities as $newPriorityId => $priorityLabel)
+                                        <li class="dropdown-item">
+                                            <button type="button"
                                                 data-args="{{ $row->id }},{{ $newPriorityId }},{{ $priorityLabel }}"
                                                 class="table-button priority priority-bg-{!! $newPriorityId !!}">
-                                            <div> {{ $priorityLabel }}</div>
-                                        </button>
-                                    </li>
-                                @endforeach
+                                                <div> {{ $priorityLabel }}</div>
+                                            </button>
+                                        </li>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="specific">
-                        <input type="date" data-ticketid="{{ $row->id }}" id="due-date-{{ $row->id }}"
-                               value="{{ date($row->dueDate) }}"/>
-                    </td>
-                    @php
-                        $selectedUser = $row->editorId !== null && $row->editorId !== -1 ? collect($row->projectUsers)->firstWhere('id', $row->editorId) : null;
-                    @endphp
+                        </td>
+                        <td class="specific">
+                            <input type="date" data-ticketid="{{ $row->id }}" id="due-date-{{ $row->id }}"
+                                value="{{ date($row->dueDate) }}" />
+                        </td>
+                        @php
+                            $selectedUser = $row->editorId !== null && $row->editorId !== -1 ? collect($row->projectUsers)->firstWhere('id', $row->editorId) : null;
+                        @endphp
 
-                    <td class="spacious"
-                        data-selected-name="{{ $selectedUser ? $selectedUser['firstname'] . ' ' . $selectedUser['lastname'] : '' }}">
+                        <td class="spacious"
+                            data-selected-name="{{ $selectedUser ? $selectedUser['firstname'] . ' ' . $selectedUser['lastname'] : '' }}">
 
-                        <select class="form-select assigned-user-select" id="assigned-user-{{ $row->id }}"
+                            <select class="form-select assigned-user-select" id="assigned-user-{{ $row->id }}"
                                 data-ticket-id="{{ $row->id }}">
-                            <option value="-1"></option>
-                            @foreach ($row->projectUsers as $projectUser)
-                                <option value="{{ $projectUser['id'] }}"
-                                    {{ (int) $row->editorId === (int) $projectUser['id'] ? 'selected' : '' }}>
-                                    {{ $projectUser['firstname'] }} {{ $projectUser['lastname'] }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </td>
-                    <td class="confined">
-                        <div class="input-group input-group-sm mb-3">
-                            <input type="number" id="plan-hours-{{ $row->id }}" class="form-control"
-                                   value="{{ $row->planHours }}">
-                        </div>
-                    </td>
-                    <td class="confined">
-                        <div class="input-group input-group-sm mb-3">
-                            <input type="number" id="remaining-hours-{{ $row->id }}" class="form-control"
-                                   value="{{ $row->hourRemaining }}">
-                        </div>
-                    </td>
-                    <td>
-                        @if (count($row->projectMilestones) > 0)
-                            <select id="milestone-select-{{ $row->id }}" class="form-select">
                                 <option value="-1"></option>
-                                @foreach ($row->projectMilestones as $projectMilestone)
-                                    <option value={{ $projectMilestone->id }}
-                                            id="milestone-option-{{ $projectMilestone->id }}"
-                                        {{ (int) $row->milestoneid === (int) $projectMilestone->id ? 'selected' : '' }}>
-                                        {{ $projectMilestone->headline }}
+                                @foreach ($row->projectUsers as $projectUser)
+                                    <option value="{{ $projectUser['id'] }}"
+                                        {{ (int) $row->editorId === (int) $projectUser['id'] ? 'selected' : '' }}>
+                                        {{ $projectUser['firstname'] }} {{ $projectUser['lastname'] }}
                                     </option>
                                 @endforeach
                             </select>
-                        @endif
-                        @if (count($row->projectMilestones) === 0)
-                            {{ __('projectOverview.no_project_milestones') }}
-                        @endif
-                    </td>
-                    <td class="spacious">
-                        <div class="input-group input-group-sm mb-3">
-                            <input type="text" id="tags-{{ $row->id }}" class="form-control"
-                                   value="{{ $row->tags }}">
-                        </div>
-                    </td>
-                </tr>
-            @endforeach
+                        </td>
+                        <td class="confined">
+                            <div class="input-group input-group-sm mb-3">
+                                <input type="number" id="plan-hours-{{ $row->id }}" class="form-control"
+                                    value="{{ $row->planHours }}">
+                            </div>
+                        </td>
+                        <td class="confined">
+                            <div class="input-group input-group-sm mb-3">
+                                <input type="number" id="remaining-hours-{{ $row->id }}" class="form-control"
+                                    value="{{ $row->hourRemaining }}">
+                            </div>
+                        </td>
+                        <td class="confined">
+                            <div class="center-wrapper">
+                                <span class="logged-hours">{{ $row->sumHours }}</span>
+                            </div>
+                        </td>
+                        <td class="spacious">
+                            @if (count($row->projectMilestones) > 0)
+                                <select id="milestone-select-{{ $row->id }}" class="form-select">
+                                    <option value="-1"></option>
+                                    @foreach ($row->projectMilestones as $projectMilestone)
+                                        <option value={{ $projectMilestone->id }}
+                                            id="milestone-option-{{ $projectMilestone->id }}"
+                                            {{ (int) $row->milestoneid === (int) $projectMilestone->id ? 'selected' : '' }}>
+                                            {{ $projectMilestone->headline }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            @endif
+                            @if (count($row->projectMilestones) === 0)
+                                {{ __('projectOverview.no_project_milestones') }}
+                            @endif
+                        </td>
+                        <td class="spacious">
+                            <div class="input-group input-group-sm mb-3">
+                                <input type="text" id="tags-{{ $row->id }}" class="form-control"
+                                    value="{{ $row->tags }}">
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
                 @if (count($allTickets) === 0)
                     <td colspan="99">
                         {{ __('projectOverview.empty_list') }}
@@ -317,10 +298,10 @@
                         @if (count($allSelectedUsers) === 0)
                             <form method="GET">
                                 <input type="hidden" name="loadAllConfirm" value="1">
-                                <br/>
+                                <br />
                                 {{ __('projectOverview.load-list-anyway') }}
                                 <strong><a href="#" class="link"
-                                           onclick="this.closest('form').submit(); return false;">{{ __('projectOverview.show-all-button') }}</a></strong>
+                                        onclick="this.closest('form').submit(); return false;">{{ __('projectOverview.show-all-button') }}</a></strong>
                             </form>
                         @endif
                     </td>

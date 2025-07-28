@@ -77,20 +77,23 @@ class ProjectOverview extends Controller
 
         try {
             if (isset($_GET['fromDate']) && $_GET['fromDate'] !== '') {
-                if ($_GET['fromDate'][0] === '+' || $_GET['fromDate'][0] === '-') {
-                    $fromDate = CarbonImmutable::now()->startOfDay()->modify($_GET['fromDate']);
+                $fromDateValue = trim($_GET['fromDate']);
+                if (str_starts_with($fromDateValue, '+') || str_starts_with($fromDateValue, '-')) {
+                    $fromDate = CarbonImmutable::now()->startOfDay()->modify($fromDateValue);
                 } else {
-                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['fromDate'])->startOfDay();
+                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $fromDateValue)->startOfDay();
                 }
             } else {
                 $fromDate = CarbonImmutable::now()->startOfWeek(CarbonImmutable::MONDAY)->startOfDay();
             }
 
+
             if (isset($_GET['toDate']) && $_GET['toDate'] !== '') {
-                if ($_GET['toDate'][0] === '+' || $_GET['toDate'][0] === '-') {
-                    $toDate = CarbonImmutable::now()->startOfDay()->modify($_GET['toDate']);
+                $toDateValue = trim($_GET['toDate']);
+                if (str_starts_with($toDateValue, '+') || str_starts_with($toDateValue, '-')) {
+                    $toDate = CarbonImmutable::now()->startOfDay()->modify($toDateValue);
                 } else {
-                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $_GET['toDate'])->endOfDay();
+                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $toDateValue)->endOfDay();
                 }
             } else {
                 $toDate = CarbonImmutable::now()->endOfWeek(CarbonImmutable::SUNDAY)->endOfDay();
@@ -150,6 +153,7 @@ class ProjectOverview extends Controller
             $ticket->projectUsers = $userAndProject[$ticket->projectId];
             $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
             $ticket->projectName = $allProjects[$ticket->projectId]['name'];
+            $ticket->sumHours = round($ticket->sumHours, 2);
         }
 
         $this->tpl->assign('fromDate', $fromDate);
