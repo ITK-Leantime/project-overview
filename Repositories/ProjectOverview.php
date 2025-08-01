@@ -36,15 +36,16 @@ class ProjectOverview
      * @return array<int, object> An array of tasks matching the filter criteria and sorted as specified.
      */
     public function getTasks(
-        ?array $userIdArray,
-        ?string $searchTerm,
+        ?array          $userIdArray,
+        ?string         $searchTerm,
         CarbonInterface $dateFrom,
         CarbonInterface $dateTo,
-        int $noDueDate,
-        int $overdueTickets,
-        ?string $sortBy,
-        ?string $sortOrder
-    ): array {
+        int             $noDueDate,
+        int             $overdueTickets,
+        ?string         $sortBy,
+        ?string         $sortOrder
+    ): array
+    {
         $fromDateForQuery = $overdueTickets === 1
             ? CarbonImmutable::createFromFormat('Y-m-d', '2023-03-14')->endOfDay()
             : $dateFrom;
@@ -71,7 +72,8 @@ class ProjectOverview
                 't2.id AS editorId',
                 't2.firstname AS editorFirstname',
                 't2.lastname AS editorLastname',
-                app('db')->connection()->raw('(SELECT SUM(hours) FROM zp_timesheets WHERE ticketId = ticket.id) as sumHours'),
+                app('db')->connection()->raw('(SELECT GROUP_CONCAT(CONCAT(u.firstname, " ", u.lastname, ": ", ROUND(IFNULL((SELECT SUM(hours) FROM zp_timesheets WHERE ticketId = ticket.id AND userId = u.id), 0), 2)) SEPARATOR "\n") FROM zp_user u WHERE u.id IN (SELECT DISTINCT userId FROM zp_timesheets WHERE ticketId = ticket.id)) as userHours'),
+                app('db')->connection()->raw('(SELECT ROUND(IFNULL(SUM(hours), 0), 2) FROM zp_timesheets WHERE ticketId = ticket.id) as sumHours')
             ])
             ->leftJoin('zp_user AS t1', 'ticket.userId', '=', 't1.id')
             ->leftJoin('zp_user AS t2', 'ticket.editorId', '=', 't2.id')
