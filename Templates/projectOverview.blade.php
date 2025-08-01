@@ -263,7 +263,7 @@
                         </td>
                         <td class="confined">
                             <div class="center-wrapper">
-                                <span class="logged-hours">{{ $row->sumHours }}</span>
+                                <span class="logged-hours" title="{{$row->userHours}}">{{ $row->sumHours }}</span>
                             </div>
                         </td>
                         <td class="spacious">
