@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-58](https://github.com/ITK-Leantime/project-overview/pull/58)
+  * Added specification of who logged hours on what
+
 ## [3.2.0] - 2025-07-28
 
 * [PR-56](https://github.com/ITK-Leantime/project-overview/pull/56)
