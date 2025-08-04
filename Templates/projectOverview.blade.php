@@ -173,7 +173,8 @@
                             <a href="#/tickets/showTicket/{{ $row->id }}">
                                 {{ $row->headline }}
                             </a>
-                            <a class="project-link" href="{{ $row->projectLink }}"><small>{{ $row->projectName }}</small></a>
+                            <a class="project-link"
+                                href="{{ $row->projectLink }}"><small>{{ $row->projectName }}</small></a>
                             @if (isset($row->dependingTicketId) && $row->dependingTicketId > 0)
                                 (
                                 <a
@@ -187,7 +188,8 @@
                                 <button type="button" id="status-ticket-{{ $row->id }}"
                                     class="table-button {!! $statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}" data-toggle="dropdown">
                                     <span
-                                        id="status-label">{{ $statusLabels[$row->projectId][$row->status]['name'] ?? '' }} </span>
+                                        id="status-label">{{ $statusLabels[$row->projectId][$row->status]['name'] ?? '' }}
+                                    </span>
                                     <i class="fa fa-caret-down"></i>
                                 </button>
                                 <div class="dropdown-menu" id="status-dropdown-menu">
@@ -230,7 +232,7 @@
                         </td>
                         <td class="specific">
                             <input type="date" data-ticketid="{{ $row->id }}" id="due-date-{{ $row->id }}"
-                                value="{{ $row->dueDate ??  date($row->dueDate) }}" />
+                                value="{{ $row->dueDate ?? date($row->dueDate) }}" />
                         </td>
                         @php
                             $selectedUser = $row->editorId !== null && $row->editorId !== -1 ? collect($row->projectUsers)->firstWhere('id', $row->editorId) : null;
@@ -264,7 +266,7 @@
                         </td>
                         <td class="confined">
                             <div class="center-wrapper">
-                                <span class="logged-hours" title="{{$row->userHours}}">{{ $row->sumHours }}</span>
+                                <span class="logged-hours" title="{{ $row->userHours }}">{{ $row->sumHours }}</span>
                             </div>
                         </td>
                         <td class="spacious">
