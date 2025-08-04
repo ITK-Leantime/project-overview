@@ -2,9 +2,10 @@
 
 ## [Unreleased]
 
-## [3.3.0] - 2025-08-01
+* [PR-60](https://github.com/ITK-Leantime/project-overview/pull/60)
+  * Project name as link
 
-## [3.2.1] - 2025-08-01
+## [3.3.0] - 2025-08-01
 
 * [PR-58](https://github.com/ITK-Leantime/project-overview/pull/58)
   * Added specification of who logged hours on what
