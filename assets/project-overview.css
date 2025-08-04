@@ -101,7 +101,8 @@
     }
 
     &.specific {
-      width: 120px;
+        min-width: 125px;
+      width: 125px;
     }
   }
 
@@ -201,7 +202,42 @@
       position: relative;
       vertical-align: middle;
 
-      .center-wrapper {
+        .project-link {
+          color: #666;
+            display: block;
+
+            &:hover {
+                color: var(--primary-font-color);
+                text-decoration: none;
+            }
+        }
+
+        #status-dropdown-menu {
+            width: 100%;
+        }
+        .status.btn-group,
+        .priority.btn-group {
+            width: 100%;
+        }
+        button[id^="status-ticket-"],
+        button[id^="priority-ticket-"] {
+            display: flex;
+
+            span {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: calc(100% - 20px);
+                margin: auto auto auto 5px;
+            }
+            i {
+                position: absolute;
+                right: 10px;
+            }
+        }
+
+
+        .center-wrapper {
         display: flex;
         justify-content: center;
         align-items: center;

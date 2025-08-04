@@ -150,9 +150,13 @@ class ProjectOverview extends Controller
         }
 
         foreach ($allTickets as $ticket) {
+            if ($ticket->dueDate == "0000-00-00") {
+                $ticket->dueDate = null;
+            }
             $ticket->projectUsers = $userAndProject[$ticket->projectId];
             $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
             $ticket->projectName = $allProjects[$ticket->projectId]['name'];
+            $ticket->projectLink = "/projects/changeCurrentProject/".$ticket->projectId;
             $ticket->sumHours = round($ticket->sumHours, 2);
         }
 
