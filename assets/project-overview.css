@@ -218,7 +218,7 @@
       .status.btn-group,
       .priority.btn-group {
         width: 100%;
-          max-width: 175px;
+        max-width: 175px;
       }
       button[id^='status-ticket-'],
       button[id^='priority-ticket-'] {
@@ -236,16 +236,16 @@
           right: 10px;
         }
       }
-        button[id^='status-ticket-'] + .dropdown-menu,
-        button[id^='priority-ticket-'] + .dropdown-menu {
-            width: 100%;
+      button[id^='status-ticket-'] + .dropdown-menu,
+      button[id^='priority-ticket-'] + .dropdown-menu {
+        width: 100%;
 
-            button {
-                white-space: nowrap;
-                overflow: hidden;
-                padding-left: 10px;
-            }
+        button {
+          white-space: nowrap;
+          overflow: hidden;
+          padding-left: 10px;
         }
+      }
 
       .center-wrapper {
         display: flex;

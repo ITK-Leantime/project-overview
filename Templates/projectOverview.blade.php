@@ -185,8 +185,7 @@
                         <td style="width: 175px;">
                             <div class="btn-group status">
                                 <button type="button" id="status-ticket-{{ $row->id }}"
-                                        class="table-button {!! $statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"
-                                        data-toggle="dropdown">
+                                    class="table-button {!! $statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}" data-toggle="dropdown">
                                     <span
                                         id="status-label">{{ $statusLabels[$row->projectId][$row->status]['name'] ?? '' }}
                                     </span>
@@ -194,10 +193,10 @@
                                 </button>
                                 <div class="dropdown-menu" id="status-dropdown-menu">
                                     @foreach ($statusLabels[$row->projectId] as $newStatusId => $label)
-                                        @if($newStatusId != $row->status)
+                                        @if ($newStatusId != $row->status)
                                             <li class="dropdown-item">
                                                 <button class="table-button status {!! $label['class'] !!}"
-                                                        data-args="{{ $row->id }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
+                                                    data-args="{{ $row->id }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
                                                     {{ $label['name'] }}
                                                 </button>
                                             </li>
