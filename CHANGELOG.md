@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.3.1] - 2025-08-05
+
 * [PR-60](https://github.com/ITK-Leantime/project-overview/pull/60)
   * Project name as link
 
@@ -186,7 +188,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.1...HEAD
+[3.3.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.0...3.3.1
 [3.3.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.2.1...3.3.0
 [3.2.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.2...3.2.0
 [3.1.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.1...3.1.2
