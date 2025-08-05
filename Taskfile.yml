@@ -117,6 +117,7 @@ tasks:
 
   fix:all:
     desc: "Run all fixes"
+    ignore_error: true
     cmds:
       - task: coding-standards:apply
       - task: prettier:apply
