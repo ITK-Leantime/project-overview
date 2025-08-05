@@ -182,8 +182,7 @@
                                 )
                             @endif
                         </td>
-                        {{-- <th scope="row">{{ $row->projectName }}</th> --}}
-                        <td>
+                        <td style="width: 175px;">
                             <div class="btn-group status">
                                 <button type="button" id="status-ticket-{{ $row->id }}"
                                     class="table-button {!! $statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}" data-toggle="dropdown">
@@ -194,12 +193,14 @@
                                 </button>
                                 <div class="dropdown-menu" id="status-dropdown-menu">
                                     @foreach ($statusLabels[$row->projectId] as $newStatusId => $label)
-                                        <li class="dropdown-item">
-                                            <button class="table-button status {!! $label['class'] !!}"
-                                                data-args="{{ $row->id }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
-                                                {{ $label['name'] }}
-                                            </button>
-                                        </li>
+                                        @if ($newStatusId != $row->status)
+                                            <li class="dropdown-item">
+                                                <button class="table-button status {!! $label['class'] !!}"
+                                                    data-args="{{ $row->id }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
+                                                    {{ $label['name'] }}
+                                                </button>
+                                            </li>
+                                        @endif
                                     @endforeach
                                 </div>
                             </div>
@@ -219,6 +220,9 @@
                                 </button>
                                 <div class="dropdown-menu">
                                     @foreach ($priorities as $newPriorityId => $priorityLabel)
+                                        @if (is_numeric($row->priority) && isset($priorities[$row->priority]) && $priorities[$row->priority] == $priorityLabel)
+                                            @continue
+                                        @endif
                                         <li class="dropdown-item">
                                             <button type="button"
                                                 data-args="{{ $row->id }},{{ $newPriorityId }},{{ $priorityLabel }}"

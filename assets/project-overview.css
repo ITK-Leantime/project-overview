@@ -218,6 +218,7 @@
       .status.btn-group,
       .priority.btn-group {
         width: 100%;
+        max-width: 175px;
       }
       button[id^='status-ticket-'],
       button[id^='priority-ticket-'] {
@@ -233,6 +234,16 @@
         i {
           position: absolute;
           right: 10px;
+        }
+      }
+      button[id^='status-ticket-'] + .dropdown-menu,
+      button[id^='priority-ticket-'] + .dropdown-menu {
+        width: 100%;
+
+        button {
+          white-space: nowrap;
+          overflow: hidden;
+          padding-left: 10px;
         }
       }
 

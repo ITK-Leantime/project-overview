@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-62](https://github.com/ITK-Leantime/project-overview/pull/62)
+  * Minor visuals
+
 ## [3.3.1] - 2025-08-05
 
 * [PR-60](https://github.com/ITK-Leantime/project-overview/pull/60)
