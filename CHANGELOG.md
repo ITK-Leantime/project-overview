@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.3.2] - 2025-08-05
+
 * [PR-62](https://github.com/ITK-Leantime/project-overview/pull/62)
   * Minor visuals
 
@@ -191,7 +193,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.1...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.2...HEAD
+[3.3.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.1...3.3.2
 [3.3.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.0...3.3.1
 [3.3.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.2.1...3.3.0
 [3.2.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.2...3.2.0
