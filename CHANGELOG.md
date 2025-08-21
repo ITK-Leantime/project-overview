@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-64](https://github.com/ITK-Leantime/project-overview/pull/64)
+  * Excluding tickets with status -1 (archived)
+
 ## [3.3.2] - 2025-08-05
 
 * [PR-62](https://github.com/ITK-Leantime/project-overview/pull/62)
