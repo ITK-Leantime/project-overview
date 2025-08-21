@@ -77,7 +77,7 @@ class ProjectOverview
             ->leftJoin('zp_user AS t1', 'ticket.userId', '=', 't1.id')
             ->leftJoin('zp_user AS t2', 'ticket.editorId', '=', 't2.id')
             ->where('ticket.type', '<>', 'milestone')
-            ->where('ticket.status', '<>', '0')
+            ->where('ticket.status', '>', '0')
             ->where(function ($query) use ($fromDateForQuery, $dateTo, $noDueDate) {
                 $query->whereBetween('ticket.dateToFinish', [$fromDateForQuery, $dateTo]);
 
