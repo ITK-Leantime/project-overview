@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [3.3.3] - 2025-08-21
+
 * [PR-64](https://github.com/ITK-Leantime/project-overview/pull/64)
   * Excluding tickets with status -1 (archived)
 
@@ -196,7 +198,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.2...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.3...HEAD
+[3.3.3]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.2...3.3.3
 [3.3.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.1...3.3.2
 [3.3.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.0...3.3.1
 [3.3.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.2.1...3.3.0
