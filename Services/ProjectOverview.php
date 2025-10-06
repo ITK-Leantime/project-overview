@@ -3,6 +3,7 @@
 namespace Leantime\Plugins\ProjectOverview\Services;
 
 use Carbon\CarbonInterface;
+use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
 use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
 
 /**
@@ -82,6 +83,12 @@ class ProjectOverview
     public function getTasks(?array $userIdArray, ?string $searchTerm, CarbonInterface $dateFrom, CarbonInterface $dateTo, int $noDueDate, int $overdueTickets, ?string $sortBy, ?string $sortOrder): array
     {
         return $this->projectOverviewRepository->getTasks($userIdArray, $searchTerm, $dateFrom, $dateTo, $noDueDate, $overdueTickets, $sortBy, $sortOrder);
+    }
+
+    public function getViewTasks(ViewDTO $viewDTO): array
+    {
+        return $this->projectOverviewRepository->getViewTasks($viewDTO);
+
     }
 
     /**
