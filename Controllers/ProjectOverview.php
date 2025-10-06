@@ -2,16 +2,18 @@
 
 namespace Leantime\Plugins\ProjectOverview\Controllers;
 
-use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Leantime\Core\Controller\Controller;
 use Leantime\Core\Controller\Frontcontroller;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth as AuthService;
+use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Domain\Tickets\Services\Tickets as TicketService;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 use Leantime\Domain\Users\Services\Users as UserService;
+use Leantime\Domain\Users\Repositories\Users as UserRepository;
 use Leantime\Core\UI\Template;
 
 /**
@@ -23,6 +25,9 @@ class ProjectOverview extends Controller
     private TicketService $ticketService;
     private UserService $userService;
 
+    private UserRepository $userRepository;
+    private ProjectOverviewActionHandler $actionHandler;
+
     /**
      * @param ProjectOverviewService $projectOverviewService
      * @param TicketService          $ticketService
@@ -30,12 +35,71 @@ class ProjectOverview extends Controller
      * @param Template               $tpl
      * @return void
      */
-    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, Template $tpl): void
+    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, Template $tpl, UserRepository $userRepository, ProjectOverviewActionHandler $actionHandler): void
     {
         $this->projectOverviewService = $projectOverviewService;
         $this->ticketService = $ticketService;
         $this->userService = $userService;
         $this->tpl = $tpl;
+        $this->userRepository = $userRepository;
+        $this->actionHandler = $actionHandler;
+
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function loadFilters($data): ?Response
+    {
+        $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
+        $allUsers = $this->userService->getAll();
+        usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
+        $allProjects = $this->projectOverviewService->getAllProjects();
+        uasort($allProjects, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+        $allPriorities = $this->ticketService->getPriorityLabels();
+        $allStatusLabels = $this->ticketService->getStatusLabels();
+        $allColumns = $this->actionHandler->getAvailableColumns();
+        $firstDayOfCurrentWeek = date('d-m-Y', strtotime('last monday'));
+        $lastDayOfNextWeek = date('d-m-Y', strtotime('next sunday'));
+        $this->tpl->assign('users', []);
+        $this->tpl->assign('allColumns', $allColumns);
+        $this->tpl->assign('fromDate', $firstDayOfCurrentWeek);
+        $this->tpl->assign('toDate', $lastDayOfNextWeek);
+        $this->tpl->assign('projectFilters', []);
+        $this->tpl->assign('priorityFilters', []);
+        $this->tpl->assign('statusFilters', []);
+        $this->tpl->assign('customFilters', []);
+        $this->tpl->assign('allUsers', $allUsers);
+        $this->tpl->assign('allProjects', $allProjects);
+        $this->tpl->assign('allPriorities', $allPriorities);
+        $this->tpl->assign('allStatusLabels', $allStatusLabels);
+
+        if ($userViewsEncoded) {
+            $userViewsDecoded = $this->actionHandler->decodeViewSettings($userViewsEncoded);
+            $selectedViewId = urldecode($data['id']);
+            $userView = $userViewsDecoded[$selectedViewId] ?? null;
+            if ($userView) {
+                $this->tpl->assign('title', $userView['title']);
+                $this->tpl->assign('users', $userView['users']);
+                $this->tpl->assign('selectedColumns', $userView['columns']);
+                $this->tpl->assign('allColumns', $allColumns);
+                $this->tpl->assign('fromDate', date('d-m-Y', strtotime($userView['fromDate'])));
+                $this->tpl->assign('toDate', date('d-m-Y', strtotime($userView['toDate'])));
+                $this->tpl->assign('projectFilters', $userView['projectFilters']);
+                $this->tpl->assign('priorityFilters', $userView['priorityFilters']);
+                $this->tpl->assign('statusFilters', $userView['statusFilters']);
+                $this->tpl->assign('customFilters', $userView['customFilters']);
+                $this->tpl->assign('allUsers', $allUsers);
+                $this->tpl->assign('allProjects', $allProjects);
+                $this->tpl->assign('allPriorities', $allPriorities);
+                $this->tpl->assign('allStatusLabels', $allStatusLabels);
+                $this->tpl->assign('selectedViewId', $selectedViewId);
+            }
+        }
+
+        return $this->tpl->display('ProjectOverview.projectOverviewFilters');
     }
 
     /**
@@ -49,131 +113,90 @@ class ProjectOverview extends Controller
         }
         $redirectUrl = BASE_URL . '/ProjectOverview/projectOverview';
 
-        $actionHandler = new ProjectOverviewActionHandler();
-
         if (isset($_POST['action'])) {
+            if ($_POST['action'] == 'SaveView') {
+                $redirectUrl = $this->actionHandler->SaveView($_POST, $redirectUrl);
+            }
             if ($_POST['action'] == 'adjustPeriod') {
-                $redirectUrl = $actionHandler->adjustPeriod($_POST, $redirectUrl);
+                $redirectUrl = $this->actionHandler->adjustPeriod($_POST, $redirectUrl);
+            }
+            if ($_POST['action'] == 'deleteView') {
+                $redirectUrl = $this->actionHandler->deleteView($_POST, $redirectUrl);
+            }
+            if ($_POST['action'] == 'renameView') {
+                $redirectUrl = $this->actionHandler->renameView($_POST, $redirectUrl);
             }
         }
 
         return Frontcontroller::redirect($redirectUrl);
     }
+
     /**
      * Gathers data and feeds it to the template.
      *
      * @return Response
+     * @throws BindingResolutionException
      */
     public function get(): Response
     {
-        $userIdArray = [];
-        $searchTermForFilter = null;
-        $sortByForFilter = null;
-        $sortOrderForFilter = null;
-        $noDueDateForFilter = 'true';
-        $overdueTicketsForFilter = 'true';
-        $loadAllConfirm = $_GET['loadAllConfirm'] ?? false;
-        $allProjects = $this->projectOverviewService->getAllProjects();
-
-        try {
-            if (isset($_GET['fromDate']) && $_GET['fromDate'] !== '') {
-                $fromDateValue = trim($_GET['fromDate']);
-                if (str_starts_with($fromDateValue, '+') || str_starts_with($fromDateValue, '-')) {
-                    $fromDate = CarbonImmutable::now()->startOfDay()->modify($fromDateValue);
-                } else {
-                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $fromDateValue)->startOfDay();
-                }
-            } else {
-                $fromDate = CarbonImmutable::now()->startOfWeek(CarbonImmutable::MONDAY)->startOfDay();
-            }
-
-
-            if (isset($_GET['toDate']) && $_GET['toDate'] !== '') {
-                $toDateValue = trim($_GET['toDate']);
-                if (str_starts_with($toDateValue, '+') || str_starts_with($toDateValue, '-')) {
-                    $toDate = CarbonImmutable::now()->startOfDay()->modify($toDateValue);
-                } else {
-                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $toDateValue)->endOfDay();
-                }
-            } else {
-                $toDate = CarbonImmutable::now()->endOfWeek(CarbonImmutable::SUNDAY)->endOfDay();
-            }
-        } catch (\Exception $e) {
-            $fromDate = CarbonImmutable::now()->startOfWeek(CarbonImmutable::MONDAY)->startOfDay();
-            $toDate = CarbonImmutable::now()->endOfWeek(CarbonImmutable::SUNDAY)->endOfDay();
-        }
-
-        if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
-            $userIdArray = explode(',', $_GET['userIds']);
-        }
-        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
-            $searchTermForFilter = $_GET['searchTerm'];
-        }
-        if (isset($_GET['noDueDate']) && $_GET['noDueDate'] !== '') {
-            $noDueDateForFilter = $_GET['noDueDate'];
-        }
-        if (isset($_GET['overdueTickets']) && $_GET['overdueTickets'] !== '') {
-            $overdueTicketsForFilter = $_GET['overdueTickets'];
-        }
-        if (isset($_GET['sortBy']) && isset($_GET['sortOrder']) && $_GET['sortBy'] !== '' && $_GET['sortOrder'] !== '') {
-            $sortByForFilter = $_GET['sortBy'];
-            $sortOrderForFilter = $_GET['sortOrder'];
-        }
-
-        $this->tpl->assign('fromDate', $fromDate);
-        $this->tpl->assign('toDate', $toDate);
-        $this->tpl->assign('selectedFilterUser', $userIdArray);
-        $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
-        $this->tpl->assign('overdueTickets', $overdueTicketsForFilter);
-        $this->tpl->assign('noDueDate', $noDueDateForFilter);
-
-        $noDueDate = $noDueDateForFilter === 'false' ? 0 : 1;
-        $overdueTickets = $overdueTicketsForFilter === 'false' ? 0 : 1;
-        $allTickets = [];
-        $projectIds = [];
-
-        // Get all tickets, and their corresponding projects.
-        if (!empty($userIdArray) || $loadAllConfirm) {
-            $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
-            $projectIds = array_unique(array_column($allTickets, 'projectId'));
-        }
-
-        $userAndProject = [];
-        $milestonesAndProject = [];
-
         $projectTicketStatuses = [];
-        // Get users and milestones by project, as these differ by project.
-        foreach ($projectIds as &$projectId) {
-            $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
-            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
-            $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
-        }
+        $userViewsDecoded = [];
+        $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
+        $allProjects = $this->projectOverviewService->getAllProjects();
+        uasort($allProjects, function ($a, $b) {
+            return strcmp($a['name'], $b['name']);
+        });
+        $allUsers = $this->userService->getAll();
+        usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
+        if ($userViewsEncoded) {
 
-        foreach ($allTickets as $ticket) {
-            if ($ticket->dueDate == '0000-00-00') {
-                $ticket->dueDate = null;
+            $userViewsDecoded = $this->actionHandler->decodeViewSettings($userViewsEncoded);
+            foreach ($userViewsDecoded as $key => $userView) {
+                $userViewDTO = new ViewDTO(
+                    title: $userView['title'] ?? null,
+                    users: $userView['users'],
+                    fromDate: $userView['fromDate'],
+                    toDate: $userView['toDate'],
+                    columns: $userView['columns'],
+                    projectFilters: $userView['projectFilters'],
+                    priorityFilters: $userView['priorityFilters'],
+                    statusFilters: $userView['statusFilters'],
+                    customFilters: $userView['customFilters']
+                );
+                $viewTickets = $this->projectOverviewService->getViewTasks($userViewDTO);
+                $projectIds = array_unique(array_column($viewTickets, 'projectId'));
+                $userViewsDecoded[$key]['tickets'] = [];
+                $userAndProject = [];
+                $milestonesAndProject = [];
+
+                foreach ($projectIds as $projectId) {
+                    $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
+                    $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
+                    $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
+                }
+
+                foreach ($viewTickets as $ticket) {
+                    if ($ticket->dueDate == '0000-00-00') {
+                        $ticket->dueDate = null;
+                    }
+                    $ticket->projectUsers = $userAndProject[$ticket->projectId];
+                    $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
+                    $ticket->projectName = $allProjects[$ticket->projectId]['name'];
+                    $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
+                    $ticket->sumHours = round($ticket->sumHours, 2);
+                    $userViewsDecoded[$key]['tickets'] = $viewTickets;
+                }
             }
-            $ticket->projectUsers = $userAndProject[$ticket->projectId];
-            $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
-            $ticket->projectName = $allProjects[$ticket->projectId]['name'];
-            $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
-            $ticket->sumHours = round($ticket->sumHours, 2);
         }
 
-        $this->tpl->assign('fromDate', $fromDate);
-        $this->tpl->assign('toDate', $toDate);
-        // The two below gets hardcoded labels from the ticket repo.
-        $this->tpl->assign('priorities', $this->ticketService->getPriorityLabels());
         $this->tpl->assign('statusLabels', $projectTicketStatuses);
-        $this->tpl->assign('sortBy', $sortByForFilter);
-        $this->tpl->assign('sortOrder', $sortOrderForFilter);
-        $this->tpl->assign('allSelectedUsers', $userIdArray);
-
-        $this->tpl->assign('allUsers', $this->userService->getAll());
-
-        // All tickets assignet to the template
-        $this->tpl->assign('allTickets', $allTickets);
+        $this->tpl->assign('allStatusLabels', $this->ticketService->getStatusLabels());
+        $this->tpl->assign('allPriorities', $this->ticketService->getPriorityLabels());
+        $this->tpl->assign('allProjects', $allProjects);
+        $this->tpl->assign('allUsers', $allUsers);
+        $this->tpl->assign('userViews', $userViewsDecoded);
+        $this->tpl->assign('selectedView', $_GET['viewId'] ?? null);
 
         return $this->tpl->display('ProjectOverview.projectOverview');
-    }
+        }
 }
