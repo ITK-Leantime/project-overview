@@ -3,6 +3,9 @@
 namespace Leantime\Plugins\ProjectOverview\Helpers;
 
 use Carbon\CarbonImmutable;
+use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
+use Leantime\Domain\Users\Services\Users as UserService;
+use Leantime\Domain\Users\Repositories\Users as UserRepository;
 
 /**
  *
@@ -13,7 +16,7 @@ class ProjectOverviewActionHandler
      * Initialize dependencies.
      * @return void
      */
-    public function __construct()
+    public function __construct(private readonly UserService $userService, private readonly UserRepository $userRepository)
     {
     }
 
@@ -74,4 +77,142 @@ class ProjectOverviewActionHandler
 
         return $redirectUrl;
     }
+
+    public function SaveView(array $postData, string $redirectUrl)
+    {
+        $overrideView = (bool)($postData['overrideView'] ?? false);
+        $users = $postData['users'] ?? [];
+        list($postData['fromDate'], $postData['toDate']) = explode(' til ', $postData['dateRange']);
+        $columns = $postData['columns'] ?? [];
+        $filters = $postData['filters'] ?? [];
+        $groupedFilters = [
+            'projects' => [],
+            'priorities' => [],
+            'statuses' => [],
+            'custom' => []
+        ];
+
+        foreach ($filters as $filter) {
+            if (str_starts_with($filter, 'project_')) {
+                $groupedFilters['projects'][] = substr($filter, 8);
+            } elseif (str_starts_with($filter, 'priority_')) {
+                $groupedFilters['priorities'][] = substr($filter, 9);
+            } elseif (str_starts_with($filter, 'status_')) {
+                $groupedFilters['statuses'][] = substr($filter, 7);
+            } elseif (str_starts_with($filter, 'custom_')) {
+                $groupedFilters['custom'][] = substr($filter, 7);
+            }
+        }
+        $viewDTO = new ViewDTO(
+            title: null,
+            users: (array)$users,
+            fromDate: $postData['fromDate'],
+            toDate: $postData['toDate'],
+            columns: $columns,
+            projectFilters: $groupedFilters['projects'],
+            priorityFilters: $groupedFilters['priorities'],
+            statusFilters: $groupedFilters['statuses'],
+            customFilters: $groupedFilters['custom']
+        );
+        $encodedViewObjects = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
+
+        $decodedViewObjects = [];
+        if ($encodedViewObjects) {
+            $decodedViewObjects = $this->decodeViewSettings($encodedViewObjects);
+        }
+
+        if ($overrideView) {
+            $decodedViewObjects[$postData['viewId']] = $viewDTO;
+            $redirectUrl .= '?viewId=' . $postData['viewId'];
+        } else {
+            $decodedViewObjects[] = $viewDTO;
+        }
+
+        $encodedViewObjects = $this->encodeViewSettings($decodedViewObjects);
+        $savedSuccessfully = $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
+        if (!$savedSuccessfully) {
+            $redirectUrl .= '?error=1';
+        }
+        return $redirectUrl;
+    }
+
+    private function encodeViewSettings(array $arrayOfViewObjects): string
+    {
+        // Turn array into JSON
+        $json = json_encode($arrayOfViewObjects);
+
+        // Encode to base64 so htmlspecialchars() won't break it
+        return base64_encode($json);
+    }
+
+
+    public function decodeViewSettings(string $encodedViewObject): ?array
+    {
+
+        $json = base64_decode($encodedViewObject, true);
+
+        if ($json === false) {
+            return null;
+        }
+
+        return json_decode($json, true) ?? null;
+    }
+
+    public function deleteView(array $postData, string $redirectUrl): string
+    {
+        $viewId = $postData['viewId'];
+        $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
+        if ($userViewsEncoded) {
+            $userViewsDecoded = $this->decodeViewSettings($userViewsEncoded);
+            if (isset($userViewsDecoded[$viewId])) {
+                unset($userViewsDecoded[$viewId]);
+                $encodedViewObjects = empty($userViewsDecoded) ? null : $this->encodeViewSettings($userViewsDecoded);
+                $savedSuccessfully = $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
+                if (!$savedSuccessfully) {
+                    $redirectUrl .= '?error=1';
+                }
+            }
+        }
+        return $redirectUrl;
+    }
+
+    function getAvailableColumns(): array
+    {
+        return [
+            'headline',
+            'project',
+            'status',
+            'priority',
+            'dateToFinish',
+            'editorLastname',
+            'planHours',
+            'hourRemaining',
+            'sumHours',
+            'milestoneid',
+            'tags'
+        ];
+    }
+
+    public function renameView(array $postData, string $redirectUrl): string
+    {
+        $viewId = $postData['viewId'];
+        $viewName = str_replace(' ', '_', $postData['viewName']);
+
+        $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
+        if ($userViewsEncoded) {
+            $userViewsDecoded = $this->decodeViewSettings($userViewsEncoded);
+            if (isset($userViewsDecoded[$viewId])) {
+                $userViewsDecoded[$viewName] = $userViewsDecoded[$viewId];
+                unset($userViewsDecoded[$viewId]);
+
+                $encodedViewObjects = $this->encodeViewSettings($userViewsDecoded);
+                $savedSuccessfully = $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
+                if (!$savedSuccessfully) {
+                    $redirectUrl .= '?error=1';
+                }
+            }
+        }
+        return $redirectUrl;
+    }
+
 }
