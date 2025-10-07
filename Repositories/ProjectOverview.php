@@ -198,7 +198,7 @@ class ProjectOverview
                 if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
                     $query->whereBetween('ticket.dateToFinish', [
                         CarbonImmutable::createFromFormat('Y-m-d', '2023-03-14')->endOfDay(),
-                        $toDate
+                        $toDate,
                     ]);
                 } else {
                     $query->whereBetween('ticket.dateToFinish', [$fromDate, $toDate]);

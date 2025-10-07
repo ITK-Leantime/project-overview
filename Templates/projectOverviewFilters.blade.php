@@ -1,5 +1,5 @@
 <form method="POST">
-    <input type="hidden" name="action" value="SaveView"/>
+    <input type="hidden" name="action" value="SaveView" />
     <div>
         <select name="users[]" id="userSelect" multiple>
             @foreach ($filtersData->allUsers as $user)
@@ -13,7 +13,7 @@
 
     <div class="date-range-filter">
         <input type="text" name="dateRange" id="dateRange"
-               value="{{$filtersData->fromDate }} til {{ $filtersData->toDate}}">
+            value="{{ $filtersData->fromDate }} til {{ $filtersData->toDate }}">
     </div>
 
     <div class="filters">
@@ -59,15 +59,16 @@
     <div class="columns-display">
         <select name="columns[]" id="columnSelect" multiple>
             @foreach ($filtersData->allColumns ?? [] as $column)
-                <option
-                    value="{{ $column }}" {{ in_array($column, $filtersData->selectedColumns ?? []) ? 'selected' : '' }}>{{ __('projectOverview.' . strtolower($column) . '_table_header') }}</option>
+                <option value="{{ $column }}"
+                    {{ in_array($column, $filtersData->selectedColumns ?? []) ? 'selected' : '' }}>
+                    {{ __('projectOverview.' . strtolower($column) . '_table_header') }}</option>
             @endforeach
         </select>
     </div>
 
     <div class="save-view">
         <button type="submit" class="btn btn-default">+ Save View</button>
-        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}"/>
+        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}" />
         <button type="submit" name="overwriteView" value="1" class="btn btn-default">Overwrite view</button>
     </div>
 </form>

@@ -18,11 +18,10 @@ readonly class ProjectOverviewHelper
      */
     public function __construct(
         private ProjectOverviewActionHandler $actionHandler,
-        private ProjectOverview              $projectOverviewService,
-        private Tickets                      $ticketService,
-        private UserService                  $userService
-    )
-    {
+        private ProjectOverview $projectOverviewService,
+        private Tickets $ticketService,
+        private UserService $userService
+    ) {
     }
 
 
@@ -44,42 +43,42 @@ readonly class ProjectOverviewHelper
         $allUsers = $this->userService->getAll();
         usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
 
-            foreach ($userViewObject as $key => $userView) {
-                $userViewDTO = new ViewDTO(
-                    title: $userView['title'] ?? null,
-                    users: $userView['users'],
-                    fromDate: $userView['fromDate'],
-                    toDate: $userView['toDate'],
-                    columns: $userView['columns'],
-                    projectFilters: $userView['projectFilters'],
-                    priorityFilters: $userView['priorityFilters'],
-                    statusFilters: $userView['statusFilters'],
-                    customFilters: $userView['customFilters']
-                );
-                $viewTickets = $this->projectOverviewService->getViewTasks($userViewDTO);
-                $projectIds = array_unique(array_column($viewTickets, 'projectId'));
-                $userViewObject[$key]['tickets'] = [];
-                $userAndProject = [];
-                $milestonesAndProject = [];
+        foreach ($userViewObject as $key => $userView) {
+            $userViewDTO = new ViewDTO(
+                title: $userView['title'] ?? null,
+                users: $userView['users'],
+                fromDate: $userView['fromDate'],
+                toDate: $userView['toDate'],
+                columns: $userView['columns'],
+                projectFilters: $userView['projectFilters'],
+                priorityFilters: $userView['priorityFilters'],
+                statusFilters: $userView['statusFilters'],
+                customFilters: $userView['customFilters']
+            );
+            $viewTickets = $this->projectOverviewService->getViewTasks($userViewDTO);
+            $projectIds = array_unique(array_column($viewTickets, 'projectId'));
+            $userViewObject[$key]['tickets'] = [];
+            $userAndProject = [];
+            $milestonesAndProject = [];
 
-                foreach ($projectIds as $projectId) {
-                    $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
-                    $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
-                    $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
-                }
-
-                foreach ($viewTickets as $ticket) {
-                    if ($ticket->dueDate == '0000-00-00') {
-                        $ticket->dueDate = null;
-                    }
-                    $ticket->projectUsers = $userAndProject[$ticket->projectId];
-                    $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
-                    $ticket->projectName = $allProjects[$ticket->projectId]['name'];
-                    $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
-                    $ticket->sumHours = round((float)$ticket->sumHours, 2);
-                    $userViewObject[$key]['tickets'] = $viewTickets;
-                }
+            foreach ($projectIds as $projectId) {
+                $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
+                $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
+                $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
             }
+
+            foreach ($viewTickets as $ticket) {
+                if ($ticket->dueDate == '0000-00-00') {
+                    $ticket->dueDate = null;
+                }
+                $ticket->projectUsers = $userAndProject[$ticket->projectId];
+                $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
+                $ticket->projectName = $allProjects[$ticket->projectId]['name'];
+                $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
+                $ticket->sumHours = round((float)$ticket->sumHours, 2);
+                $userViewObject[$key]['tickets'] = $viewTickets;
+            }
+        }
         return new ProjectOverviewDTO(
             userViews: $userViewObject,
             statusLabels: $projectTicketStatuses,

@@ -19,9 +19,9 @@ class ProjectOverview extends Controller
     private ProjectOverviewHelper $projectOverviewHelper;
 
     /**
-     * @param Template $tpl
+     * @param Template                     $tpl
      * @param ProjectOverviewActionHandler $actionHandler
-     * @param ProjectOverviewHelper $projectOverviewHelper
+     * @param ProjectOverviewHelper        $projectOverviewHelper
      * @return void
      */
     public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper): void
@@ -87,5 +87,5 @@ class ProjectOverview extends Controller
         $userViewsData = $this->projectOverviewHelper->getProjectOverviewData();
         $this->tpl->assign('userViewsData', $userViewsData);
         return $this->tpl->display('ProjectOverview.projectOverview');
-        }
+    }
 }

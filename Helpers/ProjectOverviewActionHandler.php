@@ -89,7 +89,7 @@ readonly class ProjectOverviewActionHandler
             'projects' => [],
             'priorities' => [],
             'statuses' => [],
-            'custom' => []
+            'custom' => [],
         ];
 
         foreach ($filters as $filter) {
@@ -148,12 +148,12 @@ readonly class ProjectOverviewActionHandler
         $viewId = $postData['viewId'];
         $viewName = str_replace(' ', '_', $postData['viewName']);
         $userViewsObject = $this->getUserViewsObject();
-            if (isset($userViewsObject[$viewId])) {
-                $userViewsObject[$viewName] = $userViewsObject[$viewId];
-                unset($userViewsObject[$viewId]);
+        if (isset($userViewsObject[$viewId])) {
+            $userViewsObject[$viewName] = $userViewsObject[$viewId];
+            unset($userViewsObject[$viewId]);
 
-                $encodedViewObjects = $this->encodeViewSettings($userViewsObject);
-                $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
+            $encodedViewObjects = $this->encodeViewSettings($userViewsObject);
+            $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
         }
         return $redirectUrl;
     }
@@ -196,8 +196,7 @@ readonly class ProjectOverviewActionHandler
             'hourRemaining',
             'sumHours',
             'milestoneid',
-            'tags'
+            'tags',
         ];
     }
-
 }

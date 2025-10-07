@@ -25,15 +25,15 @@ module.exports = {
                 }
             })
         ],
-        splitChunks: {
-            chunks: 'all',
-            cacheGroups: {
-                vendors: {
-                    test: /[\\/]node_modules[\\/]/,
-                    name: 'vendors',
-                    chunks: 'all'
-                }
+    splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+            vendors: {
+                test: /[\\/]node_modules[\\ / ] / ,
+                name: 'vendors',
+                chunks: 'all'
             }
+        }
         }
     },
     cache: {
@@ -48,26 +48,26 @@ module.exports = {
             filename: 'css/[name].css'
         }),
     ],
-    module: {
-        rules: [
-            {
-                test: /\.css$/i,
-                use: [
-                    {
-                        loader: MiniCssExtractPlugin.loader,
-                        options: {
-                            esModule: true,
-                        }
-                    },
-                    {
-                        loader: "css-loader",
-                        options: {
-                            sourceMap: false
-                        }
+module: {
+    rules: [
+        {
+            test: /\.css$/i,
+            use: [
+                {
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        esModule: true,
                     }
-                ],
             },
-        ],
+                {
+                    loader: "css-loader",
+                    options: {
+                        sourceMap: false
+                    }
+            }
+            ],
+    },
+    ],
     },
     mode: 'production',
     performance: {

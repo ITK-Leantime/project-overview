@@ -88,7 +88,6 @@ class ProjectOverview
     public function getViewTasks(ViewDTO $viewDTO): array
     {
         return $this->projectOverviewRepository->getViewTasks($viewDTO);
-
     }
 
     /**
