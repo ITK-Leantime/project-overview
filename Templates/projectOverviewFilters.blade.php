@@ -1,5 +1,5 @@
 <form method="POST">
-    <input type="hidden" name="action" value="SaveView" />
+    <input type="hidden" name="action" value="saveView" />
     <div>
         <select name="users[]" id="userSelect" multiple>
             @foreach ($filtersData->allUsers as $user)

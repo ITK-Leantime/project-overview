@@ -8,7 +8,7 @@ use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Domain\Users\Repositories\Users as UserRepository;
 
 /**
- *
+ * Class ProjectOverviewActionHandler
  */
 readonly class ProjectOverviewActionHandler
 {
@@ -78,7 +78,15 @@ readonly class ProjectOverviewActionHandler
         return $redirectUrl;
     }
 
-    public function SaveView(array $postData, string $redirectUrl): string
+    /**
+     * Saves a view.
+     *
+     * @param array  $postData    An associative array containing view data.
+     * @param string $redirectUrl The URL to redirect to after saving the view.
+     *
+     * @return string The updated redirect URL after the view has been saved or updated.
+     */
+    public function saveView(array $postData, string $redirectUrl): string
     {
         $overwriteView = (bool)($postData['overwriteView'] ?? false);
         $users = $postData['users'] ?? [];

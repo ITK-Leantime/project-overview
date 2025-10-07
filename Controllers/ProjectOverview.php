@@ -39,6 +39,7 @@ class ProjectOverview extends Controller
      *
      * @used Called via HTMX GET request
      * @throws Exception
+     * @return Response|null
      */
     public function loadFilters($data): ?Response
     {
@@ -60,20 +61,20 @@ class ProjectOverview extends Controller
 
         if (isset($_POST['action'])) {
             switch ($_POST['action']) {
-                case 'SaveView':
-                    $redirectUrl = $this->actionHandler->SaveView($_POST, $redirectUrl);
+                case 'saveView':
+                    $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl);
                     break;
                 case 'adjustPeriod':
                     $redirectUrl = $this->actionHandler->adjustPeriod($_POST, $redirectUrl);
                     break;
                 case 'deleteView':
                     $viewId = $_POST['viewId'];
-                    $redirectUrl = $this->actionHandler->deleteView($viewId, $redirectUrl);
+                    $this->actionHandler->deleteView($viewId);
                     break;
                 case 'renameView':
                     $viewId = $_POST['viewId'];
                     $viewName = str_replace(' ', '_', $_POST['viewName']);
-                    $redirectUrl = $this->actionHandler->renameView($viewId, $viewName);
+                    $this->actionHandler->renameView($viewId, $viewName);
                     break;
             }
         }

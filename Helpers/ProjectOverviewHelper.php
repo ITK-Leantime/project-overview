@@ -4,12 +4,14 @@ namespace Leantime\Plugins\ProjectOverview\Helpers;
 
 use Leantime\Domain\Tickets\Services\Tickets;
 use Leantime\Domain\Users\Services\Users as UserService;
-use Leantime\Domain\Users\Repositories\Users as UserRepository;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewFiltersDataDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview;
 
+/**
+ * Class ProjectOverviewHelper
+ */
 readonly class ProjectOverviewHelper
 {
     /**
