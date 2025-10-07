@@ -128,61 +128,83 @@ readonly class ProjectOverviewActionHandler
     }
 
 
-
-
-    public function deleteView(array $postData, string $redirectUrl): string
+    /**
+     * Deletes a view.
+     *
+     * @param string $viewId The id of the view to be deleted.
+     * @return void
+     */
+    public function deleteView(string $viewId): void
     {
-        $viewId = $postData['viewId'];
         $userViewsObject = $this->getUserViewsObject();
         if (isset($userViewsObject[$viewId])) {
             unset($userViewsObject[$viewId]);
             $this->saveUserViewsObject($userViewsObject);
         }
-        return $redirectUrl;
     }
 
-
-
-    public function renameView(array $postData, string $redirectUrl): string
+    /**
+     * Renames a view.
+     *
+     * @param string $viewId   Id of the view to be renamed.
+     * @param string $viewName New name of the view.
+     * @return void
+     */
+    public function renameView(string $viewId, string $viewName): void
     {
-        $viewId = $postData['viewId'];
-        $viewName = str_replace(' ', '_', $postData['viewName']);
         $userViewsObject = $this->getUserViewsObject();
         if (isset($userViewsObject[$viewId])) {
             $userViewsObject[$viewName] = $userViewsObject[$viewId];
             unset($userViewsObject[$viewId]);
-
-            $encodedViewObjects = $this->encodeViewSettings($userViewsObject);
-            $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
+            $this->saveUserViewsObject($userViewsObject);
         }
-        return $redirectUrl;
     }
 
-    private function saveUserViewsObject(array $arrayOfViewObjects): string
+    /**
+     * Encodes and saves the user-views object.
+     *
+     * @param array $userViewsObject Array containing view objects to be saved.
+     * @return void A base64 encoded JSON string representing the array of view objects.
+     */
+    private function saveUserViewsObject(array $userViewsObject): void
     {
-        // Turn array into JSON
-        $json = json_encode($arrayOfViewObjects);
+        // Json encode
+        $json = json_encode($userViewsObject);
+        // Base64 encode
+        $encodedViewObjects = base64_encode($json);
 
-        // Encode to base64 so htmlspecialchars() won't break it
-        return base64_encode($json);
+        // Save to user settings in user table
+        $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
     }
-    public function getUserViewsObject()
+
+    /**
+     * Retrieves and decodes the users-views object.
+     *
+     * @return array|null Decoded array representing user views if successful, or null if retrieval or decoding fails.
+     */
+    public function getUserViewsObject(): array
     {
+        // Retrieve user settings from user table
         $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
 
         if (!$userViewsEncoded) {
-            return null;
+            return [];
         }
-
+        // base64 decode
         $json = base64_decode($userViewsEncoded, true);
 
         if ($json === false) {
-            return null;
+            return [];
         }
-
-        return json_decode($json, true) ?? null;
+        // Json decode
+        return json_decode($json, true) ?? [];
     }
 
+    /**
+     * Retrieves the list of available columns.
+     *
+     * @return array An array of column names that are available.
+     */
     public function getAvailableColumns(): array
     {
         return [

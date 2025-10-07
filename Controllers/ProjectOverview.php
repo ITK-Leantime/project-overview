@@ -13,6 +13,9 @@ use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewHelper;
 use Symfony\Component\HttpFoundation\Response;
 use Leantime\Core\UI\Template;
 
+/**
+ * Class ProjectOverview
+ */
 class ProjectOverview extends Controller
 {
     private ProjectOverviewActionHandler $actionHandler;
@@ -64,10 +67,13 @@ class ProjectOverview extends Controller
                     $redirectUrl = $this->actionHandler->adjustPeriod($_POST, $redirectUrl);
                     break;
                 case 'deleteView':
-                    $redirectUrl = $this->actionHandler->deleteView($_POST, $redirectUrl);
+                    $viewId = $_POST['viewId'];
+                    $redirectUrl = $this->actionHandler->deleteView($viewId, $redirectUrl);
                     break;
                 case 'renameView':
-                    $redirectUrl = $this->actionHandler->renameView($_POST, $redirectUrl);
+                    $viewId = $_POST['viewId'];
+                    $viewName = str_replace(' ', '_', $_POST['viewName']);
+                    $redirectUrl = $this->actionHandler->renameView($viewId, $viewName);
                     break;
             }
         }
