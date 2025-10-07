@@ -10,13 +10,13 @@ use Leantime\Domain\Users\Repositories\Users as UserRepository;
 /**
  *
  */
-class ProjectOverviewActionHandler
+readonly class ProjectOverviewActionHandler
 {
     /**
      * Initialize dependencies.
      * @return void
      */
-    public function __construct(private readonly UserService $userService, private readonly UserRepository $userRepository)
+    public function __construct(private UserService $userService, private UserRepository $userRepository)
     {
     }
 
@@ -78,9 +78,9 @@ class ProjectOverviewActionHandler
         return $redirectUrl;
     }
 
-    public function SaveView(array $postData, string $redirectUrl)
+    public function SaveView(array $postData, string $redirectUrl): string
     {
-        $overrideView = (bool)($postData['overrideView'] ?? false);
+        $overwriteView = (bool)($postData['overwriteView'] ?? false);
         $users = $postData['users'] ?? [];
         list($postData['fromDate'], $postData['toDate']) = explode(' til ', $postData['dateRange']);
         $columns = $postData['columns'] ?? [];
@@ -114,29 +114,51 @@ class ProjectOverviewActionHandler
             statusFilters: $groupedFilters['statuses'],
             customFilters: $groupedFilters['custom']
         );
-        $encodedViewObjects = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
+        $userViewsObject = $this->getUserViewsObject();
 
-        $decodedViewObjects = [];
-        if ($encodedViewObjects) {
-            $decodedViewObjects = $this->decodeViewSettings($encodedViewObjects);
-        }
-
-        if ($overrideView) {
-            $decodedViewObjects[$postData['viewId']] = $viewDTO;
+        if ($overwriteView) {
+            $userViewsObject[$postData['viewId']] = $viewDTO;
             $redirectUrl .= '?viewId=' . $postData['viewId'];
         } else {
-            $decodedViewObjects[] = $viewDTO;
+            $userViewsObject[] = $viewDTO;
         }
+        $this->saveUserViewsObject($userViewsObject);
 
-        $encodedViewObjects = $this->encodeViewSettings($decodedViewObjects);
-        $savedSuccessfully = $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
-        if (!$savedSuccessfully) {
-            $redirectUrl .= '?error=1';
+        return $redirectUrl;
+    }
+
+
+
+
+    public function deleteView(array $postData, string $redirectUrl): string
+    {
+        $viewId = $postData['viewId'];
+        $userViewsObject = $this->getUserViewsObject();
+        if (isset($userViewsObject[$viewId])) {
+            unset($userViewsObject[$viewId]);
+            $this->saveUserViewsObject($userViewsObject);
         }
         return $redirectUrl;
     }
 
-    private function encodeViewSettings(array $arrayOfViewObjects): string
+
+
+    public function renameView(array $postData, string $redirectUrl): string
+    {
+        $viewId = $postData['viewId'];
+        $viewName = str_replace(' ', '_', $postData['viewName']);
+        $userViewsObject = $this->getUserViewsObject();
+            if (isset($userViewsObject[$viewId])) {
+                $userViewsObject[$viewName] = $userViewsObject[$viewId];
+                unset($userViewsObject[$viewId]);
+
+                $encodedViewObjects = $this->encodeViewSettings($userViewsObject);
+                $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
+        }
+        return $redirectUrl;
+    }
+
+    private function saveUserViewsObject(array $arrayOfViewObjects): string
     {
         // Turn array into JSON
         $json = json_encode($arrayOfViewObjects);
@@ -144,12 +166,15 @@ class ProjectOverviewActionHandler
         // Encode to base64 so htmlspecialchars() won't break it
         return base64_encode($json);
     }
-
-
-    public function decodeViewSettings(string $encodedViewObject): ?array
+    public function getUserViewsObject()
     {
+        $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
 
-        $json = base64_decode($encodedViewObject, true);
+        if (!$userViewsEncoded) {
+            return null;
+        }
+
+        $json = base64_decode($userViewsEncoded, true);
 
         if ($json === false) {
             return null;
@@ -158,25 +183,7 @@ class ProjectOverviewActionHandler
         return json_decode($json, true) ?? null;
     }
 
-    public function deleteView(array $postData, string $redirectUrl): string
-    {
-        $viewId = $postData['viewId'];
-        $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
-        if ($userViewsEncoded) {
-            $userViewsDecoded = $this->decodeViewSettings($userViewsEncoded);
-            if (isset($userViewsDecoded[$viewId])) {
-                unset($userViewsDecoded[$viewId]);
-                $encodedViewObjects = empty($userViewsDecoded) ? null : $this->encodeViewSettings($userViewsDecoded);
-                $savedSuccessfully = $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
-                if (!$savedSuccessfully) {
-                    $redirectUrl .= '?error=1';
-                }
-            }
-        }
-        return $redirectUrl;
-    }
-
-    function getAvailableColumns(): array
+    public function getAvailableColumns(): array
     {
         return [
             'headline',
@@ -191,28 +198,6 @@ class ProjectOverviewActionHandler
             'milestoneid',
             'tags'
         ];
-    }
-
-    public function renameView(array $postData, string $redirectUrl): string
-    {
-        $viewId = $postData['viewId'];
-        $viewName = str_replace(' ', '_', $postData['viewName']);
-
-        $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
-        if ($userViewsEncoded) {
-            $userViewsDecoded = $this->decodeViewSettings($userViewsEncoded);
-            if (isset($userViewsDecoded[$viewId])) {
-                $userViewsDecoded[$viewName] = $userViewsDecoded[$viewId];
-                unset($userViewsDecoded[$viewId]);
-
-                $encodedViewObjects = $this->encodeViewSettings($userViewsDecoded);
-                $savedSuccessfully = $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
-                if (!$savedSuccessfully) {
-                    $redirectUrl .= '?error=1';
-                }
-            }
-        }
-        return $redirectUrl;
     }
 
 }
