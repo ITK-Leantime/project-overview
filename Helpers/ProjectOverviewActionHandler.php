@@ -81,8 +81,8 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves a view.
      *
-     * @param array<string, mixed>  $postData    An associative array containing view data.
-     * @param string $redirectUrl The URL to redirect to after saving the view.
+     * @param array<string, mixed> $postData    An associative array containing view data.
+     * @param string               $redirectUrl The URL to redirect to after saving the view.
      *
      * @return string The updated redirect URL after the view has been saved or updated.
      */

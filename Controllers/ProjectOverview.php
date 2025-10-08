@@ -37,7 +37,7 @@ class ProjectOverview extends Controller
     /**
      * Loads filters data and serves it back to the template.
      *
-     * @param array<string, string>                     $data
+     * @param array<string, string> $data
      *
      * @used Called via HTMX GET request
      * @throws Exception

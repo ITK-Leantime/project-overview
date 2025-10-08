@@ -10,21 +10,21 @@ readonly class ProjectOverviewFiltersDataDTO
     /**
      * Constructor method.
      *
-     * @param array<int, array<string, mixed>>  $allUsers        An array of all users.
-     * @param array<int, array<string, mixed>>  $allProjects     An array of all projects.
-     * @param array<int, string>  $allPriorities   An array of all priority levels (id => name).
-     * @param array<int, array<string, mixed>>  $allStatusLabels An array of all status labels.
-     * @param array<string, mixed>  $allColumns      An array of all column definitions.
-     * @param string      $fromDate        The starting date in a specific format.
-     * @param string      $toDate          The ending date in a specific format.
-     * @param array<int>  $projectFilters  Filters applied to projects (array of project IDs).
-     * @param array<int>  $priorityFilters Filters applied to priority levels (array of priority IDs).
-     * @param array<int>  $statusFilters   Filters applied to status labels (array of status IDs).
-     * @param array<string>  $customFilters   Custom filters applied (array of filter names).
-     * @param string|null $title           The title, can be null if not provided.
-     * @param array<string>  $selectedColumns An array of selected column names.
-     * @param array<int>  $users           Users associated or involved (array of user IDs).
-     * @param string|null $selectedViewId  The ID of the selected view, can be null.
+     * @param array<int, array<string, mixed>> $allUsers        An array of all users.
+     * @param array<int, array<string, mixed>> $allProjects     An array of all projects.
+     * @param array<int, string>               $allPriorities   An array of all priority levels (id => name).
+     * @param array<int, array<string, mixed>> $allStatusLabels An array of all status labels.
+     * @param array<string, mixed>             $allColumns      An array of all column definitions.
+     * @param string                           $fromDate        The starting date in a specific format.
+     * @param string                           $toDate          The ending date in a specific format.
+     * @param array<int>                       $projectFilters  Filters applied to projects (array of project IDs).
+     * @param array<int>                       $priorityFilters Filters applied to priority levels (array of priority IDs).
+     * @param array<int>                       $statusFilters   Filters applied to status labels (array of status IDs).
+     * @param array<string>                    $customFilters   Custom filters applied (array of filter names).
+     * @param string|null                      $title           The title, can be null if not provided.
+     * @param array<string>                    $selectedColumns An array of selected column names.
+     * @param array<int>                       $users           Users associated or involved (array of user IDs).
+     * @param string|null                      $selectedViewId  The ID of the selected view, can be null.
      */
     public function __construct(
         public array $allUsers,
