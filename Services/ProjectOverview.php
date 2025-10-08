@@ -70,7 +70,7 @@ class ProjectOverview
     /**
      * Get tasks.
      *
-     * @return array|string[]
+     * @return array<int, mixed>
      */
     public function getViewTasks(ViewDTO $viewDTO): array
     {

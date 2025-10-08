@@ -9,14 +9,14 @@ readonly class ViewDTO
 {
     /**
      * @param string|null $title           Title of the view
-     * @param array       $users           Selected user IDs
+     * @param array<int>  $users           Selected user IDs
      * @param string      $fromDate        Start date of the view
      * @param string      $toDate          End date of the view
-     * @param array       $columns         Selected columns to display
-     * @param array       $projectFilters  Selected project filters
-     * @param array       $priorityFilters Selected priority filters
-     * @param array       $statusFilters   Selected status filters
-     * @param array       $customFilters   Selected custom filters
+     * @param array<string> $columns       Selected columns to display
+     * @param array<int, mixed>  $projectFilters  Selected project filters (project IDs)
+     * @param array<int, mixed>  $priorityFilters Selected priority filters (priority IDs)
+     * @param array<int, mixed>  $statusFilters   Selected status filters (status IDs)
+     * @param array<string> $customFilters Selected custom filters (filter names)
      */
     public function __construct(
         public ?string $title,

@@ -68,7 +68,7 @@ class ProjectOverview
      * Retrieves a list of tasks based on the ViewDTO.
      *
      * @param ViewDTO $viewDTO The data transfer object containing filter criteria.
-     * @return array Returns an array of tasks matching the specified filters.
+     * @return array<int, mixed> Returns an array of tasks matching the specified filters.
      */
     public function getViewTasks(ViewDTO $viewDTO): array
     {

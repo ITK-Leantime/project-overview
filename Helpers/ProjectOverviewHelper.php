@@ -78,8 +78,8 @@ readonly class ProjectOverviewHelper
                 $ticket->projectName = $allProjects[$ticket->projectId]['name'];
                 $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
                 $ticket->sumHours = round((float)$ticket->sumHours, 2);
-                $userViewObject[$key]['tickets'] = $viewTickets;
             }
+            $userViewObject[$key]['tickets'] = $viewTickets;
         }
         return new ProjectOverviewDTO(
             userViews: $userViewObject,
@@ -95,7 +95,7 @@ readonly class ProjectOverviewHelper
     /**
      * Retrieves and prepares filter data for the project overview.
      *
-     * @param array $data An associative array containing input parameters.
+     * @param array<string, string> $data An associative array containing input parameters.
      * @return ProjectOverviewFiltersDataDTO A data transfer object containing all necessary data for populating the project overview filters.
      */
     public function getProjectOverviewFiltersData(array $data): ProjectOverviewFiltersDataDTO

@@ -81,7 +81,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves a view.
      *
-     * @param array  $postData    An associative array containing view data.
+     * @param array<string, mixed>  $postData    An associative array containing view data.
      * @param string $redirectUrl The URL to redirect to after saving the view.
      *
      * @return string The updated redirect URL after the view has been saved or updated.
@@ -171,7 +171,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Encodes and saves the user-views object.
      *
-     * @param array $userViewsObject Array containing view objects to be saved.
+     * @param array<string, mixed> $userViewsObject Array containing view objects to be saved.
      * @return void A base64 encoded JSON string representing the array of view objects.
      */
     private function saveUserViewsObject(array $userViewsObject): void
@@ -188,7 +188,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Retrieves and decodes the users-views object.
      *
-     * @return array|null Decoded array representing user views if successful, or null if retrieval or decoding fails.
+     * @return array<string, mixed> Decoded array representing user views if successful, or null if retrieval or decoding fails.
      */
     public function getUserViewsObject(): array
     {
@@ -211,7 +211,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Retrieves the list of available columns.
      *
-     * @return array An array of column names that are available.
+     * @return array<string> An array of column names that are available.
      */
     public function getAvailableColumns(): array
     {

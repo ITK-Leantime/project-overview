@@ -10,15 +10,13 @@ readonly class ProjectOverviewDTO
     /**
      * Constructor method.
      *
-     * @param array       $userViews       Array representing user views.
-     * @param array       $statusLabels    Array representing status labels.
-     * @param array       $allStatusLabels Array containing all status labels.
-     * @param array       $allPriorities   Array listing all priorities.
-     * @param array       $allProjects     Array of all projects.
-     * @param array       $allUsers        Array of all users.
+     * @param array<string, mixed>  $userViews       Array representing user views.
+     * @param array<int, array<int, mixed>>  $statusLabels    Array representing status labels by project.
+     * @param array<int, array<string, mixed>>  $allStatusLabels Array containing all status labels.
+     * @param array<int, string>  $allPriorities   Array listing all priorities (id => name).
+     * @param array<int, array<string, mixed>>  $allProjects     Array of all projects.
+     * @param array<int, array<string, mixed>>  $allUsers        Array of all users.
      * @param string|null $selectedView    Selected view, or null if not set.
-     *
-     * @return void
      */
     public function __construct(
         public array $userViews,

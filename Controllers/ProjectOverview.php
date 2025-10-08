@@ -37,11 +37,13 @@ class ProjectOverview extends Controller
     /**
      * Loads filters data and serves it back to the template.
      *
+     * @param array<string, string>                     $data
+     *
      * @used Called via HTMX GET request
      * @throws Exception
      * @return Response|null
      */
-    public function loadFilters($data): ?Response
+    public function loadFilters(array $data): ?Response
     {
         $filtersData = $this->projectOverviewHelper->getProjectOverviewFiltersData($data);
         $this->tpl->assign('filtersData', $filtersData);
