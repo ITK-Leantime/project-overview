@@ -120,7 +120,14 @@ class ProjectOverview
             });
 
         if (!empty($viewDTO->users)) {
-            $query->whereIn('ticket.userid', $viewDTO->users);
+            $query->where(function ($q) use ($viewDTO) {
+                if (in_array('unassigned', $viewDTO->users)) {
+                    $q->where('ticket.editorId', '=', '');
+                }
+                if (count(array_diff($viewDTO->users, ['unassigned'])) > 0) {
+                    $q->orWhereIn('ticket.editorId', array_diff($viewDTO->users, ['unassigned']));
+                }
+            });
         }
 
         if (!empty($viewDTO->projectFilters)) {
