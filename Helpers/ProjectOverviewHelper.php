@@ -2,6 +2,7 @@
 
 namespace Leantime\Plugins\ProjectOverview\Helpers;
 
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Leantime\Domain\Tickets\Services\Tickets;
 use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewDTO;
@@ -26,12 +27,12 @@ readonly class ProjectOverviewHelper
     ) {
     }
 
-
     /**
      * Retrieves and processes project overview data.
      *
      * @return ProjectOverviewDTO Returns a data transfer object containing
-     * the required project overview data.
+     * The required project overview data.
+     * @throws BindingResolutionException
      */
     public function getProjectOverviewData(): ProjectOverviewDTO
     {
@@ -39,12 +40,18 @@ readonly class ProjectOverviewHelper
         $projectTicketStatuses = [];
         $userViewObject = $this->actionHandler->getUserViewsObject();
         $allProjects = $this->projectOverviewService->getAllProjects();
+        $viewId = $_GET['viewId'] ?? null;
         uasort($allProjects, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
         $allUsers = $this->userService->getAll();
-        usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
 
+        usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
+        array_unshift($allUsers, [
+            'id' => 'unassigned',
+            'firstname' => 'unassigned',
+            'lastname' => ''
+        ]);
         foreach ($userViewObject as $key => $userView) {
             $userViewDTO = new ViewDTO(
                 title: $userView['title'] ?? null,
@@ -59,7 +66,6 @@ readonly class ProjectOverviewHelper
             );
             $viewTickets = $this->projectOverviewService->getViewTasks($userViewDTO);
             $projectIds = array_unique(array_column($viewTickets, 'projectId'));
-            $userViewObject[$key]['tickets'] = [];
             $userAndProject = [];
             $milestonesAndProject = [];
 
@@ -77,7 +83,6 @@ readonly class ProjectOverviewHelper
                 $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
                 $ticket->projectName = $allProjects[$ticket->projectId]['name'];
                 $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
-                $ticket->sumHours = round((float)$ticket->sumHours, 2);
             }
             $userViewObject[$key]['tickets'] = $viewTickets;
         }
@@ -88,7 +93,7 @@ readonly class ProjectOverviewHelper
             allPriorities: $this->ticketService->getPriorityLabels(),
             allProjects: $allProjects,
             allUsers: $allUsers,
-            selectedView: ($_GET['viewId'] ?? null),
+            selectedView: $viewId,
         );
     }
 
@@ -103,7 +108,11 @@ readonly class ProjectOverviewHelper
         $selectedViewId = $data['id'] ?? null;
         $allUsers = $this->userService->getAll();
         usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
-
+        array_unshift($allUsers, [
+            'id' => 'unassigned',
+            'firstname' => 'Unassigned',
+            'lastname' => ''
+        ]);
         $allProjects = $this->projectOverviewService->getAllProjects();
         uasort($allProjects, fn($a, $b) => strcmp($a['name'], $b['name']));
 
@@ -115,7 +124,7 @@ readonly class ProjectOverviewHelper
             'users' => [],
             'allColumns' => $this->actionHandler->getAvailableColumns(),
             'fromDate' => date('d-m-Y', strtotime('last monday')),
-            'toDate' => date('d-m-Y', strtotime('next sunday')),
+            'toDate' => date('d-m-Y', strtotime('sunday next week')),
             'projectFilters' => [],
             'priorityFilters' => [],
             'statusFilters' => [],
@@ -124,10 +133,13 @@ readonly class ProjectOverviewHelper
             'selectedColumns' => [],
             'selectedViewId' => null,
         ];
+
         // Override with user view data if available
-        if ($selectedViewId) {
+        if ($selectedViewId !== null) {
             $userViewArray = $this->actionHandler->getUserViewsObject();
+
             if ($userViewArray) {
+
                 $userView = $userViewArray[urldecode($selectedViewId)] ?? null;
                 if ($userView) {
                     $userViewsData = array_merge($userViewsData, [
