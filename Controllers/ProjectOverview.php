@@ -4,8 +4,10 @@ namespace Leantime\Plugins\ProjectOverview\Controllers;
 
 use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Support\Facades\Log;
 use Leantime\Core\Controller\Controller;
 use Leantime\Core\Controller\Frontcontroller;
+use Leantime\Core\Events\EventDispatcher;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth as AuthService;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
@@ -76,7 +78,10 @@ class ProjectOverview extends Controller
                 case 'renameView':
                     $viewId = $_POST['viewId'];
                     $viewName = str_replace(' ', '_', $_POST['viewName']);
-                    $this->actionHandler->renameView($viewId, $viewName);
+                    $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
+                    break;
+                case 'saveTabOrder':
+                    $this->actionHandler->saveTabOrder($_POST);
                     break;
             }
         }
@@ -84,6 +89,7 @@ class ProjectOverview extends Controller
         return Frontcontroller::redirect($redirectUrl);
     }
 
+    /**
     /**
      * Gathers data, services it as ProjectOverviewDTO and feeds it to the template.
      *
@@ -93,6 +99,12 @@ class ProjectOverview extends Controller
      */
     public function get(): Response
     {
+        // Check for flash notification
+        if (session()->has('project_overview-flash_notification')) {
+            $notification = session('project_overview-flash_notification');
+            $this->tpl->setNotification($notification['message'], $notification['type']);
+        }
+
         $userViewsData = $this->projectOverviewHelper->getProjectOverviewData();
         $this->tpl->assign('userViewsData', $userViewsData);
         return $this->tpl->display('ProjectOverview.projectOverview');
