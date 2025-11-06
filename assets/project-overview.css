@@ -36,17 +36,18 @@
   --itk-transition-time: 0.3s;
   --itk-transition-easing: ease-in-out;
 }
-
+.maincontentinner {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+}
 .project-overview-container {
-  position: relative;
-  background-color: white;
-  display: flex;
-  flex-direction: column;
-  padding: 15px;
-  margin-right: 10px;
-  margin-left: 15px;
-  overflow: auto;
-  width: calc(100% - 30px);
+    position: relative;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    overflow: auto;
 
   .label-and-caret-wrapper {
     display: flex;
@@ -182,6 +183,7 @@
 
       .date-range-filter,
       .filters,
+      .date-options,
       .columns-display,
       .save-view {
         margin-left: 10px;
@@ -193,6 +195,13 @@
           border: 1px solid var(--main-border-color);
           text-align: center;
         }
+
+          #dateOptions {
+              border-radius: 0;
+              opacity: 1;
+              border: 1px solid var(--main-border-color);
+              margin-bottom: 0;
+          }
       }
 
       .employee-and-search-filter {
@@ -313,7 +322,7 @@
         height: 100%;
         width: 100%;
         border: none;
-        padding: 10px;
+        padding: 5px;
         box-sizing: border-box;
       }
     }
@@ -671,7 +680,12 @@ div.save-view > button {
 #projectOverviewTabs {
   background: transparent;
   border: none;
+    transition: opacity 0.3s ease-in-out;
 
+    &.is-hidden {
+        opacity: 0;
+        height: 0;
+    }
   .ui-widget-header {
     background: transparent;
     border: none;
@@ -713,6 +727,7 @@ div.save-view > button {
         color: #000;
         border: none;
         background-color: transparent;
+        user-select: none;
       }
     }
 
@@ -740,13 +755,46 @@ div.save-view > button {
   display: none !important;
 
   form {
-    width: 150px;
-    height: 200px;
     display: flex;
     flex-direction: column;
     border: 1px solid #e9e9e9;
     box-shadow: 1px 1px 1px #eee;
     background-color: #fff;
+      padding: 8px;
+
+      input {
+          border: 1px solid var(--itk-border-color);
+          padding-right: 0;
+          border-radius: 0;
+          margin-bottom: 8px;
+      }
+
+      span {
+          font-size: 12px;
+          margin-bottom: 4px;
+      }
+
+      div.buttons {
+          display: flex;
+          justify-content: end;
+          column-gap: 5px;
+          button {
+              color: white;
+              border: 1px solid var(--itk-border-color);
+              padding: var(--itk-button-padding);
+              margin: 0;
+              font-weight: 400;
+              font-size: 12px;
+              border-radius: 3px !important;
+
+              &.view-rename {
+                  background-color: var(--itk-color-primary);
+              }
+              &.view-delete {
+                  background-color: var(--itk-color-danger);
+              }
+          }
+      }
   }
   &.shown {
     display: flex !important;
@@ -776,4 +824,27 @@ div.save-view > button {
   to {
     transform: rotate(360deg);
   }
+}
+
+.error-message {
+    cursor: default;
+    display: flex;
+    margin-right: auto;
+    &.hidden {
+        display: none;
+    }
+    p {
+        margin: auto;
+        .error-message & {
+            margin: auto 0 15px 0;
+        }
+        i {
+            .recently-deleted-timelog-info & {
+                color: var(--itk-color-primary);
+            }
+            .error-message & {
+                color: var(--itk-color-danger);
+            }
+        }
+    }
 }
