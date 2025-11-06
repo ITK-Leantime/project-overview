@@ -11,6 +11,14 @@
         </select>
     </div>
 
+    <div class="date-options">
+        <select id="dateOptions">
+            <option>Hello World!</option>
+            <option>Hello World 2!</option>
+            <option value="custom">Custom</option>
+        </select>
+    </div>
+
     <div class="date-range-filter">
         <input type="text" name="dateRange" id="dateRange"
             value="{{ $filtersData->fromDate }} til {{ $filtersData->toDate }}">
@@ -56,11 +64,12 @@
         </select>
     </div>
 
+
     <div class="columns-display">
         <select name="columns[]" id="columnSelect" multiple>
             @foreach ($filtersData->allColumns ?? [] as $column)
                 <option value="{{ $column }}"
-                    {{ in_array($column, $filtersData->selectedColumns ?? []) ? 'selected' : '' }}>
+                    {{ empty($filtersData->selectedColumns) || in_array($column, $filtersData->selectedColumns) ? 'selected' : '' }}>
                     {{ __('projectOverview.' . strtolower($column) . '_table_header') }}</option>
             @endforeach
         </select>
