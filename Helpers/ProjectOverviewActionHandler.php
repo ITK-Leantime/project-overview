@@ -122,15 +122,28 @@ readonly class ProjectOverviewActionHandler
             statusFilters: $groupedFilters['statuses'],
             customFilters: $groupedFilters['custom']
         );
-        $userViewsObject = $this->getUserViewsObject();
 
-        if ($overwriteView) {
-            $userViewsObject[$postData['viewId']] = $viewDTO;
-            $redirectUrl .= '?viewId=' . $postData['viewId'];
+        $userViewsObject = $this->getUserViewsObject();
+        $newViewId = $postData['viewId'] ?? null;
+
+        if (($newViewId === "0" || !empty($newViewId)) && $overwriteView) {
+            $userViewsObject[$newViewId] = $viewDTO;
+            $redirectUrl .= '?viewId=' . $newViewId;
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.view_updated'),
+                'type' => 'success'
+            ]);
         } else {
-            $userViewsObject[] = $viewDTO;
+            $userViewsObject['view_' . count($userViewsObject)] = $viewDTO;
+            $redirectUrl .= '?viewId=' . 'view_' . count($userViewsObject);
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.view_created'),
+                'type' => 'success'
+            ]);
         }
+
         $this->saveUserViewsObject($userViewsObject);
+
 
         return $redirectUrl;
     }
@@ -148,26 +161,75 @@ readonly class ProjectOverviewActionHandler
         if (isset($userViewsObject[$viewId])) {
             unset($userViewsObject[$viewId]);
             $this->saveUserViewsObject($userViewsObject);
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.view_deleted'),
+                'type' => 'success'
+            ]);
+        } else {
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.view_not_found'),
+                'type' => 'error'
+            ]);
         }
     }
 
     /**
      * Renames a view.
      *
-     * @param string $viewId   Id of the view to be renamed.
+     * @param string $viewId Id of the view to be renamed.
      * @param string $viewName New name of the view.
-     * @return void
+     * @return string|false Returns the redirect URL if successful, false if the target name already exists
      */
-    public function renameView(string $viewId, string $viewName): void
+    public function renameView(string $viewId, string $viewName, string $redirectUrl): string|false
     {
         $userViewsObject = $this->getUserViewsObject();
-        if (isset($userViewsObject[$viewId])) {
-            $userViewsObject[$viewName] = $userViewsObject[$viewId];
-            unset($userViewsObject[$viewId]);
-            $this->saveUserViewsObject($userViewsObject);
-        }
-    }
 
+        // Check if the new view name already exists
+        if (isset($userViewsObject[$viewName])) {
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.view_name_already_exists'),
+                'type' => 'error'
+            ]);
+            return $redirectUrl;
+        }
+
+        if (isset($userViewsObject[$viewId])) {
+            // Store the original keys to maintain order
+            $keys = array_keys($userViewsObject);
+
+            // Find the position of the view to be renamed
+            $position = array_search($viewId, $keys);
+
+            if ($position !== false) {
+                // Replace the key at the correct position
+                $keys[$position] = $viewName;
+
+                // Rebuild the array with the new key while maintaining order
+                $reorderedViews = [];
+                foreach ($keys as $key) {
+                    $reorderedViews[$key] = $key === $viewName
+                        ? $userViewsObject[$viewId]
+                        : $userViewsObject[$key];
+                }
+
+                $this->saveUserViewsObject($reorderedViews);
+
+                session()->flash('project_overview-flash_notification', [
+                    'message' => __('projectOverview.notification.view_renamed'),
+                    'type' => 'success'
+                ]);
+            }
+        } else {
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.view_not_found'),
+                'type' => 'error'
+            ]);
+        }
+
+        $redirectUrl .= '?viewId=' . $viewName;
+
+        return $redirectUrl;
+    }
     /**
      * Encodes and saves the user-views object.
      *
@@ -228,5 +290,56 @@ readonly class ProjectOverviewActionHandler
             'milestoneid',
             'tags',
         ];
+    }
+
+
+    public function saveTabOrder(array $postData): void
+    {
+        try {
+            $userViewsObject = $this->getUserViewsObject();
+            $newOrder = $postData['order'] ?? [];
+
+            if (empty($newOrder)) {
+                exit(json_encode([
+                    'status' => 'error',
+                    'message' => __('projectOverview.notification.tab_order_empty_order'),
+                ]));
+            }
+
+            if (empty($userViewsObject)) {
+                exit(json_encode([
+                    'status' => 'error',
+                    'message' => __('projectOverview.notification.tab_order_no_views'),
+                ]));
+            }
+
+            $reorderedUserViews = [];
+
+            foreach ($newOrder as $viewKey) {
+                if (isset($userViewsObject[$viewKey])) {
+                    $reorderedUserViews[$viewKey] = $userViewsObject[$viewKey];
+                }
+            }
+
+            foreach ($userViewsObject as $key => $view) {
+                if (!isset($reorderedUserViews[$key])) {
+                    $reorderedUserViews[$key] = $view;
+                }
+            }
+
+            $this->saveUserViewsObject($reorderedUserViews);
+
+            exit(json_encode([
+                'status' => 'success',
+                'message' => __('projectOverview.notification.tab_order_saved'),
+            ]));
+
+        } catch (\Exception $e) {
+            exit(json_encode([
+                'status' => 'error',
+                'message' => __('projectOverview.notification.tab_order_error'),
+                'debug' => $e->getMessage(),
+            ]));
+        }
     }
 }
