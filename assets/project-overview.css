@@ -188,6 +188,13 @@
       .save-view {
         margin-left: 10px;
 
+          &.date-range-disabled {
+              filter: opacity(0.5);
+
+              > input {
+                  cursor: not-allowed;
+              }
+          }
         #dateRange {
           margin: 0;
           border-radius: 0;
