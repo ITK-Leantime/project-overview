@@ -15,6 +15,7 @@ readonly class ProjectOverviewFiltersDataDTO
      * @param array<int, string>               $allPriorities   An array of all priority levels (id => name).
      * @param array<int, array<string, mixed>> $allStatusLabels An array of all status labels.
      * @param array<string, mixed>             $allColumns      An array of all column definitions.
+     * @param string                           $dateType        The type of date (e.g., 'range', 'custom').
      * @param string                           $fromDate        The starting date in a specific format.
      * @param string                           $toDate          The ending date in a specific format.
      * @param array<int>                       $projectFilters  Filters applied to projects (array of project IDs).
@@ -32,6 +33,7 @@ readonly class ProjectOverviewFiltersDataDTO
         public array $allPriorities,
         public array $allStatusLabels,
         public array $allColumns,
+        public string $dateType,
         public string $fromDate,
         public string $toDate,
         public array $projectFilters,
