@@ -3,9 +3,9 @@
 namespace Leantime\Plugins\ProjectOverview\Repositories;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterface;
 use Illuminate\Database\Query\Builder;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
+use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 
 /**
  * This is the project overview repository, that makes (hopefully) the relevant sql queries.
@@ -72,8 +72,8 @@ class ProjectOverview
      */
     public function getViewTasks(ViewDTO $viewDTO): array
     {
-            $fromDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->fromDate);
-            $toDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->toDate);
+        $fromDate = $viewDTO->fromDate ?? null;
+        $toDate = $viewDTO->toDate ?? null;
 
         $query = $this->query()
             ->from('zp_tickets AS ticket')
@@ -105,13 +105,25 @@ class ProjectOverview
             ->where('ticket.type', '<>', 'milestone')
             ->where('ticket.status', '>', '0')
             ->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
-                if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
-                    $query->whereBetween('ticket.dateToFinish', [
-                        CarbonImmutable::createFromFormat('Y-m-d', '2023-03-14')->endOfDay(),
-                        $toDate,
-                    ]);
-                } else {
+                 if($viewDTO->dateType !== DateTypeEnum::CUSTOM) {
+                    $today = CarbonImmutable::now()->startOfDay();
+                    $endDate = match ($viewDTO->dateType) {
+                        DateTypeEnum::THIS_WEEK => $today->modify('monday this week +6 days'),
+                        DateTypeEnum::NEXT_THREE_WEEKS => $today->modify('monday this week +20 days'),
+                        default => $today->modify('monday this week +13 days'),
+                    };
+                    $query->whereBetween('ticket.dateToFinish', [$today, $endDate]);
+                } elseif ($fromDate && $toDate) {
+                    $fromDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->fromDate);
+                    $toDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->toDate);
                     $query->whereBetween('ticket.dateToFinish', [$fromDate, $toDate]);
+                }
+
+                if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
+                    $query->orWhereBetween('ticket.dateToFinish', [
+                        CarbonImmutable::createFromFormat('Y-m-d', '2023-03-14')->endOfDay(),
+                        $toDate ?? CarbonImmutable::now(),
+                    ]);
                 }
 
                 if (in_array('empty-due-date', $viewDTO->customFilters ?? [])) {
