@@ -1,3 +1,4 @@
+@use(Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum)
 <form method="POST">
     <input type="hidden" name="action" value="saveView" />
     <div>
@@ -12,10 +13,17 @@
     </div>
 
     <div class="date-options">
-        <select id="dateOptions">
-            <option>Hello World!</option>
-            <option>Hello World 2!</option>
-            <option value="custom">Custom</option>
+        <select name="dateType" id="dateOptions">
+            <option
+                value="{{ DateTypeEnum::THIS_WEEK->value }}" {{ $filtersData->dateType === DateTypeEnum::THIS_WEEK->value ? 'selected' : '' }}>{{__('projectOverview.this_week')}}</option>
+            <option
+                value="{{ DateTypeEnum::NEXT_TWO_WEEKS->value }}" {{ $filtersData->dateType === DateTypeEnum::NEXT_TWO_WEEKS->value ? 'selected' : '' }}>{{__('projectOverview.next_two_weeks')}}</option>
+            <option
+                value="{{ DateTypeEnum::NEXT_THREE_WEEKS->value }}" {{ $filtersData->dateType === DateTypeEnum::NEXT_THREE_WEEKS->value ? 'selected' : '' }}>{{__('projectOverview.next_three_weeks')}}</option>
+            <option
+                value="{{ DateTypeEnum::CUSTOM->value }}" {{ $filtersData->dateType === DateTypeEnum::CUSTOM->value ? 'selected' : '' }}>
+                Custom
+            </option>
         </select>
     </div>
 
@@ -76,8 +84,9 @@
     </div>
 
     <div class="save-view">
-        <button type="submit" class="btn btn-default">+ Save View</button>
-        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}" />
-        <button type="submit" name="overwriteView" value="1" class="btn btn-default">Overwrite view</button>
+        <button type="submit" class="btn btn-default">+ {{ __('projectOverview.save_view') }}</button>
+        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}"/>
+        <button type="submit" name="overwriteView" value="1"
+                class="btn btn-default">{{ __('projectOverview.overwrite_view') }}</button>
     </div>
 </form>
