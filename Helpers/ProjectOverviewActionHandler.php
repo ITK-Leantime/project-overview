@@ -3,9 +3,11 @@
 namespace Leantime\Plugins\ProjectOverview\Helpers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
 use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Domain\Users\Repositories\Users as UserRepository;
+use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 
 /**
  * Class ProjectOverviewActionHandler
@@ -81,16 +83,25 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves a view.
      *
-     * @param array<string, mixed> $postData    An associative array containing view data.
-     * @param string               $redirectUrl The URL to redirect to after saving the view.
+     * @param array<string, mixed> $postData An associative array containing view data.
+     * @param string $redirectUrl The URL to redirect to after saving the view.
      *
      * @return string The updated redirect URL after the view has been saved or updated.
+     * @throws BindingResolutionException
      */
     public function saveView(array $postData, string $redirectUrl): string
     {
         $overwriteView = (bool)($postData['overwriteView'] ?? false);
         $users = $postData['users'] ?? [];
-        list($postData['fromDate'], $postData['toDate']) = explode(' til ', $postData['dateRange']);
+        $dateType = DateTypeEnum::tryFrom($postData['dateType']);
+        $fromDate = null;
+        $toDate = null;
+        if ($dateType === null) {
+            $dateType = DateTypeEnum::NEXT_TWO_WEEKS;
+        }
+        if ($dateType === DateTypeEnum::CUSTOM && $postData['dateRange']) {
+            list($fromDate, $toDate) = explode(' til ', $postData['dateRange']);
+        }
         $columns = $postData['columns'] ?? [];
         $filters = $postData['filters'] ?? [];
         $groupedFilters = [
@@ -114,8 +125,9 @@ readonly class ProjectOverviewActionHandler
         $viewDTO = new ViewDTO(
             title: null,
             users: (array)$users,
-            fromDate: $postData['fromDate'],
-            toDate: $postData['toDate'],
+            dateType: $dateType,
+            fromDate: $fromDate,
+            toDate: $toDate,
             columns: $columns,
             projectFilters: $groupedFilters['projects'],
             priorityFilters: $groupedFilters['priorities'],
@@ -134,8 +146,18 @@ readonly class ProjectOverviewActionHandler
                 'type' => 'success'
             ]);
         } else {
-            $userViewsObject['view_' . count($userViewsObject)] = $viewDTO;
-            $redirectUrl .= '?viewId=' . 'view_' . count($userViewsObject);
+            // Ensure not to overwrite an existing view
+            $baseViewName = 'view_';
+            $counter = count($userViewsObject);
+            $viewName = $baseViewName . $counter;
+
+            while (isset($userViewsObject[$viewName])) {
+                $counter++;
+                $viewName = $baseViewName . $counter;
+            }
+
+            $userViewsObject[$viewName] = $viewDTO;
+            $redirectUrl .= '?viewId=' . $viewName;
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_created'),
                 'type' => 'success'
@@ -154,6 +176,7 @@ readonly class ProjectOverviewActionHandler
      *
      * @param string $viewId The id of the view to be deleted.
      * @return void
+     * @throws BindingResolutionException
      */
     public function deleteView(string $viewId): void
     {
@@ -179,6 +202,7 @@ readonly class ProjectOverviewActionHandler
      * @param string $viewId Id of the view to be renamed.
      * @param string $viewName New name of the view.
      * @return string|false Returns the redirect URL if successful, false if the target name already exists
+     * @throws BindingResolutionException
      */
     public function renameView(string $viewId, string $viewName, string $redirectUrl): string|false
     {
