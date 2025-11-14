@@ -23,7 +23,7 @@ $(document).ready(function () {
 
 function initProjectOverviewFilters() {
     // Flatpickr
-    flatpickr('#dateRange', {
+    const dateRange = flatpickr('#dateRange', {
         mode: 'range',
         dateFormat: 'd-m-Y',
         allowInput: false,
@@ -69,6 +69,45 @@ function initProjectOverviewFilters() {
         return columnSelect.select2('data')?.length;
     });
 
+    $('#dateOptions').on('change', function () {
+        const dateRangeElement = $(document).find('div.date-range-filter');
+        console.log(dateRangeElement);
+        const selectedOption = $(this).val();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Get Monday of current week
+        const monday = new Date(today);
+        monday.setDate(monday.getDate() - monday.getDay() + 1);
+
+        let endDate;
+        if (selectedOption === 'this week') {
+            // THIS_WEEK: monday this week +6 days
+            endDate = new Date(monday);
+            endDate.setDate(endDate.getDate() + 6);
+            dateRange.setDate([monday, endDate]);
+            dateRange.set('clickOpens', false);
+            $(dateRangeElement).addClass('date-range-disabled');
+        } else if (selectedOption === 'next two weeks') {
+            // Default case: monday this week +13 days
+            endDate = new Date(monday);
+            endDate.setDate(endDate.getDate() + 13);
+            dateRange.setDate([monday, endDate]);
+            dateRange.set('clickOpens', false);
+            $(dateRangeElement).addClass('date-range-disabled');
+        } else if (selectedOption === 'next three weeks') {
+            // NEXT_THREE_WEEKS: monday this week +20 days
+            endDate = new Date(monday);
+            endDate.setDate(endDate.getDate() + 20);
+            dateRange.setDate([monday, endDate]);
+            dateRange.set('clickOpens', false);
+            $(dateRangeElement).addClass('date-range-disabled');
+        } else if (selectedOption === 'custom') {
+            dateRange.set('clickOpens', true);
+            $(dateRangeElement).removeClass('date-range-disabled');
+        }
+    }).trigger('change');
+
     // Assignee select2
     const userSelect = $('#userSelect')
         .select2({
@@ -93,6 +132,8 @@ function initProjectOverviewFilters() {
     userSelect.next('.select2').attr('data-length', function () {
         return userSelect.select2('data')?.length;
     });
+
+
 }
 
 function initProjectOverviewTable() {
@@ -151,13 +192,14 @@ function initProjectOverviewTable() {
     // Open .tab-context-menu when clicked on three dots beside view name.
     $(document).on('click', 'span.tab-context-menu', ({target}) => {
         const currentName = $(target).siblings('.tab-link').first().text().trim()
-        const rect = target.getBoundingClientRect();
+        const rect = target.parentElement.getBoundingClientRect();
+        console.log(rect.top, rect.height);
         const viewId = $(target).parent().data('target');
         $('.settings-for-target').text(viewId);
         contextMenu
             .css({
-                left: `${rect.left + window.scrollX - 215}px`,
-                top: `${rect.top + window.scrollY + rect.height - 50}px`,
+                left: `${rect.left + window.scrollX - 175}px`,
+                top: `${rect.top + window.scrollY - rect.height - 25}px`,
             })
             .addClass('shown')
             .find('input[name="viewName"]')
