@@ -8,6 +8,7 @@ use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewFiltersDataDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
+use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview;
 
 /**
@@ -53,17 +54,24 @@ readonly class ProjectOverviewHelper
             'lastname' => ''
         ]);
         foreach ($userViewObject as $key => $userView) {
+            $dateType = DateTypeEnum::tryFrom($userView['dateType']);
+
+            $fromDate = $userView['fromDate'];
+            $toDate = $userView['toDate'];
+
             $userViewDTO = new ViewDTO(
                 title: $userView['title'] ?? null,
                 users: $userView['users'],
-                fromDate: $userView['fromDate'],
-                toDate: $userView['toDate'],
+                dateType: $dateType,
+                fromDate: $fromDate,
+                toDate: $toDate,
                 columns: $userView['columns'],
                 projectFilters: $userView['projectFilters'],
                 priorityFilters: $userView['priorityFilters'],
                 statusFilters: $userView['statusFilters'],
                 customFilters: $userView['customFilters']
             );
+
             $viewTickets = $this->projectOverviewService->getViewTasks($userViewDTO);
             $projectIds = array_unique(array_column($viewTickets, 'projectId'));
             $userAndProject = [];
@@ -123,6 +131,7 @@ readonly class ProjectOverviewHelper
         $userViewsData = [
             'users' => [],
             'allColumns' => $this->actionHandler->getAvailableColumns(),
+            'dateType' => '',
             'fromDate' => date('d-m-Y', strtotime('last monday')),
             'toDate' => date('d-m-Y', strtotime('sunday next week')),
             'projectFilters' => [],
@@ -146,6 +155,7 @@ readonly class ProjectOverviewHelper
                         'title' => $userView['title'],
                         'users' => $userView['users'],
                         'selectedColumns' => $userView['columns'],
+                        'dateType' => $userView['dateType'],
                         'fromDate' => date('d-m-Y', strtotime($userView['fromDate'])),
                         'toDate' => date('d-m-Y', strtotime($userView['toDate'])),
                         'projectFilters' => $userView['projectFilters'],
@@ -164,6 +174,7 @@ readonly class ProjectOverviewHelper
             allPriorities: $allPriorities,
             allStatusLabels: $allStatusLabels,
             allColumns: $userViewsData['allColumns'],
+            dateType: $userViewsData['dateType'],
             fromDate: $userViewsData['fromDate'],
             toDate: $userViewsData['toDate'],
             projectFilters: $userViewsData['projectFilters'],
