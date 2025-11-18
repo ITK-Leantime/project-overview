@@ -164,18 +164,20 @@
                                                         @endphp
                                                         <td class="spacious"
                                                             data-selected-name="{{ $selectedUser ? $selectedUser['firstname'] . ' ' . $selectedUser['lastname'] : '' }}">
-                                                            <select class="form-select assigned-user-select"
-                                                                    id="assigned-user-{{ $row->id }}"
-                                                                    data-ticket-id="{{ $row->id }}">
-                                                                <option value="-1"></option>
-                                                                @foreach ($row->projectUsers as $projectUser)
-                                                                    <option value="{{ $projectUser['id'] }}"
-                                                                        {{ (int) $row->editorId === (int) $projectUser['id'] ? 'selected' : '' }}>
-                                                                        {{ $projectUser['firstname'] }}
-                                                                        {{ $projectUser['lastname'] }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
+                                                            <div class="editor-select">
+                                                                <select class="form-select assigned-user-select"
+                                                                        id="assigned-user-{{ $row->id }}"
+                                                                        data-ticket-id="{{ $row->id }}">
+                                                                    <option value="-1"></option>
+                                                                    @foreach ($row->projectUsers as $projectUser)
+                                                                        <option value="{{ $projectUser['id'] }}"
+                                                                            {{ (int) $row->editorId === (int) $projectUser['id'] ? 'selected' : '' }}>
+                                                                            {{ $projectUser['firstname'] }}
+                                                                            {{ $projectUser['lastname'] }}
+                                                                        </option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
                                                         </td>
                                                     @endif
 

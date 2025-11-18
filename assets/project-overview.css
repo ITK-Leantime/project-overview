@@ -317,7 +317,15 @@
           cursor: help;
         }
       }
-
+        div.editor-select {
+            display: flex;
+            height: 100%;
+            justify-content: center;
+            select {
+                height: auto;
+                margin: auto;
+            }
+        }
       select,
       input {
         all: unset;
@@ -329,7 +337,8 @@
         height: 100%;
         width: 100%;
         border: none;
-        padding: 5px;
+        padding: 10px;
+          text-align: center;
         box-sizing: border-box;
       }
     }
@@ -712,6 +721,21 @@ div.save-view > button {
     opacity: 0;
     user-select: none;
     height: 56px;
+  }
+  .ui-tabs-panel {
+    table {
+        margin: 0;
+        th {
+            background-color: var(--itk-color-gray-50);
+            border: 1px solid var(--itk-border-color);
+            color: var(--itk-color-gray-500);
+        }
+        td {
+            background-color: #fff;
+            padding: 20px 10px;
+            border: 1px solid var(--itk-border-color);
+        }
+    }
   }
   .ui-tabs-nav {
     li {
