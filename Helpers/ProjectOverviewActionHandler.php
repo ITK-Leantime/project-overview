@@ -25,7 +25,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves or updates a view configuration.
      *
-     * @param array $postData POST data containing view configuration
+     * @param array  $postData    POST data containing view configuration
      * @param string $redirectUrl URL to redirect to after saving
      * @return string Updated redirect URL with viewId parameter
      */

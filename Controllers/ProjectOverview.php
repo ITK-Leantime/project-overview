@@ -61,7 +61,7 @@ class ProjectOverview extends Controller
         }
 
         $redirectUrl = BASE_URL . '/ProjectOverview/projectOverview';
-        $action = $_POST["action"];
+        $action = $_POST['action'];
 
         if (isset($action)) {
             match ($action) {
