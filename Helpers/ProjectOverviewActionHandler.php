@@ -178,16 +178,23 @@ readonly class ProjectOverviewActionHandler
      *
      * @param string $viewId   Id of the view to be renamed.
      * @param string $viewName New name of the view.
-     * @return string|false Returns the redirect URL if successful, false if the target name already exists
+     * @return string Returns the redirect URL.
      * @throws BindingResolutionException
      */
-    public function renameView(string $viewId, string $viewName, string $redirectUrl): string|false
+    public function renameView(string $viewId, string $viewName, string $redirectUrl): string
     {
         $userViewsObject = $this->getUserViewsObject();
         $viewName = str_replace(' ', '_', $viewName);
 
-        // Check if the new view name already exists
-        if (isset($userViewsObject[$viewName])) {
+        if (!isset($userViewsObject[$viewId])) {
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.view_not_found'),
+                'type' => 'error',
+            ]);
+            return $redirectUrl;
+        }
+
+        if ($viewName !== $viewId && isset($userViewsObject[$viewName])) {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_name_already_exists'),
                 'type' => 'error',
@@ -195,44 +202,25 @@ readonly class ProjectOverviewActionHandler
             return $redirectUrl;
         }
 
-        if (isset($userViewsObject[$viewId])) {
-            // Store the original keys to maintain order
-            $keys = array_keys($userViewsObject);
+        $keys = array_keys($userViewsObject);
+        $index = array_search($viewId, $keys);
 
-            // Find the position of the view to be renamed
-            $position = array_search($viewId, $keys);
+        if ($index !== false) {
+            $keys[$index] = $viewName;
+            // Combine the modified keys with the original values to keep order
+            $userViewsObject = array_combine($keys, array_values($userViewsObject));
 
-            if ($position !== false) {
-                // Replace the key at the correct position
-                $keys[$position] = $viewName;
+            $this->saveUserViewsObject($userViewsObject);
 
-                // Rebuild the array with the new key while maintaining order
-                $reorderedViews = [];
-                foreach ($keys as $key) {
-                    $reorderedViews[$key] = $key === $viewName
-                        ? $userViewsObject[$viewId]
-                        : $userViewsObject[$key];
-                }
-
-                $this->saveUserViewsObject($reorderedViews);
-
-                session()->flash('project_overview-flash_notification', [
-                    'message' => __('projectOverview.notification.view_renamed'),
-                    'type' => 'success',
-                ]);
-            }
-        } else {
             session()->flash('project_overview-flash_notification', [
-                'message' => __('projectOverview.notification.view_not_found'),
-                'type' => 'error',
+                'message' => __('projectOverview.notification.view_renamed'),
+                'type' => 'success',
             ]);
         }
 
-        $redirectUrl .= '?viewId=' . $viewName;
-
-        return $redirectUrl;
+        return $redirectUrl . '?viewId=' . $viewName;
     }
-    
+
     /**
      * Encodes and saves the user-views object.
      *
