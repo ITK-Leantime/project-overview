@@ -4,10 +4,8 @@ namespace Leantime\Plugins\ProjectOverview\Controllers;
 
 use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Support\Facades\Log;
 use Leantime\Core\Controller\Controller;
 use Leantime\Core\Controller\Frontcontroller;
-use Leantime\Core\Events\EventDispatcher;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth as AuthService;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
@@ -61,29 +59,22 @@ class ProjectOverview extends Controller
         if (!AuthService::userIsAtLeast(Roles::$editor)) {
             return $this->tpl->displayJson(['Error' => 'Not Authorized'], 403);
         }
-        $redirectUrl = BASE_URL . '/ProjectOverview/projectOverview';
 
-        if (isset($_POST['action'])) {
-            switch ($_POST['action']) {
-                case 'saveView':
-                    $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl);
-                    break;
-                case 'adjustPeriod':
-                    $redirectUrl = $this->actionHandler->adjustPeriod($_POST, $redirectUrl);
-                    break;
-                case 'deleteView':
-                    $viewId = $_POST['viewId'];
-                    $this->actionHandler->deleteView($viewId);
-                    break;
-                case 'renameView':
-                    $viewId = $_POST['viewId'];
-                    $viewName = str_replace(' ', '_', $_POST['viewName']);
-                    $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
-                    break;
-                case 'saveTabOrder':
-                    $this->actionHandler->saveTabOrder($_POST);
-                    break;
-            }
+        $redirectUrl = BASE_URL . '/ProjectOverview/projectOverview';
+        $action = $_POST["action"];
+
+        if (isset($action)) {
+            match ($action) {
+                'saveView' =>
+                $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl),
+                'deleteView' =>
+                $this->actionHandler->deleteView($_POST['viewId']),
+                'renameView' =>
+                $redirectUrl = $this->actionHandler->renameView($_POST['viewId'], $_POST['viewName'], $redirectUrl),
+                'saveTabOrder' =>
+                $this->actionHandler->saveTabOrder($_POST),
+                default => null
+            };
         }
 
         return Frontcontroller::redirect($redirectUrl);
