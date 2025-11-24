@@ -2,8 +2,10 @@
 
 namespace Leantime\Plugins\ProjectOverview\Services;
 
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
+use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
 
 /**
@@ -74,7 +76,38 @@ class ProjectOverview
      */
     public function getViewTasks(ViewDTO $viewDTO): array
     {
-        return $this->projectOverviewRepository->getViewTasks($viewDTO);
+        $today = CarbonImmutable::now()->startOfDay();
+
+        $newFromDate = $viewDTO->fromDate;
+        $newToDate = $viewDTO->toDate;
+
+        // Determine from and to date based on dateType selection.
+        if ($viewDTO->dateType !== DateTypeEnum::CUSTOM) {
+            $newFromDate = $today->format('Y-m-d');
+            $newToDate = (match ($viewDTO->dateType) {
+                DateTypeEnum::THIS_WEEK => $today->modify('monday this week +6 days'),
+                DateTypeEnum::NEXT_THREE_WEEKS => $today->modify('monday this week +20 days'),
+                default => $today->modify('monday this week +13 days'),
+            })->format('Y-m-d');
+        } elseif ($viewDTO->fromDate && $viewDTO->toDate) {
+            $newFromDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->fromDate)->format('Y-m-d');
+            $newToDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->toDate)->format('Y-m-d');
+        }
+
+        $processedDTO = new ViewDTO(
+            title: $viewDTO->title,
+            users: $viewDTO->users,
+            dateType: $viewDTO->dateType,
+            fromDate: $newFromDate,
+            toDate: $newToDate,
+            columns: $viewDTO->columns,
+            projectFilters: $viewDTO->projectFilters,
+            priorityFilters: $viewDTO->priorityFilters,
+            statusFilters: $viewDTO->statusFilters,
+            customFilters: $viewDTO->customFilters
+        );
+
+        return $this->projectOverviewRepository->getViewTasks($processedDTO);
     }
 
     /**

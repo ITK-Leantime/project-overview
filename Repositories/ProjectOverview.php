@@ -72,6 +72,7 @@ class ProjectOverview
      */
     public function getViewTasks(ViewDTO $viewDTO): array
     {
+        // Dates are now pre-calculated by the Service (Y-m-d format)
         $fromDate = $viewDTO->fromDate ?? null;
         $toDate = $viewDTO->toDate ?? null;
 
@@ -105,29 +106,22 @@ class ProjectOverview
             ->where('ticket.type', '<>', 'milestone')
             ->where('ticket.status', '>', '0')
             ->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
-                if ($viewDTO->dateType !== DateTypeEnum::CUSTOM) {
-                    $today = CarbonImmutable::now()->startOfDay();
-                    $endDate = match ($viewDTO->dateType) {
-                        DateTypeEnum::THIS_WEEK => $today->modify('monday this week +6 days'),
-                        DateTypeEnum::NEXT_THREE_WEEKS => $today->modify('monday this week +20 days'),
-                        default => $today->modify('monday this week +13 days'),
-                    };
-                        $query->whereBetween('ticket.dateToFinish', [$today, $endDate]);
-                } elseif ($fromDate && $toDate) {
-                    $fromDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->fromDate);
-                    $toDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->toDate);
+
+                // Use from and to date if set
+                if ($fromDate && $toDate) {
                     $query->whereBetween('ticket.dateToFinish', [$fromDate, $toDate]);
                 }
 
-                if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
-                    $query->orWhereBetween('ticket.dateToFinish', [
-                        CarbonImmutable::createFromFormat('Y-m-d', '2023-03-14')->endOfDay(),
-                        $toDate ?? CarbonImmutable::now(),
-                    ]);
+                // Filter for overdue tickets if set
+                if (!in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
+                    $query->where('ticket.dateToFinish', '>', CarbonImmutable::now()->format('Y-m-d'));
+                } else {
+                    $query->orWhere('ticket.dateToFinish', '<=', CarbonImmutable::now()->format('Y-m-d'));
                 }
 
-                if (in_array('empty-due-date', $viewDTO->customFilters ?? [])) {
-                    $query->orWhere('ticket.dateToFinish', '=', '0000-00-00 00:00:00');
+                // Filter for empty duedate tickets if set
+                if (!in_array('empty-due-date', $viewDTO->customFilters ?? [])) {
+                    $query->where('ticket.dateToFinish', '!=', '0000-00-00 00:00:00');
                 }
             });
 
@@ -136,8 +130,9 @@ class ProjectOverview
                 if (in_array('unassigned', $viewDTO->users)) {
                     $q->where('ticket.editorId', '=', '');
                 }
-                if (count(array_diff($viewDTO->users, ['unassigned'])) > 0) {
-                    $q->orWhereIn('ticket.editorId', array_diff($viewDTO->users, ['unassigned']));
+                $assignedUsers = array_diff($viewDTO->users, ['unassigned']);
+                if (count($assignedUsers) > 0) {
+                    $q->orWhereIn('ticket.editorId', $assignedUsers);
                 }
             });
         }
