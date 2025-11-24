@@ -37,34 +37,40 @@ readonly class ProjectOverviewHelper
      */
     public function getProjectOverviewData(): ProjectOverviewDTO
     {
-        // Gather data and init DTO
         $projectTicketStatuses = [];
-        $userViewObject = $this->actionHandler->getUserViewsObject();
-        $allProjects = $this->projectOverviewService->getAllProjects();
-        $viewId = $_GET['viewId'] ?? null;
-        uasort($allProjects, function ($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
-        $allUsers = $this->userService->getAll();
+        $userAndProject = [];
+        $milestonesAndProject = [];
 
-        usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
+        $userViewObject = $this->actionHandler->getUserViewsObject();
+        $allProjects = $this->getSortedProjects();
+        $allUsers = $this->getSortedUsers();
+        $viewId = request()->get('viewId');
+
+        // Sort project-select alphabetically
+        uasort($allProjects, function ($a, $b) {
+            return strcasecmp($a['name'], $b['name']);
+        });
+
+        // Sort user-select alphabetically
+        usort($allUsers, fn($a, $b) => strcasecmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
+
+        // Add custom "unassigned" value to user-select
         array_unshift($allUsers, [
             'id' => 'unassigned',
-            'firstname' => 'unassigned',
+            'firstname' => 'Unassigned',
             'lastname' => '',
         ]);
+
+        // Loop users' views and attach tickets
         foreach ($userViewObject as $key => $userView) {
             $dateType = DateTypeEnum::tryFrom($userView['dateType']);
-
-            $fromDate = $userView['fromDate'];
-            $toDate = $userView['toDate'];
 
             $userViewDTO = new ViewDTO(
                 title: $userView['title'] ?? null,
                 users: $userView['users'],
                 dateType: $dateType,
-                fromDate: $fromDate,
-                toDate: $toDate,
+                fromDate: $userView['fromDate'],
+                toDate: $userView['toDate'],
                 columns: $userView['columns'],
                 projectFilters: $userView['projectFilters'],
                 priorityFilters: $userView['priorityFilters'],
@@ -74,26 +80,33 @@ readonly class ProjectOverviewHelper
 
             $viewTickets = $this->projectOverviewService->getViewTasks($userViewDTO);
             $projectIds = array_unique(array_column($viewTickets, 'projectId'));
-            $userAndProject = [];
-            $milestonesAndProject = [];
 
             foreach ($projectIds as $projectId) {
-                $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
-                $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
-                $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
+                if (!isset($projectTicketStatuses[$projectId])) {
+                    $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
+                }
+
+                if (!isset($userAndProject[$projectId])) {
+                    $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
+                }
+
+                if (!isset($milestonesAndProject[$projectId])) {
+                    $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
+                }
             }
 
             foreach ($viewTickets as $ticket) {
                 if ($ticket->dueDate == '0000-00-00') {
                     $ticket->dueDate = null;
                 }
-                $ticket->projectUsers = $userAndProject[$ticket->projectId];
-                $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
-                $ticket->projectName = $allProjects[$ticket->projectId]['name'];
+                $ticket->projectUsers = $userAndProject[$ticket->projectId] ?? [];
+                $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId] ?? [];
+                $ticket->projectName = $allProjects[$ticket->projectId]['name'] ?? '';
                 $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
             }
             $userViewObject[$key]['tickets'] = $viewTickets;
         }
+
         return new ProjectOverviewDTO(
             userViews: $userViewObject,
             statusLabels: $projectTicketStatuses,
@@ -114,18 +127,6 @@ readonly class ProjectOverviewHelper
     public function getProjectOverviewFiltersData(array $data): ProjectOverviewFiltersDataDTO
     {
         $selectedViewId = $data['id'] ?? null;
-        $allUsers = $this->userService->getAll();
-        usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
-        array_unshift($allUsers, [
-            'id' => 'unassigned',
-            'firstname' => 'Unassigned',
-            'lastname' => '',
-        ]);
-        $allProjects = $this->projectOverviewService->getAllProjects();
-        uasort($allProjects, fn($a, $b) => strcmp($a['name'], $b['name']));
-
-        $allPriorities = $this->ticketService->getPriorityLabels();
-        $allStatusLabels = $this->ticketService->getStatusLabels();
 
         // Default user views data
         $userViewsData = [
@@ -168,11 +169,11 @@ readonly class ProjectOverviewHelper
         }
 
         return new ProjectOverviewFiltersDataDTO(
-            allUsers: $allUsers,
-            allProjects: $allProjects,
-            allPriorities: $allPriorities,
-            allStatusLabels: $allStatusLabels,
-            allColumns: $userViewsData['allColumns'],
+            allUsers: $this->getSortedUsers(),
+            allProjects: $this->getSortedProjects(),
+            allPriorities: $this->ticketService->getPriorityLabels(),
+            allStatusLabels: $this->ticketService->getStatusLabels(),
+            allColumns: $this->actionHandler->getAvailableColumns(),
             dateType: $userViewsData['dateType'],
             fromDate: $userViewsData['fromDate'],
             toDate: $userViewsData['toDate'],
@@ -185,5 +186,38 @@ readonly class ProjectOverviewHelper
             users: $userViewsData['users'],
             selectedViewId: $userViewsData['selectedViewId'],
         );
+    }
+
+    /**
+     * Retrieves all users, sorts them alphabetically (case-insensitive),
+     * and prepends an 'Unassigned' user option.
+     *
+     * @return array
+     */
+    private function getSortedUsers(): array
+    {
+        $allUsers = $this->userService->getAll();
+        usort($allUsers, fn($a, $b) => strcasecmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
+
+        array_unshift($allUsers, [
+            'id' => 'unassigned',
+            'firstname' => 'Unassigned',
+            'lastname' => '',
+        ]);
+
+        return $allUsers;
+    }
+
+    /**
+     * Retrieves all projects and sorts them alphabetically (case-insensitive) by name.
+     *
+     * @return array
+     */
+    private function getSortedProjects(): array
+    {
+        $allProjects = $this->projectOverviewService->getAllProjects();
+        uasort($allProjects, fn($a, $b) => strcasecmp($a['name'], $b['name']));
+
+        return $allProjects;
     }
 }
