@@ -157,19 +157,20 @@ readonly class ProjectOverviewActionHandler
     public function deleteView(string $viewId): void
     {
         $userViewsObject = $this->getUserViewsObject();
-        if (isset($userViewsObject[$viewId])) {
-            unset($userViewsObject[$viewId]);
-            $this->saveUserViewsObject($userViewsObject);
-            session()->flash('project_overview-flash_notification', [
-                'message' => __('projectOverview.notification.view_deleted'),
-                'type' => 'success',
-            ]);
-        } else {
+        if (!isset($userViewsObject[$viewId])) {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_not_found'),
                 'type' => 'error',
             ]);
+            return;
         }
+        unset($userViewsObject[$viewId]);
+        $this->saveUserViewsObject($userViewsObject);
+
+        session()->flash('project_overview-flash_notification', [
+            'message' => __('projectOverview.notification.view_deleted'),
+            'type' => 'success',
+            ]);
     }
 
     /**
@@ -231,6 +232,7 @@ readonly class ProjectOverviewActionHandler
 
         return $redirectUrl;
     }
+    
     /**
      * Encodes and saves the user-views object.
      *
