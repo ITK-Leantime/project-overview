@@ -320,7 +320,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves the order of tabs/views for a user.
      *
-     * @param array $postData Array containing the new order of tabs in 'order' key
+     * @param array<string, mixed> $postData Array containing the new order of tabs in 'order' key
      * @return void
      * @throws \Exception
      */
