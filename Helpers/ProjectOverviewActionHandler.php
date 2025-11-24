@@ -23,87 +23,107 @@ readonly class ProjectOverviewActionHandler
     }
 
     /**
-     * Adjusts the period based on the provided POST data.
+     * Saves or updates a view configuration.
      *
-     * @param array<string, mixed> $postData The POST data containing fromDate, toDate, and backward flag.
-     * @return string The adjusted redirect URL.
-     */
-    public function adjustPeriod(array $postData, string $redirectUrl): string
-    {
-        $queryParams = [];
-
-        if (isset($postData['showThisWeek'])) {
-            $now = CarbonImmutable::now();
-            $queryParams['fromDate'] = $now->startOfWeek()->format('Y-m-d');
-            $queryParams['toDate'] = $now->endOfWeek()->format('Y-m-d');
-        } elseif (isset($postData['dateRange'])) {
-            list($postData['fromDate'], $postData['toDate']) = explode(' til ', $postData['dateRange']);
-        }
-
-        if (isset($postData['fromDate']) && empty($postData['showThisWeek'])) {
-            $queryParams['fromDate'] = $postData['fromDate'];
-        }
-
-        if (isset($postData['toDate']) && empty($postData['showThisWeek'])) {
-            $queryParams['toDate'] = $postData['toDate'];
-        }
-
-        if (isset($postData['fromDate']) && isset($postData['toDate'])) {
-            $fromDate = CarbonImmutable::createFromFormat('d-m-Y', $postData['fromDate']);
-            $toDate = CarbonImmutable::createFromFormat('d-m-Y', $postData['toDate']);
-            $interval = $fromDate->diffInDays($toDate) + 1;
-
-            if (isset($postData['backward']) && $postData['backward'] == '1') {
-                $fromDate = $fromDate->subDays($interval);
-                $toDate = $toDate->subDays($interval);
-            } elseif (isset($postData['forward']) && $postData['forward'] == '1') {
-                $fromDate = $fromDate->addDays($interval);
-                $toDate = $toDate->addDays($interval);
-            }
-
-            $queryParams['fromDate'] = $fromDate->format('Y-m-d');
-            $queryParams['toDate'] = $toDate->format('Y-m-d');
-        }
-
-        if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
-            $queryParams['userIds'] = implode(',', array_map('trim', explode(',', $_GET['userIds'])));
-        }
-
-        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
-            $queryParams['searchTerm'] = $_GET['searchTerm'];
-        }
-
-        if (!empty($queryParams)) {
-            $redirectUrl .= '?' . http_build_query($queryParams);
-        }
-
-        return $redirectUrl;
-    }
-
-    /**
-     * Saves a view.
-     *
-     * @param array<string, mixed> $postData    An associative array containing view data.
-     * @param string               $redirectUrl The URL to redirect to after saving the view.
-     *
-     * @return string The updated redirect URL after the view has been saved or updated.
-     * @throws BindingResolutionException
+     * @param array $postData POST data containing view configuration
+     * @param string $redirectUrl URL to redirect to after saving
+     * @return string Updated redirect URL with viewId parameter
      */
     public function saveView(array $postData, string $redirectUrl): string
     {
         $overwriteView = (bool)($postData['overwriteView'] ?? false);
+        $viewDTO = $this->createViewDTO($postData);
+
+        $userViewsObject = $this->getUserViewsObject();
+        $viewId = $postData['viewId'] ?? null;
+
+        // Check if we are updating an existing view
+        if (($viewId === '0' || !empty($viewId)) && $overwriteView) {
+            $userViewsObject[$viewId] = $viewDTO;
+            $message = 'projectOverview.notification.view_updated';
+        } else {
+            // Create new view
+            $viewId = $this->generateUniqueViewId($userViewsObject);
+            $userViewsObject[$viewId] = $viewDTO;
+            $message = 'projectOverview.notification.view_created';
+        }
+
+        $this->saveUserViewsObject($userViewsObject);
+
+        session()->flash('project_overview-flash_notification', [
+            'message' => __($message),
+            'type' => 'success',
+        ]);
+
+        return $redirectUrl . '?viewId=' . $viewId;
+    }
+
+    /**
+     * Generates a unique view ID that doesn't conflict with existing views.
+     *
+     * @param array $userViewsObject Array of existing user views
+     * @return string Generated unique view ID
+     */
+    private function generateUniqueViewId(array $userViewsObject): string
+    {
+        $baseViewName = 'view_';
+        $counter = count($userViewsObject);
+        $viewName = $baseViewName . $counter;
+
+        while (isset($userViewsObject[$viewName])) {
+            $counter++;
+            $viewName = $baseViewName . $counter;
+        }
+
+        return $viewName;
+    }
+
+    /**
+     * Creates a ViewDTO object from POST data.
+     *
+     * @param array $postData Array containing view configuration parameters
+     * @return ViewDTO Data transfer object containing view configuration
+     */
+    private function createViewDTO(array $postData): ViewDTO
+    {
         $users = $postData['users'] ?? [];
-        $dateType = DateTypeEnum::tryFrom($postData['dateType']);
+        $dateType = DateTypeEnum::tryFrom($postData['dateType'] ?? null);
         $fromDate = null;
         $toDate = null;
+
         if ($dateType === null) {
             $dateType = DateTypeEnum::NEXT_TWO_WEEKS;
         }
-        if ($dateType === DateTypeEnum::CUSTOM && $postData['dateRange']) {
+
+        if ($dateType === DateTypeEnum::CUSTOM && !empty($postData['dateRange'])) {
             list($fromDate, $toDate) = explode(' til ', $postData['dateRange']);
         }
+
         $columns = $postData['columns'] ?? [];
-        $filters = $postData['filters'] ?? [];
+        $filters = $this->parseFilters($postData['filters'] ?? []);
+
+        return new ViewDTO(
+            title: null,
+            users: (array)$users,
+            dateType: $dateType,
+            fromDate: $fromDate,
+            toDate: $toDate,
+            columns: $columns,
+            projectFilters: $filters['projects'],
+            priorityFilters: $filters['priorities'],
+            statusFilters: $filters['statuses'],
+            customFilters: $filters['custom']
+        );
+    }
+
+    /**
+     * Parses input filters array and groups them into categories based on their prefixes.
+     *
+     * @param array<string> $filters Input array of filters with prefixes (e.g. 'project_', 'priority_', etc.)
+     * @return array{projects: string[], priorities: string[], statuses: string[], custom: string[]} Grouped filters by category
+     */
+    private function parseFilters(array $filters): array
+    {
         $groupedFilters = [
             'projects' => [],
             'priorities' => [],
@@ -122,52 +142,8 @@ readonly class ProjectOverviewActionHandler
                 $groupedFilters['custom'][] = substr($filter, 7);
             }
         }
-        $viewDTO = new ViewDTO(
-            title: null,
-            users: (array)$users,
-            dateType: $dateType,
-            fromDate: $fromDate,
-            toDate: $toDate,
-            columns: $columns,
-            projectFilters: $groupedFilters['projects'],
-            priorityFilters: $groupedFilters['priorities'],
-            statusFilters: $groupedFilters['statuses'],
-            customFilters: $groupedFilters['custom']
-        );
 
-        $userViewsObject = $this->getUserViewsObject();
-        $newViewId = $postData['viewId'] ?? null;
-
-        if (($newViewId === '0' || !empty($newViewId)) && $overwriteView) {
-            $userViewsObject[$newViewId] = $viewDTO;
-            $redirectUrl .= '?viewId=' . $newViewId;
-            session()->flash('project_overview-flash_notification', [
-                'message' => __('projectOverview.notification.view_updated'),
-                'type' => 'success',
-            ]);
-        } else {
-            // Ensure not to overwrite an existing view
-            $baseViewName = 'view_';
-            $counter = count($userViewsObject);
-            $viewName = $baseViewName . $counter;
-
-            while (isset($userViewsObject[$viewName])) {
-                $counter++;
-                $viewName = $baseViewName . $counter;
-            }
-
-            $userViewsObject[$viewName] = $viewDTO;
-            $redirectUrl .= '?viewId=' . $viewName;
-            session()->flash('project_overview-flash_notification', [
-                'message' => __('projectOverview.notification.view_created'),
-                'type' => 'success',
-            ]);
-        }
-
-        $this->saveUserViewsObject($userViewsObject);
-
-
-        return $redirectUrl;
+        return $groupedFilters;
     }
 
 
@@ -207,6 +183,7 @@ readonly class ProjectOverviewActionHandler
     public function renameView(string $viewId, string $viewName, string $redirectUrl): string|false
     {
         $userViewsObject = $this->getUserViewsObject();
+        $viewName = str_replace(' ', '_', $viewName);
 
         // Check if the new view name already exists
         if (isset($userViewsObject[$viewName])) {
