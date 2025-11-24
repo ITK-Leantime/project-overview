@@ -83,8 +83,8 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves a view.
      *
-     * @param array<string, mixed> $postData An associative array containing view data.
-     * @param string $redirectUrl The URL to redirect to after saving the view.
+     * @param array<string, mixed> $postData    An associative array containing view data.
+     * @param string               $redirectUrl The URL to redirect to after saving the view.
      *
      * @return string The updated redirect URL after the view has been saved or updated.
      * @throws BindingResolutionException
@@ -138,12 +138,12 @@ readonly class ProjectOverviewActionHandler
         $userViewsObject = $this->getUserViewsObject();
         $newViewId = $postData['viewId'] ?? null;
 
-        if (($newViewId === "0" || !empty($newViewId)) && $overwriteView) {
+        if (($newViewId === '0' || !empty($newViewId)) && $overwriteView) {
             $userViewsObject[$newViewId] = $viewDTO;
             $redirectUrl .= '?viewId=' . $newViewId;
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_updated'),
-                'type' => 'success'
+                'type' => 'success',
             ]);
         } else {
             // Ensure not to overwrite an existing view
@@ -160,7 +160,7 @@ readonly class ProjectOverviewActionHandler
             $redirectUrl .= '?viewId=' . $viewName;
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_created'),
-                'type' => 'success'
+                'type' => 'success',
             ]);
         }
 
@@ -186,12 +186,12 @@ readonly class ProjectOverviewActionHandler
             $this->saveUserViewsObject($userViewsObject);
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_deleted'),
-                'type' => 'success'
+                'type' => 'success',
             ]);
         } else {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_not_found'),
-                'type' => 'error'
+                'type' => 'error',
             ]);
         }
     }
@@ -199,7 +199,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Renames a view.
      *
-     * @param string $viewId Id of the view to be renamed.
+     * @param string $viewId   Id of the view to be renamed.
      * @param string $viewName New name of the view.
      * @return string|false Returns the redirect URL if successful, false if the target name already exists
      * @throws BindingResolutionException
@@ -212,7 +212,7 @@ readonly class ProjectOverviewActionHandler
         if (isset($userViewsObject[$viewName])) {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_name_already_exists'),
-                'type' => 'error'
+                'type' => 'error',
             ]);
             return $redirectUrl;
         }
@@ -240,13 +240,13 @@ readonly class ProjectOverviewActionHandler
 
                 session()->flash('project_overview-flash_notification', [
                     'message' => __('projectOverview.notification.view_renamed'),
-                    'type' => 'success'
+                    'type' => 'success',
                 ]);
             }
         } else {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_not_found'),
-                'type' => 'error'
+                'type' => 'error',
             ]);
         }
 
@@ -317,6 +317,13 @@ readonly class ProjectOverviewActionHandler
     }
 
 
+    /**
+     * Saves the order of tabs/views for a user.
+     *
+     * @param array $postData Array containing the new order of tabs in 'order' key
+     * @return void
+     * @throws \Exception
+     */
     public function saveTabOrder(array $postData): void
     {
         try {
@@ -357,7 +364,6 @@ readonly class ProjectOverviewActionHandler
                 'status' => 'success',
                 'message' => __('projectOverview.notification.tab_order_saved'),
             ]));
-
         } catch (\Exception $e) {
             exit(json_encode([
                 'status' => 'error',

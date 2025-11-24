@@ -51,7 +51,7 @@ readonly class ProjectOverviewHelper
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'unassigned',
-            'lastname' => ''
+            'lastname' => '',
         ]);
         foreach ($userViewObject as $key => $userView) {
             $dateType = DateTypeEnum::tryFrom($userView['dateType']);
@@ -119,7 +119,7 @@ readonly class ProjectOverviewHelper
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'Unassigned',
-            'lastname' => ''
+            'lastname' => '',
         ]);
         $allProjects = $this->projectOverviewService->getAllProjects();
         uasort($allProjects, fn($a, $b) => strcmp($a['name'], $b['name']));
@@ -148,7 +148,6 @@ readonly class ProjectOverviewHelper
             $userViewArray = $this->actionHandler->getUserViewsObject();
 
             if ($userViewArray) {
-
                 $userView = $userViewArray[urldecode($selectedViewId)] ?? null;
                 if ($userView) {
                     $userViewsData = array_merge($userViewsData, [
