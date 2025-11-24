@@ -274,6 +274,16 @@ function initProjectOverviewTable() {
 
     // Fade in after initialization
     $projectOverviewTabs.removeClass('is-hidden');
+
+    $(document).on('click', 'button.copy-view-button', function (e) {
+        const button = $(this);
+        const originalText = button.data('original') || button.text();
+        button.data('original', originalText);
+        button.text('copied');
+        setTimeout(function () {
+            button.text(originalText);
+        }, 2000);
+    })
 }
 
 function changeStatus(ticketId, newStatusId, newClass, newLabel) {
