@@ -226,13 +226,12 @@ readonly class ProjectOverviewActionHandler
      *
      * @param array<string, mixed> $userViewsObject Array containing view objects to be saved.
      * @return void A base64 encoded JSON string representing the array of view objects.
+     * @throws \JsonException
      */
     private function saveUserViewsObject(array $userViewsObject): void
     {
-        // Json encode
-        $json = json_encode($userViewsObject);
-        // Base64 encode
-        $encodedViewObjects = base64_encode($json);
+        //
+        $encodedViewObjects = base64_encode(json_encode($userViewsObject, JSON_THROW_ON_ERROR));
 
         // Save to user settings in user table
         $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
@@ -241,24 +240,27 @@ readonly class ProjectOverviewActionHandler
     /**
      * Retrieves and decodes the users-views object.
      *
-     * @return array<string, mixed> Decoded array representing user views if successful, or null if retrieval or decoding fails.
+     * @return array<string, mixed> Decoded array representing user views. Returns empty array on any failure.
      */
     public function getUserViewsObject(): array
     {
         // Retrieve user settings from user table
         $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
 
-        if (!$userViewsEncoded) {
+        if (empty($userViewsEncoded) || !is_string($userViewsEncoded)) {
             return [];
         }
-        // base64 decode
+
         $json = base64_decode($userViewsEncoded, true);
 
         if ($json === false) {
             return [];
         }
-        // Json decode
-        return json_decode($json, true) ?? [];
+
+        $data = json_decode($json, true);
+
+        // Ensure we actually got an array back, not a scalar or null
+        return is_array($data) ? $data : [];
     }
 
     /**
