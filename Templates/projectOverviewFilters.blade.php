@@ -14,14 +14,17 @@
 
     <div class="date-options">
         <select name="dateType" id="dateOptions">
-            <option
-                value="{{ DateTypeEnum::THIS_WEEK->value }}" {{ $filtersData->dateType === DateTypeEnum::THIS_WEEK->value ? 'selected' : '' }}>{{__('projectOverview.this_week')}}</option>
-            <option
-                value="{{ DateTypeEnum::NEXT_TWO_WEEKS->value }}" {{ $filtersData->dateType === DateTypeEnum::NEXT_TWO_WEEKS->value ? 'selected' : '' }}>{{__('projectOverview.next_two_weeks')}}</option>
-            <option
-                value="{{ DateTypeEnum::NEXT_THREE_WEEKS->value }}" {{ $filtersData->dateType === DateTypeEnum::NEXT_THREE_WEEKS->value ? 'selected' : '' }}>{{__('projectOverview.next_three_weeks')}}</option>
-            <option
-                value="{{ DateTypeEnum::CUSTOM->value }}" {{ $filtersData->dateType === DateTypeEnum::CUSTOM->value ? 'selected' : '' }}>
+            <option value="{{ DateTypeEnum::THIS_WEEK->value }}"
+                {{ $filtersData->dateType === DateTypeEnum::THIS_WEEK->value ? 'selected' : '' }}>
+                {{ __('projectOverview.this_week') }}</option>
+            <option value="{{ DateTypeEnum::NEXT_TWO_WEEKS->value }}"
+                {{ $filtersData->dateType === DateTypeEnum::NEXT_TWO_WEEKS->value ? 'selected' : '' }}>
+                {{ __('projectOverview.next_two_weeks') }}</option>
+            <option value="{{ DateTypeEnum::NEXT_THREE_WEEKS->value }}"
+                {{ $filtersData->dateType === DateTypeEnum::NEXT_THREE_WEEKS->value ? 'selected' : '' }}>
+                {{ __('projectOverview.next_three_weeks') }}</option>
+            <option value="{{ DateTypeEnum::CUSTOM->value }}"
+                {{ $filtersData->dateType === DateTypeEnum::CUSTOM->value ? 'selected' : '' }}>
                 Custom
             </option>
         </select>
@@ -85,8 +88,8 @@
 
     <div class="save-view">
         <button type="submit" class="btn btn-default">+ {{ __('projectOverview.save_view') }}</button>
-        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}"/>
+        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}" />
         <button type="submit" name="overwriteView" value="1"
-                class="btn btn-default">{{ __('projectOverview.overwrite_view') }}</button>
+            class="btn btn-default">{{ __('projectOverview.overwrite_view') }}</button>
     </div>
 </form>
