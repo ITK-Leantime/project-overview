@@ -72,9 +72,8 @@ class ProjectOverview
      */
     public function getViewTasks(ViewDTO $viewDTO): array
     {
-        // Dates are now pre-calculated by the Service (Y-m-d format)
-        $fromDate = $viewDTO->fromDate ?? null;
-        $toDate = $viewDTO->toDate ?? null;
+        $fromDate = $viewDTO->fromDate;
+        $toDate = $viewDTO->toDate;
 
         $query = $this->query()
             ->from('zp_tickets AS ticket')
@@ -125,11 +124,14 @@ class ProjectOverview
                 }
             });
 
+        // User filter
         if (!empty($viewDTO->users)) {
             $query->where(function ($q) use ($viewDTO) {
+                // Check if custom "unassigned" user is selected
                 if (in_array('unassigned', $viewDTO->users)) {
                     $q->where('ticket.editorId', '=', '');
                 }
+                // Multiple users selected
                 $assignedUsers = array_diff($viewDTO->users, ['unassigned']);
                 if (count($assignedUsers) > 0) {
                     $q->orWhereIn('ticket.editorId', $assignedUsers);
@@ -137,10 +139,12 @@ class ProjectOverview
             });
         }
 
+        // Project filter
         if (!empty($viewDTO->projectFilters)) {
             $query->whereIn('ticket.projectId', $viewDTO->projectFilters);
         }
 
+        // Priority and status filter
         if (!empty($viewDTO->priorityFilters) || !empty($viewDTO->statusFilters)) {
             $query->where(function ($q) use ($viewDTO) {
                 if (!empty($viewDTO->priorityFilters)) {

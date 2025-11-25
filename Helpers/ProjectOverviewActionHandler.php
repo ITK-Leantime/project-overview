@@ -28,6 +28,7 @@ readonly class ProjectOverviewActionHandler
      * @param array  $postData    POST data containing view configuration
      * @param string $redirectUrl URL to redirect to after saving
      * @return string Updated redirect URL with viewId parameter
+     * @throws \JsonException|BindingResolutionException
      */
     public function saveView(array $postData, string $redirectUrl): string
     {
@@ -42,7 +43,7 @@ readonly class ProjectOverviewActionHandler
             $userViewsObject[$viewId] = $viewDTO;
             $message = 'projectOverview.notification.view_updated';
         } else {
-            // Create new view
+            // Create as new view
             $viewId = $this->generateUniqueViewId($userViewsObject);
             $userViewsObject[$viewId] = $viewDTO;
             $message = 'projectOverview.notification.view_created';
