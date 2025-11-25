@@ -25,8 +25,8 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves or updates a view configuration.
      *
-     * @param array  $postData    POST data containing view configuration
-     * @param string $redirectUrl URL to redirect to after saving
+     * @param array<string, mixed> $postData    POST data containing view configuration
+     * @param string               $redirectUrl URL to redirect to after saving
      * @return string Updated redirect URL with viewId parameter
      * @throws \JsonException|BindingResolutionException
      */
@@ -62,7 +62,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Generates a unique view ID that doesn't conflict with existing views.
      *
-     * @param array $userViewsObject Array of existing user views
+     * @param array<string, mixed> $userViewsObject Array of existing user views
      * @return string Generated unique view ID
      */
     private function generateUniqueViewId(array $userViewsObject): string
@@ -82,7 +82,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Creates a ViewDTO object from POST data.
      *
-     * @param array $postData Array containing view configuration parameters
+     * @param array<string, mixed> $postData Array containing view configuration parameters
      * @return ViewDTO Data transfer object containing view configuration
      */
     private function createViewDTO(array $postData): ViewDTO

@@ -121,7 +121,7 @@ readonly class ProjectOverviewHelper
     /**
      * Retrieves and prepares filter data for the project overview.
      *
-     * @param array<string, string> $data An associative array containing input parameters.
+     * @param array<string, mixed> $data An associative array containing input parameters.
      * @return ProjectOverviewFiltersDataDTO A data transfer object containing all necessary data for populating the project overview filters.
      */
     public function getProjectOverviewFiltersData(array $data): ProjectOverviewFiltersDataDTO
@@ -192,7 +192,7 @@ readonly class ProjectOverviewHelper
      * Retrieves all users, sorts them alphabetically (case-insensitive),
      * and prepends an 'Unassigned' user option.
      *
-     * @return array
+     * @return array<string, mixed>
      */
     private function getSortedUsers(): array
     {
@@ -211,7 +211,7 @@ readonly class ProjectOverviewHelper
     /**
      * Retrieves all projects and sorts them alphabetically (case-insensitive) by name.
      *
-     * @return array
+     * @return array<int, mixed>
      */
     private function getSortedProjects(): array
     {
