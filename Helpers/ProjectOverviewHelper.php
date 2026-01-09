@@ -8,6 +8,7 @@ use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewFiltersDataDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
+use Leantime\Plugins\ProjectOverview\DTO\UserViewDTO;
 use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview;
 
@@ -41,7 +42,7 @@ readonly class ProjectOverviewHelper
         $projectTicketStatuses = [];
         $userViewObject = $this->actionHandler->getUserViewsObject();
         $allProjects = $this->projectOverviewService->getAllProjects();
-        $viewId = $_GET['viewId'] ?? null;
+        $viewId = $_GET['view'] ?? null;
         uasort($allProjects, function ($a, $b) {
             return strcmp($a['name'], $b['name']);
         });
@@ -53,26 +54,11 @@ readonly class ProjectOverviewHelper
             'firstname' => 'unassigned',
             'lastname' => ''
         ]);
-        foreach ($userViewObject as $key => $userView) {
-            $dateType = DateTypeEnum::tryFrom($userView['dateType']);
+        foreach ($userViewObject as $key => $userViewData) {
+            $userView = UserViewDTO::fromArray($userViewData);
+            $viewDTO = $userView->view;
 
-            $fromDate = $userView['fromDate'];
-            $toDate = $userView['toDate'];
-
-            $userViewDTO = new ViewDTO(
-                title: $userView['title'] ?? null,
-                users: $userView['users'],
-                dateType: $dateType,
-                fromDate: $fromDate,
-                toDate: $toDate,
-                columns: $userView['columns'],
-                projectFilters: $userView['projectFilters'],
-                priorityFilters: $userView['priorityFilters'],
-                statusFilters: $userView['statusFilters'],
-                customFilters: $userView['customFilters']
-            );
-
-            $viewTickets = $this->projectOverviewService->getViewTasks($userViewDTO);
+            $viewTickets = $this->projectOverviewService->getViewTasks($viewDTO);
             $projectIds = array_unique(array_column($viewTickets, 'projectId'));
             $userAndProject = [];
             $milestonesAndProject = [];
@@ -148,20 +134,22 @@ readonly class ProjectOverviewHelper
             $userViewArray = $this->actionHandler->getUserViewsObject();
 
             if ($userViewArray) {
+                $userViewData = $userViewArray[urldecode($selectedViewId)] ?? null;
+                if ($userViewData) {
+                    $userView = UserViewDTO::fromArray($userViewData);
+                    $viewDTO = $userView->view;
 
-                $userView = $userViewArray[urldecode($selectedViewId)] ?? null;
-                if ($userView) {
                     $userViewsData = array_merge($userViewsData, [
-                        'title' => $userView['title'],
-                        'users' => $userView['users'],
-                        'selectedColumns' => $userView['columns'],
-                        'dateType' => $userView['dateType'],
-                        'fromDate' => date('d-m-Y', strtotime($userView['fromDate'])),
-                        'toDate' => date('d-m-Y', strtotime($userView['toDate'])),
-                        'projectFilters' => $userView['projectFilters'],
-                        'priorityFilters' => $userView['priorityFilters'],
-                        'statusFilters' => $userView['statusFilters'],
-                        'customFilters' => $userView['customFilters'],
+                        'title' => $userView->title,
+                        'users' => $viewDTO->users,
+                        'selectedColumns' => $viewDTO->columns,
+                        'dateType' => $viewDTO->dateType->value,
+                        'fromDate' => date('d-m-Y', strtotime($viewDTO->fromDate)),
+                        'toDate' => date('d-m-Y', strtotime($viewDTO->toDate)),
+                        'projectFilters' => $viewDTO->projectFilters,
+                        'priorityFilters' => $viewDTO->priorityFilters,
+                        'statusFilters' => $viewDTO->statusFilters,
+                        'customFilters' => $viewDTO->customFilters,
                         'selectedViewId' => $selectedViewId,
                     ]);
                 }

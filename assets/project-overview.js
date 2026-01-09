@@ -36,6 +36,7 @@ function initProjectOverviewFilters() {
     const filterSelect = $('#filterSelect')
         .select2({
             closeOnSelect: false,
+            dropdownCssClass: 'project-overview-dropdown',
         })
         .on('select2:select', () => {
             $(this).val(null).trigger('change');
@@ -56,6 +57,7 @@ function initProjectOverviewFilters() {
     const columnSelect = $('#columnSelect')
         .select2({
             closeOnSelect: false,
+            dropdownCssClass: 'project-overview-dropdown',
         })
         .on('change.select2', () => {
             $(columnSelect)
@@ -112,6 +114,7 @@ function initProjectOverviewFilters() {
     const userSelect = $('#userSelect')
         .select2({
             closeOnSelect: false,
+            dropdownCssClass: 'project-overview-dropdown',
             matcher: function (params, data) {
                 if (!params.term) return data;
                 const keywords = params.term.split(' ');
@@ -232,14 +235,32 @@ function initProjectOverviewTable() {
         $(target).toggleClass('show-all-projects');
     });
 
-    const selectedViewId = $(document).find('#selectedViewId').val();
+    // Check if URL has a view parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlViewId = urlParams.get('view');
+    let selectedViewId = $(document).find('#selectedViewId').val();
+
+    // If URL has a view parameter and it exists in the tabs, use that
+    if (urlViewId && window.jQuery(`li[data-target='${urlViewId}']`).length > 0) {
+        selectedViewId = urlViewId;
+        window.jQuery('#selectedViewId').val(urlViewId);
+    }
 
     // Use window.jQuery to access the globally loaded jQuery UI
     const $projectOverviewTabs = window.jQuery("#projectOverviewTabs");
 
     $projectOverviewTabs.tabs({
-        activate: function () {
+        activate: function (event, ui) {
             window.jQuery("#edit-time-log-modal").removeClass("shown");
+
+            // Update URL when tab is activated
+            const viewId = ui.newPanel.attr('id').replace('view-', '');
+            const url = new URL(window.location.href);
+            url.searchParams.set('view', viewId);
+            window.history.pushState({viewId: viewId}, '', url);
+
+            // Update hidden input
+            window.jQuery('#selectedViewId').val(viewId);
         },
         active: window.jQuery(`li[data-target='${selectedViewId}']`).index()
     }).find('ul').sortable({
@@ -275,14 +296,75 @@ function initProjectOverviewTable() {
     // Fade in after initialization
     $projectOverviewTabs.removeClass('is-hidden');
 
+    // Set initial URL state
+    if (!urlViewId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', selectedViewId);
+        window.history.replaceState({viewId: selectedViewId}, '', url);
+    }
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function (event) {
+        if (event.state && event.state.viewId) {
+            const viewIndex = window.jQuery(`li[data-target='${event.state.viewId}']`).index();
+            if (viewIndex >= 0) {
+                $projectOverviewTabs.tabs('option', 'active', viewIndex);
+                window.jQuery('#selectedViewId').val(event.state.viewId);
+
+                // Trigger HTMX to load the filters for this view
+                const hxGetUrl = `/projectOverview/projectOverview/loadFilters/${encodeURIComponent(event.state.viewId)}`;
+                window.jQuery('#filtersContainer').attr('hx-get', hxGetUrl);
+                htmx.trigger('#filtersContainer', 'load');
+            }
+        }
+    });
+
     $(document).on('click', 'button.copy-view-button', function (e) {
+        e.preventDefault();
         const button = $(this);
         const originalText = button.data('original') || button.text();
-        button.data('original', originalText);
-        button.text('copied');
-        setTimeout(function () {
-            button.text(originalText);
-        }, 2000);
+        const viewId = $('#selectedViewId').val();
+
+        // Request share link from server
+        $.ajax({
+            type: 'POST',
+            url: '/projectOverview/projectOverview/generateShareLink',
+            data: {
+                viewId: viewId
+            },
+            dataType: 'json',
+            success: function (response) {
+                if (response.success && response.shareUrl) {
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(response.shareUrl).then(function () {
+                        button.data('original', originalText);
+                        button.text('Copied!');
+                        setTimeout(function () {
+                            button.text(originalText);
+                        }, 2000);
+                    }).catch(function (err) {
+                        console.error('Failed to copy to clipboard:', err);
+                        button.text('Failed');
+                        setTimeout(function () {
+                            button.text(originalText);
+                        }, 2000);
+                    });
+                } else {
+                    console.error('Failed to generate share link:', response);
+                    button.text('Error');
+                    setTimeout(function () {
+                        button.text(originalText);
+                    }, 2000);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('AJAX error:', error);
+                button.text('Error');
+                setTimeout(function () {
+                    button.text(originalText);
+                }, 2000);
+            }
+        });
     })
 }
 

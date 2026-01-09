@@ -34,7 +34,7 @@
                                     <a href="#view-{{ $key }}" class="tab-link" data-view-key="{{ $key }}"
                                        hx-get="/projectOverview/projectOverview/loadFilters/{{ urlencode($key) }}"
                                        hx-target="#filtersContainer" hx-swap="innerHTML">
-                                        {{ str_replace('_', ' ', $key) }}
+                                        {{ str_replace('_', ' ', $userView['title'] ?? 'View') }}
                                     </a>
                                     <span class="tab-context-menu">...</span>
                                 </li>
@@ -47,7 +47,7 @@
                                 <table class="table table-striped">
                                     <thead>
                                     <tr>
-                                        @foreach ($userView['columns'] as $column)
+                                        @foreach ($userView['view']['columns'] ?? $userView['columns'] ?? [] as $column)
                                             <th id="sort_{{ str_replace('.', '', $column) }}" scope="col">
                                                 <div class="label-and-caret-wrapper">
                                                     {{ __('projectOverview.' . strtolower($column) . '_table_header') }}
@@ -58,13 +58,13 @@
                                     </thead>
                                     <tbody>
                                     @if (empty($userView['tickets']))
-                                        @foreach ($userView['columns'] as $column)
+                                        @foreach ($userView['view']['columns'] ?? $userView['columns'] ?? [] as $column)
                                             <td>No tickets</td>
                                         @endforeach
                                     @else
                                         @foreach ($userView['tickets'] as $key => $row)
                                             <tr>
-                                                @foreach ($userView['columns'] as $column)
+                                                @foreach ($userView['view']['columns'] ?? $userView['columns'] ?? [] as $column)
                                                     @if ($column == 'headline')
                                                         <td class="spacious">
                                                             <a href="#/tickets/showTicket/{{ $row->id }}">

@@ -5,6 +5,7 @@ namespace Leantime\Plugins\ProjectOverview\Helpers;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
+use Leantime\Plugins\ProjectOverview\DTO\UserViewDTO;
 use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Domain\Users\Repositories\Users as UserRepository;
 use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
@@ -122,6 +123,7 @@ readonly class ProjectOverviewActionHandler
                 $groupedFilters['custom'][] = substr($filter, 7);
             }
         }
+
         $viewDTO = new ViewDTO(
             title: null,
             users: (array)$users,
@@ -136,28 +138,34 @@ readonly class ProjectOverviewActionHandler
         );
 
         $userViewsObject = $this->getUserViewsObject();
-        $newViewId = $postData['viewId'] ?? null;
+        $existingViewId = $postData['viewId'] ?? null;
 
-        if (($newViewId === "0" || !empty($newViewId)) && $overwriteView) {
-            $userViewsObject[$newViewId] = $viewDTO;
-            $redirectUrl .= '?viewId=' . $newViewId;
+        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
+            // Update existing view, preserve share token
+            $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
+            $userViewsObject[$existingViewId] = new UserViewDTO(
+                id: $existingView->id,
+                title: $existingView->title,
+                view: $viewDTO,
+                shareToken: $existingView->shareToken,
+                createdAt: $existingView->createdAt
+            );
+            $redirectUrl .= '?view=' . $existingViewId;
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_updated'),
                 'type' => 'success'
             ]);
         } else {
-            // Ensure not to overwrite an existing view
-            $baseViewName = 'view_';
-            $counter = count($userViewsObject);
-            $viewName = $baseViewName . $counter;
-
-            while (isset($userViewsObject[$viewName])) {
-                $counter++;
-                $viewName = $baseViewName . $counter;
-            }
-
-            $userViewsObject[$viewName] = $viewDTO;
-            $redirectUrl .= '?viewId=' . $viewName;
+            // Create new view with unique ID
+            $newViewId = uniqid('view_', true);
+            $userViewsObject[$newViewId] = new UserViewDTO(
+                id: $newViewId,
+                title: 'View ' . (count($userViewsObject) + 1),
+                view: $viewDTO,
+                shareToken: null,
+                createdAt: time()
+            );
+            $redirectUrl .= '?view=' . $newViewId;
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_created'),
                 'type' => 'success'
@@ -165,7 +173,6 @@ readonly class ProjectOverviewActionHandler
         }
 
         $this->saveUserViewsObject($userViewsObject);
-
 
         return $redirectUrl;
     }
@@ -208,41 +215,24 @@ readonly class ProjectOverviewActionHandler
     {
         $userViewsObject = $this->getUserViewsObject();
 
-        // Check if the new view name already exists
-        if (isset($userViewsObject[$viewName])) {
-            session()->flash('project_overview-flash_notification', [
-                'message' => __('projectOverview.notification.view_name_already_exists'),
-                'type' => 'error'
-            ]);
-            return $redirectUrl;
-        }
-
         if (isset($userViewsObject[$viewId])) {
-            // Store the original keys to maintain order
-            $keys = array_keys($userViewsObject);
+            $existingView = UserViewDTO::fromArray($userViewsObject[$viewId]);
 
-            // Find the position of the view to be renamed
-            $position = array_search($viewId, $keys);
+            // Update the view with the new title
+            $userViewsObject[$viewId] = new UserViewDTO(
+                id: $existingView->id,
+                title: $viewName,
+                view: $existingView->view,
+                shareToken: $existingView->shareToken,
+                createdAt: $existingView->createdAt
+            );
 
-            if ($position !== false) {
-                // Replace the key at the correct position
-                $keys[$position] = $viewName;
+            $this->saveUserViewsObject($userViewsObject);
 
-                // Rebuild the array with the new key while maintaining order
-                $reorderedViews = [];
-                foreach ($keys as $key) {
-                    $reorderedViews[$key] = $key === $viewName
-                        ? $userViewsObject[$viewId]
-                        : $userViewsObject[$key];
-                }
-
-                $this->saveUserViewsObject($reorderedViews);
-
-                session()->flash('project_overview-flash_notification', [
-                    'message' => __('projectOverview.notification.view_renamed'),
-                    'type' => 'success'
-                ]);
-            }
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.view_renamed'),
+                'type' => 'success'
+            ]);
         } else {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_not_found'),
@@ -250,10 +240,108 @@ readonly class ProjectOverviewActionHandler
             ]);
         }
 
-        $redirectUrl .= '?viewId=' . $viewName;
+        $redirectUrl .= '?view=' . $viewId;
 
         return $redirectUrl;
     }
+
+    /**
+     * Generate a share token for a view and enable sharing
+     *
+     * @param string $viewId The ID of the view to share
+     * @return string|false The share token if successful, false if view not found
+     */
+    public function generateShareToken(string $viewId): string|false
+    {
+        $userViewsObject = $this->getUserViewsObject();
+
+        if (!isset($userViewsObject[$viewId])) {
+            return false;
+        }
+
+        $existingView = UserViewDTO::fromArray($userViewsObject[$viewId]);
+
+        // Generate a unique share token if one doesn't exist
+        $shareToken = $existingView->shareToken ?? bin2hex(random_bytes(16));
+
+        // Update the view with the share token
+        $userViewsObject[$viewId] = new UserViewDTO(
+            id: $existingView->id,
+            title: $existingView->title,
+            view: $existingView->view,
+            shareToken: $shareToken,
+            createdAt: $existingView->createdAt
+        );
+
+        $this->saveUserViewsObject($userViewsObject);
+
+        return $shareToken;
+    }
+
+    /**
+     * Find a view by its share token across all users
+     *
+     * @param string $shareToken The share token to search for
+     * @return UserViewDTO|null The view if found, null otherwise
+     */
+    public function findViewByShareToken(string $shareToken): ?UserViewDTO
+    {
+        // Get all users
+        $allUsers = $this->userService->getAll();
+
+        foreach ($allUsers as $user) {
+            $userViewsEncoded = $this->userRepository->getUserSettings($user['id'], 'projectoverview.view');
+
+            if (!$userViewsEncoded) {
+                continue;
+            }
+
+            $json = base64_decode($userViewsEncoded, true);
+            if ($json === false) {
+                continue;
+            }
+
+            $userViews = json_decode($json, true);
+            if (!is_array($userViews)) {
+                continue;
+            }
+
+            foreach ($userViews as $viewData) {
+                $view = UserViewDTO::fromArray($viewData);
+                if ($view->shareToken === $shareToken) {
+                    return $view;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Import a shared view into the current user's views
+     *
+     * @param UserViewDTO $sharedView The shared view to import
+     * @return string The new view ID
+     */
+    public function importSharedView(UserViewDTO $sharedView): string
+    {
+        $userViewsObject = $this->getUserViewsObject();
+
+        // Create a new view with a unique ID (no share token for the copy)
+        $newViewId = uniqid('view_', true);
+        $userViewsObject[$newViewId] = new UserViewDTO(
+            id: $newViewId,
+            title: $sharedView->title . ' (Shared)',
+            view: $sharedView->view,
+            shareToken: null,
+            createdAt: time()
+        );
+
+        $this->saveUserViewsObject($userViewsObject);
+
+        return $newViewId;
+    }
+
     /**
      * Encodes and saves the user-views object.
      *
@@ -262,8 +350,18 @@ readonly class ProjectOverviewActionHandler
      */
     private function saveUserViewsObject(array $userViewsObject): void
     {
+        // Convert UserViewDTO objects to arrays
+        $viewsArray = [];
+        foreach ($userViewsObject as $key => $view) {
+            if ($view instanceof UserViewDTO) {
+                $viewsArray[$key] = $view->toArray();
+            } else {
+                $viewsArray[$key] = $view;
+            }
+        }
+
         // Json encode
-        $json = json_encode($userViewsObject);
+        $json = json_encode($viewsArray);
         // Base64 encode
         $encodedViewObjects = base64_encode($json);
 

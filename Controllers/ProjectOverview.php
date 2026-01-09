@@ -90,7 +90,6 @@ class ProjectOverview extends Controller
     }
 
     /**
-    /**
      * Gathers data, services it as ProjectOverviewDTO and feeds it to the template.
      *
      * @return Response
@@ -99,6 +98,20 @@ class ProjectOverview extends Controller
      */
     public function get(): Response
     {
+        // Handle shared view import
+        if (isset($_GET['share']) && !empty($_GET['share'])) {
+            $shareToken = $_GET['share'];
+            $sharedView = $this->actionHandler->findViewByShareToken($shareToken);
+
+            if ($sharedView) {
+                $newViewId = $this->actionHandler->importSharedView($sharedView);
+                $this->tpl->setNotification(__('projectOverview.notification.view_imported'), 'success');
+                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/projectOverview?view=' . $newViewId);
+            } else {
+                $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
+            }
+        }
+
         // Check for flash notification
         if (session()->has('project_overview-flash_notification')) {
             $notification = session('project_overview-flash_notification');
@@ -108,5 +121,37 @@ class ProjectOverview extends Controller
         $userViewsData = $this->projectOverviewHelper->getProjectOverviewData();
         $this->tpl->assign('userViewsData', $userViewsData);
         return $this->tpl->display('ProjectOverview.projectOverview');
+    }
+
+    /**
+     * Generate a share token for a view
+     *
+     * @return Response
+     */
+    public function generateShareLink(): Response
+    {
+        if (!AuthService::userIsAtLeast(Roles::$editor)) {
+            return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
+        }
+
+        $viewId = $_POST['viewId'] ?? null;
+
+        if (empty($viewId)) {
+            return $this->tpl->displayJson(['error' => 'View ID required'], 400);
+        }
+
+        $shareToken = $this->actionHandler->generateShareToken($viewId);
+
+        if ($shareToken === false) {
+            return $this->tpl->displayJson(['error' => 'View not found'], 404);
+        }
+
+        $shareUrl = BASE_URL . '/ProjectOverview/projectOverview?share=' . $shareToken;
+
+        return $this->tpl->displayJson([
+            'success' => true,
+            'shareUrl' => $shareUrl,
+            'shareToken' => $shareToken
+        ]);
     }
 }
