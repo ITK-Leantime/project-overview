@@ -213,17 +213,19 @@
                                                     @if ($column == 'milestoneid')
                                                         <td>
                                                             @if (count($row->projectMilestones) > 0)
-                                                                <select id="milestone-select-{{ $row->id }}"
-                                                                        class="form-select">
-                                                                    <option value="-1"></option>
-                                                                    @foreach ($row->projectMilestones as $projectMilestone)
-                                                                        <option value={{ $projectMilestone->id }}
-                                                                        id="milestone-option-{{ $projectMilestone->id }}"
-                                                                            {{ (int) $row->milestoneid === (int) $projectMilestone->id ? 'selected' : '' }}>
-                                                                            {{ $projectMilestone->headline }}
-                                                                        </option>
-                                                                    @endforeach
-                                                                </select>
+                                                                <div class="milestone-select">
+                                                                    <select id="milestone-select-{{ $row->id }}"
+                                                                            class="form-select">
+                                                                        <option value="-1"></option>
+                                                                        @foreach ($row->projectMilestones as $projectMilestone)
+                                                                            <option value={{ $projectMilestone->id }}
+                                                                            id="milestone-option-{{ $projectMilestone->id }}"
+                                                                                {{ (int) $row->milestoneid === (int) $projectMilestone->id ? 'selected' : '' }}>
+                                                                                {{ $projectMilestone->headline }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </div>
                                                             @endif
                                                             @if (count($row->projectMilestones) === 0)
                                                                 {{ __('projectOverview.no_project_milestones') }}
