@@ -63,27 +63,27 @@ class ProjectOverview extends Controller
         }
         $redirectUrl = BASE_URL . '/ProjectOverview/projectOverview';
 
-        if (isset($_POST['action'])) {
-            switch ($_POST['action']) {
-                case 'saveView':
-                    $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl);
-                    break;
-                case 'adjustPeriod':
-                    $redirectUrl = $this->actionHandler->adjustPeriod($_POST, $redirectUrl);
-                    break;
-                case 'deleteView':
-                    $viewId = $_POST['viewId'];
-                    $this->actionHandler->deleteView($viewId);
-                    break;
-                case 'renameView':
-                    $viewId = $_POST['viewId'];
-                    $viewName = str_replace(' ', '_', $_POST['viewName']);
-                    $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
-                    break;
-                case 'saveTabOrder':
-                    $this->actionHandler->saveTabOrder($_POST);
-                    break;
-            }
+        $action = $_POST['action'] ?? null;
+
+        switch ($action) {
+            case 'saveView':
+                $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl);
+                break;
+            case 'adjustPeriod':
+                $redirectUrl = $this->actionHandler->adjustPeriod($_POST, $redirectUrl);
+                break;
+            case 'deleteView':
+                $viewId = $_POST['viewId'];
+                $this->actionHandler->deleteView($viewId);
+                break;
+            case 'renameView':
+                $viewId = $_POST['viewId'];
+                $viewName = str_replace(' ', '_', $_POST['viewName']);
+                $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
+                break;
+            case 'saveTabOrder':
+                $this->actionHandler->saveTabOrder($_POST);
+                break;
         }
 
         return Frontcontroller::redirect($redirectUrl);

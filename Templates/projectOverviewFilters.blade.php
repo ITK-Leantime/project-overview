@@ -29,7 +29,10 @@
 
     <div class="date-range-filter">
         <input type="text" name="dateRange" id="dateRange"
-            value="{{ $filtersData->fromDate }} til {{ $filtersData->toDate }}">
+            value="{{ $filtersData->fromDate }} til {{ $filtersData->toDate }}"
+            readonly>
+        <input type="hidden" name="fromDate" id="fromDate" value="{{ $filtersData->fromDate }}">
+        <input type="hidden" name="toDate" id="toDate" value="{{ $filtersData->toDate }}">
     </div>
 
     <div class="filters">

@@ -15,6 +15,12 @@ use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
  */
 readonly class ProjectOverviewActionHandler
 {
+    private const FILTER_PREFIX_PROJECT = 'project_';
+    private const FILTER_PREFIX_PRIORITY = 'priority_';
+    private const FILTER_PREFIX_STATUS = 'status_';
+    private const FILTER_PREFIX_CUSTOM = 'custom_';
+    private const DATE_FORMAT = 'Y-m-d';
+
     /**
      * Initialize dependencies.
      * @return void
@@ -35,10 +41,8 @@ readonly class ProjectOverviewActionHandler
 
         if (isset($postData['showThisWeek'])) {
             $now = CarbonImmutable::now();
-            $queryParams['fromDate'] = $now->startOfWeek()->format('Y-m-d');
-            $queryParams['toDate'] = $now->endOfWeek()->format('Y-m-d');
-        } elseif (isset($postData['dateRange'])) {
-            list($postData['fromDate'], $postData['toDate']) = explode(' til ', $postData['dateRange']);
+            $queryParams['fromDate'] = $now->startOfWeek()->format(self::DATE_FORMAT);
+            $queryParams['toDate'] = $now->endOfWeek()->format(self::DATE_FORMAT);
         }
 
         if (isset($postData['fromDate']) && empty($postData['showThisWeek'])) {
@@ -62,8 +66,8 @@ readonly class ProjectOverviewActionHandler
                 $toDate = $toDate->addDays($interval);
             }
 
-            $queryParams['fromDate'] = $fromDate->format('Y-m-d');
-            $queryParams['toDate'] = $toDate->format('Y-m-d');
+            $queryParams['fromDate'] = $fromDate->format(self::DATE_FORMAT);
+            $queryParams['toDate'] = $toDate->format(self::DATE_FORMAT);
         }
 
         if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
@@ -100,8 +104,9 @@ readonly class ProjectOverviewActionHandler
         if ($dateType === null) {
             $dateType = DateTypeEnum::NEXT_TWO_WEEKS;
         }
-        if ($dateType === DateTypeEnum::CUSTOM && $postData['dateRange']) {
-            list($fromDate, $toDate) = explode(' til ', $postData['dateRange']);
+        if ($dateType === DateTypeEnum::CUSTOM) {
+            $fromDate = $postData['fromDate'] ?? null;
+            $toDate = $postData['toDate'] ?? null;
         }
         $columns = $postData['columns'] ?? [];
         $filters = $postData['filters'] ?? [];
@@ -113,14 +118,19 @@ readonly class ProjectOverviewActionHandler
         ];
 
         foreach ($filters as $filter) {
-            if (str_starts_with($filter, 'project_')) {
-                $groupedFilters['projects'][] = substr($filter, 8);
-            } elseif (str_starts_with($filter, 'priority_')) {
-                $groupedFilters['priorities'][] = substr($filter, 9);
-            } elseif (str_starts_with($filter, 'status_')) {
-                $groupedFilters['statuses'][] = substr($filter, 7);
-            } elseif (str_starts_with($filter, 'custom_')) {
-                $groupedFilters['custom'][] = substr($filter, 7);
+            if (preg_match('/^([^_]+)_(.+)/', $filter, $matches)) {
+                [, $group, $value] = $matches;
+                // Map the filter prefix to the grouped filter key
+                $filterMap = [
+                    rtrim(self::FILTER_PREFIX_PROJECT, '_') => 'projects',
+                    rtrim(self::FILTER_PREFIX_PRIORITY, '_') => 'priorities',
+                    rtrim(self::FILTER_PREFIX_STATUS, '_') => 'statuses',
+                    rtrim(self::FILTER_PREFIX_CUSTOM, '_') => 'custom',
+                ];
+
+                if (isset($filterMap[$group])) {
+                    $groupedFilters[$filterMap[$group]][] = $value;
+                }
             }
         }
 

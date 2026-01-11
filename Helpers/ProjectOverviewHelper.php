@@ -101,7 +101,6 @@ readonly class ProjectOverviewHelper
     {
         $selectedViewId = $data['id'] ?? null;
         $allUsers = $this->userService->getAll();
-        usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'Unassigned',
@@ -134,7 +133,7 @@ readonly class ProjectOverviewHelper
             $userViewArray = $this->actionHandler->getUserViewsObject();
 
             if ($userViewArray) {
-                $userViewData = $userViewArray[urldecode($selectedViewId)] ?? null;
+                $userViewData = $userViewArray[$selectedViewId] ?? null;
                 if ($userViewData) {
                     $userView = UserViewDTO::fromArray($userViewData);
                     $viewDTO = $userView->view;
