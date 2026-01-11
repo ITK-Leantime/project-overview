@@ -73,7 +73,6 @@ function initProjectOverviewFilters() {
 
     $('#dateOptions').on('change', function () {
         const dateRangeElement = $(document).find('div.date-range-filter');
-        console.log(dateRangeElement);
         const selectedOption = $(this).val();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -196,7 +195,6 @@ function initProjectOverviewTable() {
     $(document).on('click', 'span.tab-context-menu', ({target}) => {
         const currentName = $(target).siblings('.tab-link').first().text().trim()
         const rect = target.parentElement.getBoundingClientRect();
-        console.log(rect.top, rect.height);
         const viewId = $(target).parent().data('target');
         $('.settings-for-target').text(viewId);
         contextMenu
