@@ -388,10 +388,15 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
                 // But if I instead create a get-request it returns 200 and an otherwise empty
                 // response. So this is what I chose to do, and is also what is done in
                 // in other places (I am looking at you ticketcontroller.js).
-                jQuery(`#status-ticket-${ticketId}`)
-                    .removeClass()
-                    .addClass(`table-button ${newClass}`);
-                jQuery(`#status-ticket-${ticketId} #status-label`).text(newLabel);
+
+                // Update ALL buttons with this ID (same ticket can appear in multiple views)
+                document.querySelectorAll(`#status-ticket-${ticketId}`).forEach(button => {
+                    button.className = `table-button ${newClass}`;
+                    const label = button.querySelector('#status-label');
+                    if (label) {
+                        label.textContent = newLabel;
+                    }
+                });
             });
     }
 }
@@ -412,10 +417,15 @@ function changePriority(ticketId, newPriorityId, newLabel) {
                 // But if I instead create a get-request it returns 200 and an otherwise empty
                 // response. So this is what I chose to do, and is also what is done in
                 // in other places (I am looking at you ticketcontroller.js).
-                jQuery(`#priority-ticket-${ticketId}`)
-                    .removeClass()
-                    .addClass(`table-button priority-bg-${newPriorityId}`);
-                jQuery(`#priority-ticket-${ticketId} #priority-label`).text(newLabel);
+
+                // Update ALL buttons with this ID (same ticket can appear in multiple views)
+                document.querySelectorAll(`#priority-ticket-${ticketId}`).forEach(button => {
+                    button.className = `table-button priority-bg-${newPriorityId}`;
+                    const label = button.querySelector('#priority-label');
+                    if (label) {
+                        label.textContent = newLabel;
+                    }
+                });
             });
     }
 }
