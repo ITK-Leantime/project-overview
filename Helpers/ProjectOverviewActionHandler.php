@@ -425,6 +425,12 @@ readonly class ProjectOverviewActionHandler
     }
 
 
+    /**
+     * Saves the updated tab order based on the given post data.
+     *
+     * @param array<string, mixed> $postData An associative array containing the new tab order data.
+     * @return void
+     */
     public function saveTabOrder(array $postData): void
     {
         try {
