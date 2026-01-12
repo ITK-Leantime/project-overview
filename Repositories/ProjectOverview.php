@@ -106,7 +106,7 @@ class ProjectOverview
             ->where('ticket.type', '<>', 'milestone')
             ->where('ticket.status', '>', '0')
             ->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
-                 if($viewDTO->dateType !== DateTypeEnum::CUSTOM) {
+                if ($viewDTO->dateType !== DateTypeEnum::CUSTOM) {
                     $today = CarbonImmutable::now()->startOfDay();
                     $startDate = $today->modify('monday this week');
                     $endDate = match ($viewDTO->dateType) {
@@ -114,8 +114,8 @@ class ProjectOverview
                         DateTypeEnum::NEXT_THREE_WEEKS => $startDate->modify('+3 weeks')->subDay(),
                         default => $startDate->modify('+2 weeks')->subDay(),
                     };
-                    $query->where('ticket.dateToFinish', '>=', $startDate)
-                          ->where('ticket.dateToFinish', '<', $endDate->addDay());
+                        $query->where('ticket.dateToFinish', '>=', $startDate)
+                         ->where('ticket.dateToFinish', '<', $endDate->addDay());
                 } elseif ($fromDate && $toDate) {
                     $fromDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->fromDate);
                     $toDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->toDate);

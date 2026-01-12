@@ -151,7 +151,7 @@ class ProjectOverview extends Controller
         return $this->tpl->displayJson([
             'success' => true,
             'shareUrl' => $shareUrl,
-            'shareToken' => $shareToken
+            'shareToken' => $shareToken,
         ]);
     }
 }

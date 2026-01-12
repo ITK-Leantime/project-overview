@@ -25,7 +25,7 @@ module.exports = {
                 }
             })
         ],
-        splitChunks: false
+    splitChunks: false
     },
     cache: {
         type: 'filesystem' // Enable filesystem caching

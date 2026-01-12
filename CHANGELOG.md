@@ -4,7 +4,7 @@
 
 * [PR-67](https://github.com/ITK-Leantime/project-overview/pull/67)
   * Add ability to share views via a link
-  * 
+  *
 * [PR-66](https://github.com/ITK-Leantime/project-overview/pull/66)
   * Introduce a view-based approach
   * Added use of DTOs to control data flow

@@ -14,14 +14,17 @@
 
     <div class="date-options">
         <select name="dateType" id="dateOptions">
-            <option
-                value="{{ DateTypeEnum::THIS_WEEK->value }}" {{ $filtersData->dateType === DateTypeEnum::THIS_WEEK->value ? 'selected' : '' }}>{{__('projectOverview.this_week')}}</option>
-            <option
-                value="{{ DateTypeEnum::NEXT_TWO_WEEKS->value }}" {{ $filtersData->dateType === DateTypeEnum::NEXT_TWO_WEEKS->value ? 'selected' : '' }}>{{__('projectOverview.next_two_weeks')}}</option>
-            <option
-                value="{{ DateTypeEnum::NEXT_THREE_WEEKS->value }}" {{ $filtersData->dateType === DateTypeEnum::NEXT_THREE_WEEKS->value ? 'selected' : '' }}>{{__('projectOverview.next_three_weeks')}}</option>
-            <option
-                value="{{ DateTypeEnum::CUSTOM->value }}" {{ $filtersData->dateType === DateTypeEnum::CUSTOM->value ? 'selected' : '' }}>
+            <option value="{{ DateTypeEnum::THIS_WEEK->value }}"
+                {{ $filtersData->dateType === DateTypeEnum::THIS_WEEK->value ? 'selected' : '' }}>
+                {{ __('projectOverview.this_week') }}</option>
+            <option value="{{ DateTypeEnum::NEXT_TWO_WEEKS->value }}"
+                {{ $filtersData->dateType === DateTypeEnum::NEXT_TWO_WEEKS->value ? 'selected' : '' }}>
+                {{ __('projectOverview.next_two_weeks') }}</option>
+            <option value="{{ DateTypeEnum::NEXT_THREE_WEEKS->value }}"
+                {{ $filtersData->dateType === DateTypeEnum::NEXT_THREE_WEEKS->value ? 'selected' : '' }}>
+                {{ __('projectOverview.next_three_weeks') }}</option>
+            <option value="{{ DateTypeEnum::CUSTOM->value }}"
+                {{ $filtersData->dateType === DateTypeEnum::CUSTOM->value ? 'selected' : '' }}>
                 Custom
             </option>
         </select>
@@ -29,8 +32,7 @@
 
     <div class="date-range-filter">
         <input type="text" name="dateRange" id="dateRange"
-            value="{{ $filtersData->fromDate }} til {{ $filtersData->toDate }}"
-            readonly>
+            value="{{ $filtersData->fromDate }} til {{ $filtersData->toDate }}" readonly>
         <input type="hidden" name="fromDate" id="fromDate" value="{{ $filtersData->fromDate }}">
         <input type="hidden" name="toDate" id="toDate" value="{{ $filtersData->toDate }}">
     </div>
@@ -88,12 +90,14 @@
 
     <div class="save-view">
         <button type="submit" name="overwriteView" value="1"
-                onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
-                class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
-        <button type="submit" class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
-        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}"/>
-        <button type="button" class="copy-view-button" data-original="{{__('projectOverview.share_view_link')}}" name="copyView">
-            <i class="fa fa-share-alt"></i> {{__('projectOverview.share_view_link')}}
+            onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
+            class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
+        <button type="submit"
+            class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
+        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}" />
+        <button type="button" class="copy-view-button" data-original="{{ __('projectOverview.share_view_link') }}"
+            name="copyView">
+            <i class="fa fa-share-alt"></i> {{ __('projectOverview.share_view_link') }}
         </button>
     </div>
 </form>

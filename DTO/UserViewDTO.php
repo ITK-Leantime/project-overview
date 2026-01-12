@@ -10,11 +10,11 @@ use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 readonly class UserViewDTO
 {
     /**
-     * @param string $id Unique identifier for the view
-     * @param string $title User-friendly title of the view
-     * @param ViewDTO $view The view configuration
+     * @param string      $id         Unique identifier for the view
+     * @param string      $title      User-friendly title of the view
+     * @param ViewDTO     $view       The view configuration
      * @param string|null $shareToken Token for sharing this view (optional)
-     * @param int|null $createdAt Unix timestamp when view was created
+     * @param int|null    $createdAt  Unix timestamp when view was created
      */
     public function __construct(
         public string $id,

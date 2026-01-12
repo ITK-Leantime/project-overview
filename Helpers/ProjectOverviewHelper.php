@@ -52,7 +52,7 @@ readonly class ProjectOverviewHelper
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'unassigned',
-            'lastname' => ''
+            'lastname' => '',
         ]);
         foreach ($userViewObject as $key => $userViewData) {
             $userView = UserViewDTO::fromArray($userViewData);
@@ -104,7 +104,7 @@ readonly class ProjectOverviewHelper
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'Unassigned',
-            'lastname' => ''
+            'lastname' => '',
         ]);
         $allProjects = $this->projectOverviewService->getAllProjects();
         uasort($allProjects, fn($a, $b) => strcmp($a['name'], $b['name']));

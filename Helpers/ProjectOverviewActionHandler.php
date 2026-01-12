@@ -88,8 +88,8 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves a view.
      *
-     * @param array<string, mixed> $postData An associative array containing view data.
-     * @param string $redirectUrl The URL to redirect to after saving the view.
+     * @param array<string, mixed> $postData    An associative array containing view data.
+     * @param string               $redirectUrl The URL to redirect to after saving the view.
      *
      * @return string The updated redirect URL after the view has been saved or updated.
      * @throws BindingResolutionException
@@ -163,7 +163,7 @@ readonly class ProjectOverviewActionHandler
             $redirectUrl .= '?view=' . $existingViewId;
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_updated'),
-                'type' => 'success'
+                'type' => 'success',
             ]);
         } else {
             // Create new view with unique ID
@@ -178,7 +178,7 @@ readonly class ProjectOverviewActionHandler
             $redirectUrl .= '?view=' . $newViewId;
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_created'),
-                'type' => 'success'
+                'type' => 'success',
             ]);
         }
 
@@ -203,12 +203,12 @@ readonly class ProjectOverviewActionHandler
             $this->saveUserViewsObject($userViewsObject);
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_deleted'),
-                'type' => 'success'
+                'type' => 'success',
             ]);
         } else {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_not_found'),
-                'type' => 'error'
+                'type' => 'error',
             ]);
         }
     }
@@ -216,7 +216,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Renames a view.
      *
-     * @param string $viewId Id of the view to be renamed.
+     * @param string $viewId   Id of the view to be renamed.
      * @param string $viewName New name of the view.
      * @return string|false Returns the redirect URL if successful, false if the target name already exists
      * @throws BindingResolutionException
@@ -241,12 +241,12 @@ readonly class ProjectOverviewActionHandler
 
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_renamed'),
-                'type' => 'success'
+                'type' => 'success',
             ]);
         } else {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_not_found'),
-                'type' => 'error'
+                'type' => 'error',
             ]);
         }
 
@@ -465,7 +465,6 @@ readonly class ProjectOverviewActionHandler
                 'status' => 'success',
                 'message' => __('projectOverview.notification.tab_order_saved'),
             ]));
-
         } catch (\Exception $e) {
             exit(json_encode([
                 'status' => 'error',
