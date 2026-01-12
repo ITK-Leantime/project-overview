@@ -446,7 +446,7 @@ function changePriority(ticketId, newPriorityId, newLabel) {
         document
           .querySelectorAll(`#priority-ticket-${ticketId}`)
           .forEach((button) => {
-            button.className = `table-button priority-bg-${newPriorityId}`;
+            button.className = `table-button table-button-status`;
             const label = button.querySelector('#priority-label');
             if (label) {
               label.textContent = newLabel;

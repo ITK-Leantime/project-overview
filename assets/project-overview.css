@@ -287,10 +287,11 @@
       }
     }
 
-    #status-dropdown-menu {
+    #status-dropdown-menu,
+    .priority .dropdown-menu {
       width: 100%;
-        border: 1px solid var(--itk-border-color);
-        box-shadow: var(--itk-box-shadow);
+      border: 1px solid var(--itk-border-color);
+      box-shadow: var(--itk-box-shadow);
     }
     .status.btn-group,
     .priority.btn-group {
@@ -456,40 +457,17 @@ a {
   border: 0;
   display: flex;
   width: 100%;
-
-  &.priority-bg-1 {
-    background: var(--dark-red);
-    color: var(--dark-red-text-color);
-  }
-
-  &.priority-bg-2 {
-    background: var(--red);
-    color: var(--red-text-color);
-  }
-
-  &.priority-bg-3 {
-    background: var(--yellow);
-    color: var(--yellow-text-color);
-  }
-
-  &.priority-bg-4 {
-    background: var(--green);
-    color: var(--green-text-color);
-  }
-
-  &.priority-bg-5 {
-    background: var(--dark-grey);
-    color: var(--dark-grey-text-color);
-  }
-
-  .table-button.priority-bg- {
-    background-color: var(--grey);
-  }
+  background: white !important;
+  color: black !important;
 }
 
 .table-button-status {
   background: white !important;
   color: black !important;
+
+    &:hover:not([data-toggle]) {
+        background-color: rgba(0, 0, 0, 0.1) !important;
+    }
 }
 
 .status-circle {
