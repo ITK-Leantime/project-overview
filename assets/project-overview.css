@@ -20,9 +20,8 @@
   --itk-color-gray-500: hsla(215, 16%, 47%, 1);
   --itk-color-gray-700: hsla(215, 25%, 27%, 1);
   --itk-color-black: black;
-
   --itk-border-color: var(--itk-color-gray-200);
-
+  --itk-box-shadow: 1px 1px 1px var(--itk-border-color);
   --itk-border-radius: 4px;
   --itk-button-padding: 0 10px;
   --itk-popup-width: 250px;
@@ -290,6 +289,8 @@
 
     #status-dropdown-menu {
       width: 100%;
+        border: 1px solid var(--itk-border-color);
+        box-shadow: var(--itk-box-shadow);
     }
     .status.btn-group,
     .priority.btn-group {
@@ -299,13 +300,14 @@
     button[id^='status-ticket-'],
     button[id^='priority-ticket-'] {
       display: flex;
-
+        padding-left: 0;
+        margin-left: 0;
       span {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: calc(100% - 20px);
-        margin: auto auto auto 5px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: calc(100% - 40px);
+          margin: auto 10px auto 0;
       }
       i {
         position: absolute;
@@ -319,7 +321,12 @@
       button {
         white-space: nowrap;
         overflow: hidden;
-        padding-left: 10px;
+          padding: 5px;
+          margin: 0;
+          &:hover {
+              opacity: 1;
+              box-shadow: none;
+          }
       }
     }
 
@@ -425,10 +432,12 @@ a {
   &.label-darker-blue,
   &.label-dark-green,
   &.label-grey {
-    background: var(--yellow) !important;
-    color: var(--yellow-text-color) !important;
-    border-radius: 0;
-    margin-left: 0px;
+    &:not(.table-button-status) {
+      background: var(--yellow) !important;
+      color: var(--yellow-text-color) !important;
+      border-radius: 0;
+      margin-left: 0px;
+    }
   }
 
   &.label-default.milestone {
@@ -475,6 +484,79 @@ a {
 
   .table-button.priority-bg- {
     background-color: var(--grey);
+  }
+}
+
+.table-button-status {
+  background: white !important;
+  color: black !important;
+}
+
+.status-circle {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
+  border-radius: 50%;
+  padding: 0 !important;
+  flex-shrink: 0;
+    margin: auto 5px auto 0;
+
+  &.label-warning,
+  &.label-yellow {
+    background-color: var(--yellow) !important;
+  }
+
+  &.label-info {
+    background-color: var(--blue) !important;
+  }
+
+  &.label-important,
+  &.label-danger,
+  &.label-red {
+    background-color: var(--red) !important;
+  }
+
+  &.label-success,
+  &.label-green {
+    background-color: var(--green) !important;
+  }
+
+  &.label-default {
+    background-color: var(--grey) !important;
+  }
+
+  &.label-purple {
+    background-color: var(--purple) !important;
+  }
+
+  &.label-pink {
+    background-color: var(--pink) !important;
+  }
+
+  &.label-brown {
+    background-color: var(--brown) !important;
+  }
+
+  &.label-blue {
+    background-color: var(--blue) !important;
+  }
+
+  &.label-dark-blue {
+    background-color: var(--dark-blue) !important;
+  }
+
+  &.label-darker-blue {
+    background-color: var(--darker-blue) !important;
+  }
+
+  &.label-dark-green {
+    background-color: var(--dark-green) !important;
+  }
+
+  &.label-grey {
+    background-color: var(--grey) !important;
   }
 }
 

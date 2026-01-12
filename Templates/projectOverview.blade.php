@@ -91,8 +91,9 @@
                                                                 <div class="btn-group status">
                                                                     <button type="button"
                                                                         id="status-ticket-{{ $row->id }}"
-                                                                        class="table-button {!! $userViewsData->statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"
+                                                                        class="table-button table-button-status {!! $userViewsData->statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"
                                                                         data-toggle="dropdown">
+                                                                        <span class="status-circle {!! $userViewsData->statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"></span>
                                                                         <span
                                                                             id="status-label">{{ $userViewsData->statusLabels[$row->projectId][$row->status]['name'] ?? '' }}</span>
                                                                         <i class="fa fa-caret-down"></i>
@@ -102,8 +103,9 @@
                                                                             @if ($newStatusId != $row->status)
                                                                                 <li class="dropdown-item">
                                                                                     <button
-                                                                                        class="table-button status {!! $label['class'] !!}"
+                                                                                        class="table-button table-button-status status {!! $label['class'] !!}"
                                                                                         data-args="{{ $row->id }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
+                                                                                        <span class="status-circle {!! $label['class'] !!}"></span>
                                                                                         {{ $label['name'] }}
                                                                                     </button>
                                                                                 </li>

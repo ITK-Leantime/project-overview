@@ -411,7 +411,11 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
         document
           .querySelectorAll(`#status-ticket-${ticketId}`)
           .forEach((button) => {
-            button.className = `table-button ${newClass}`;
+            button.className = `table-button table-button-status ${newClass}`;
+            const circle = button.querySelector('.status-circle');
+            if (circle) {
+              circle.className = `status-circle ${newClass}`;
+            }
             const label = button.querySelector('#status-label');
             if (label) {
               label.textContent = newLabel;
