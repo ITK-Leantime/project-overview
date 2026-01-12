@@ -10,8 +10,8 @@ readonly class ProjectOverviewFiltersDataDTO
     /**
      * Constructor method.
      *
-     * @param array<int, array<string, mixed>> $allUsers        An array of all users.
-     * @param array<int, array<string, mixed>> $allProjects     An array of all projects.
+     * @param array<string, mixed>             $allUsers        An array of all users.
+     * @param array<int, mixed>                $allProjects     An array of all projects.
      * @param array<int, string>               $allPriorities   An array of all priority levels (id => name).
      * @param array<int, array<string, mixed>> $allStatusLabels An array of all status labels.
      * @param array<string, mixed>             $allColumns      An array of all column definitions.
