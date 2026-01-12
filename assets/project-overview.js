@@ -73,6 +73,7 @@ function initProjectOverviewFilters() {
 
     $('#dateOptions').on('change', function () {
         const dateRangeElement = $(document).find('div.date-range-filter');
+        const dateRangeInput = $('#dateRange');
         const selectedOption = $(this).val();
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -89,6 +90,7 @@ function initProjectOverviewFilters() {
             dateRange.setDate([monday, endDate]);
             dateRange.set('clickOpens', false);
             $(dateRangeElement).addClass('date-range-disabled');
+            dateRangeInput.prop('readonly', true);
         } else if (selectedOption === 'next two weeks') {
             // Default case: monday this week +13 days
             endDate = new Date(monday);
@@ -96,6 +98,7 @@ function initProjectOverviewFilters() {
             dateRange.setDate([monday, endDate]);
             dateRange.set('clickOpens', false);
             $(dateRangeElement).addClass('date-range-disabled');
+            dateRangeInput.prop('readonly', true);
         } else if (selectedOption === 'next three weeks') {
             // NEXT_THREE_WEEKS: monday this week +20 days
             endDate = new Date(monday);
@@ -103,9 +106,11 @@ function initProjectOverviewFilters() {
             dateRange.setDate([monday, endDate]);
             dateRange.set('clickOpens', false);
             $(dateRangeElement).addClass('date-range-disabled');
+            dateRangeInput.prop('readonly', true);
         } else if (selectedOption === 'custom') {
             dateRange.set('clickOpens', true);
             $(dateRangeElement).removeClass('date-range-disabled');
+            dateRangeInput.prop('readonly', false);
         }
     }).trigger('change');
 

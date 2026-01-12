@@ -89,9 +89,11 @@
     <div class="save-view">
         <button type="submit" name="overwriteView" value="1"
                 onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
-                class="btn btn-default">{{ __('projectOverview.save_view') }}</button>
-        <button type="submit" class="btn btn-success">{{ __('projectOverview.save_as_new_view') }}</button>
+                class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
+        <button type="submit" class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
         <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}"/>
-        <button type="button" class="copy-view-button" data-original="{{__('projectOverview.share_view_link')}}" name="copyView">{{__('projectOverview.share_view_link')}}</button>
+        <button type="button" class="copy-view-button" data-original="{{__('projectOverview.share_view_link')}}" name="copyView">
+            <i class="fa fa-share-alt"></i> {{__('projectOverview.share_view_link')}}
+        </button>
     </div>
 </form>

@@ -6,7 +6,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 module.exports = {
     devtool: false,
     entry: {
-        'project-overview': ['./assets/project-overview.js', './assets/project-overview.css']
+        'project-overview': './assets/project-overview.js'
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -67,6 +67,29 @@ module: {
             }
             ],
     },
+        {
+            test: /\.less$/i,
+            use: [
+                {
+                    loader: MiniCssExtractPlugin.loader,
+                    options: {
+                        esModule: true,
+                    }
+                },
+                {
+                    loader: "css-loader",
+                    options: {
+                        sourceMap: false
+                    }
+                },
+                {
+                    loader: "less-loader",
+                    options: {
+                        sourceMap: false
+                    }
+                }
+            ],
+        },
     ],
     },
     mode: 'production',
