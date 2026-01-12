@@ -3,6 +3,7 @@ import 'select2/dist/css/select2.css';
 import flatpickr from 'flatpickr';
 import {Danish} from 'flatpickr/dist/l10n/da.js';
 import 'flatpickr/dist/flatpickr.min.css';
+import './project-overview.css';
 
 $(document).ready(function () {
     initProjectOverviewFilters();

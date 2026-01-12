@@ -52,13 +52,10 @@ EventDispatcher::add_event_listener(
     function () {
 
         if (null !== (session('userdata.id')) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/projectOverview')) {
-            // Load vendor chunk first (contains jQuery, select2, flatpickr)
-            echo '<script src="/dist/js/project-overview-vendors.js"></script>';
-
-            // Then load main app code
-            echo '<script src="/dist/js/project-overview.js"></script>';
-
-            echo '<link rel="stylesheet" href="/dist/css/project-overview.css"></link>';
+            $projectOverviewUrl = '/dist/js/plugin-projectOverview.js?' . http_build_query(['v' => '%%VERSION%%']);
+            echo '<script type="module" src="' . htmlspecialchars($projectOverviewUrl) . '"></script>';
+            $projectOverviewStyle = '/dist/css/plugin-projectOverview.css?' . http_build_query(['v' => '%%VERSION%%']);
+            echo '<link rel="stylesheet" href="' . htmlspecialchars($projectOverviewStyle) . '"></link>';
         }
     },
     5

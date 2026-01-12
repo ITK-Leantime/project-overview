@@ -42,14 +42,18 @@ class GetLanguageAssets
 
         // @phpstan-ignore-next-line
         if (($language = session(['usersettings.language']) ?? $this->config->language) !== 'en-US') {
-            if (! Cache::store('installation')->has('projectOverview.language.' . $language)) {
-                Cache::store('installation')->put(
-                    'projectOverview.language.' . $language,
-                    parse_ini_file(__DIR__ . '/../Language/' . $language . '.ini', true)
-                );
-            }
+            $languageFile = __DIR__ . '/../Language/' . $language . '.ini';
 
-            $languageArray = array_merge($languageArray, Cache::store('installation')->get('projectOverview.language.' . $language));
+            if (file_exists($languageFile)) {
+                if (! Cache::store('installation')->has('projectOverview.language.' . $language)) {
+                    Cache::store('installation')->put(
+                        'projectOverview.language.' . $language,
+                        parse_ini_file($languageFile, true)
+                    );
+                }
+
+                $languageArray = array_merge($languageArray, Cache::store('installation')->get('projectOverview.language.' . $language));
+            }
         }
 
         Cache::put('projectOverview.languageArray', $languageArray);

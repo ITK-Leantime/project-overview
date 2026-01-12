@@ -349,8 +349,28 @@
                 cursor: pointer;
             }
         }
+      .input-group {
+        margin-bottom: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        position: relative;
+      }
+
+      .input-group input {
+        all: unset;
+        display: block;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        border: none;
+        padding: 10px;
+        text-align: center;
+        box-sizing: border-box;
+      }
+
       select:not(.editor-select select):not(.milestone-select select),
-      input {
+      input:not(.input-group input) {
         all: unset;
         position: absolute;
         display: block;
@@ -361,7 +381,7 @@
         width: 100%;
         border: none;
         padding: 10px;
-          text-align: center;
+        text-align: center;
         box-sizing: border-box;
       }
     }
@@ -806,11 +826,10 @@ select#dateOptions {
         }
         td {
             background-color: #fff;
-            padding: 20px 10px;
+            padding: 10px 10px;
             border: 1px solid var(--itk-border-color);
         }
     }
-  }
   .ui-tabs-nav {
     li {
       position: relative;

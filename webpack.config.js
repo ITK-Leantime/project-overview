@@ -25,16 +25,7 @@ module.exports = {
                 }
             })
         ],
-    splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-            vendors: {
-                test: /[\\/]node_modules[\\ / ] / ,
-                name: 'vendors',
-                chunks: 'all'
-            }
-        }
-        }
+        splitChunks: false
     },
     cache: {
         type: 'filesystem' // Enable filesystem caching
@@ -67,29 +58,6 @@ module: {
             }
             ],
     },
-        {
-            test: /\.less$/i,
-            use: [
-                {
-                    loader: MiniCssExtractPlugin.loader,
-                    options: {
-                        esModule: true,
-                    }
-                },
-                {
-                    loader: "css-loader",
-                    options: {
-                        sourceMap: false
-                    }
-                },
-                {
-                    loader: "less-loader",
-                    options: {
-                        sourceMap: false
-                    }
-                }
-            ],
-        },
     ],
     },
     mode: 'production',
