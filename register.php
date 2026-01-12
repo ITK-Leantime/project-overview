@@ -52,9 +52,9 @@ EventDispatcher::add_event_listener(
     function () {
 
         if (null !== (session('userdata.id')) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/projectOverview')) {
-            $projectOverviewUrl = '/dist/js/plugin-projectOverview.js?' . http_build_query(['v' => '%%VERSION%%']);
+            $projectOverviewUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => '%%VERSION%%']);
             echo '<script type="module" src="' . htmlspecialchars($projectOverviewUrl) . '"></script>';
-            $projectOverviewStyle = '/dist/css/plugin-projectOverview.css?' . http_build_query(['v' => '%%VERSION%%']);
+            $projectOverviewStyle = '/dist/css/project-overview.css?' . http_build_query(['v' => '%%VERSION%%']);
             echo '<link rel="stylesheet" href="' . htmlspecialchars($projectOverviewStyle) . '"></link>';
         }
     },

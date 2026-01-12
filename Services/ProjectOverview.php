@@ -18,8 +18,8 @@ class ProjectOverview
      */
     private static array $assets = [
         // source => target
-        __DIR__ . '/../dist/css/project-overview.css' => APP_ROOT . '/public/dist/css/plugin-projectOverview.css',
-        __DIR__ . '/../dist/js/project-overview.js' => APP_ROOT . '/public/dist/js/plugin-projectOverview.js',
+        __DIR__ . '/../dist/css/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
+        __DIR__ . '/../dist/js/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.js',
     ];
 
     /** Constructor method for the class.
