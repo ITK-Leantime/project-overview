@@ -573,6 +573,13 @@ ul.select2-results__options {
   margin: 2px !important;
 }
 
+.subtask-icon {
+  margin-left: 8px;
+  color: var(--itk-color-gray-500);
+  font-size: 1em;
+  cursor: pointer;
+}
+
 @media screen and (max-width: 1200px) {
   .leftpanel {
     display: none;

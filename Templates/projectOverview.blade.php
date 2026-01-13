@@ -67,9 +67,19 @@
                                                     @foreach ($userView['view']['columns'] ?? ($userView['columns'] ?? []) as $column)
                                                         @if ($column == 'headline')
                                                             <td class="spacious">
-                                                                <a href="#/tickets/showTicket/{{ $row->id }}">
+                                                                <a href="#/tickets/showTicket/{{ $row->id }}"
+                                                                   data-tippy-content="#{{ $row->id }} - {{ $row->headline }}"
+                                                                   data-tippy-placement="top">
                                                                     {{ $row->headline }}
                                                                 </a>
+                                                                @if ($row->type === 'subtask' && isset($row->dependingTicketId) && $row->dependingTicketId > 0)
+                                                                    <a href="#/tickets/showTicket/{{ $row->dependingTicketId }}"
+                                                                       class="subtask-icon-link"
+                                                                       data-tippy-content="Subtask of #{{ $row->dependingTicketId }} - {{ $row->parentHeadline }}"
+                                                                       data-tippy-placement="top">
+                                                                        <i class="fa fa-code-branch subtask-icon"></i>
+                                                                    </a>
+                                                                @endif
                                                             </td>
                                                         @endif
 

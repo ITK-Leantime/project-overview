@@ -92,6 +92,8 @@ class ProjectOverview
                 'ticket.tags',
                 'ticket.priority',
                 'ticket.status',
+                'ticket.dependingTicketId',
+                'parent.headline AS parentHeadline',
                 't1.id AS authorId',
                 't1.firstname AS authorFirstname',
                 't1.lastname AS authorLastname',
@@ -103,6 +105,7 @@ class ProjectOverview
             ])
             ->leftJoin('zp_user AS t1', 'ticket.userId', '=', 't1.id')
             ->leftJoin('zp_user AS t2', 'ticket.editorId', '=', 't2.id')
+            ->leftJoin('zp_tickets AS parent', 'ticket.dependingTicketId', '=', 'parent.id')
             ->where('ticket.type', '<>', 'milestone')
             ->where('ticket.status', '>', '0')
             ->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
