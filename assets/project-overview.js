@@ -608,14 +608,14 @@ function changeMilestone(event, ticketId, newMilestoneId) {
 function changeTags(event, ticketId, newTags) {
   const parentElement = jQuery(event.target).closest('td');
 
-  if (newTags && ticketId) {
+  if (ticketId) {
     jQuery
       .ajax({
         type: 'PATCH',
         url: leantime.appUrl + '/api/tickets',
         data: {
           id: ticketId,
-          tags: newTags,
+          tags: newTags || '',
         },
       })
       .then(() => {

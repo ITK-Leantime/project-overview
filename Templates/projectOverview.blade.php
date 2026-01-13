@@ -193,6 +193,7 @@
                                                                             </option>
                                                                         @endforeach
                                                                     </select>
+                                                                    <i class="fa fa-caret-down"></i>
                                                                 </div>
                                                             </td>
                                                         @endif
