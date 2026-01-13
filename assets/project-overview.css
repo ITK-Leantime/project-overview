@@ -363,18 +363,19 @@
       display: flex;
       align-items: center;
       position: relative;
+        display: block;
     }
 
     .input-group input {
       all: unset;
       display: block;
-      margin: 0;
       height: 100%;
-      width: 100%;
       border: none;
-      padding: 10px;
       text-align: center;
       box-sizing: border-box;
+        padding: 10px 0;
+        margin: auto;
+        width: 50px;
     }
 
     select:not(.editor-select select):not(.milestone-select select),

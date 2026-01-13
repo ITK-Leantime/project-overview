@@ -75,7 +75,7 @@
                                                                 @if ($row->type === 'subtask' && isset($row->dependingTicketId) && $row->dependingTicketId > 0)
                                                                     <a href="#/tickets/showTicket/{{ $row->dependingTicketId }}"
                                                                        class="subtask-icon-link"
-                                                                       data-tippy-content="Subtask of #{{ $row->dependingTicketId }} - {{ $row->parentHeadline }}"
+                                                                       data-tippy-content="Subtask of [#{{ $row->dependingTicketId }} - {{ $row->parentHeadline }}]"
                                                                        data-tippy-placement="top">
                                                                         <i class="fa fa-code-branch subtask-icon"></i>
                                                                     </a>
@@ -195,7 +195,7 @@
                                                         @endif
 
                                                         @if ($column == 'planHours')
-                                                            <td>
+                                                            <td class="confined">
                                                                 <div class="input-group input-group-sm mb-3">
                                                                     <input type="number"
                                                                         id="plan-hours-{{ $row->id }}"
@@ -206,7 +206,7 @@
                                                         @endif
 
                                                         @if ($column == 'hourRemaining')
-                                                            <td>
+                                                            <td class="confined">
                                                                 <div class="input-group input-group-sm mb-3">
                                                                     <input type="number"
                                                                         id="remaining-hours-{{ $row->id }}"
@@ -217,7 +217,7 @@
                                                         @endif
 
                                                         @if ($column == 'sumHours')
-                                                            <td>
+                                                            <td class="confined">
                                                                 <div class="center-wrapper">
                                                                     <span class="logged-hours"
                                                                         title="{{ $row->userHours }}">{{ $row->sumHours }}</span>
