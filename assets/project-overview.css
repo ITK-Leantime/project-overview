@@ -574,9 +574,9 @@ ul.select2-results__options {
 }
 
 .subtask-icon {
-  margin-left: 8px;
+  margin-left: 10px;
   color: var(--itk-color-gray-500);
-  font-size: 1em;
+  font-size: 0.85em;
   cursor: pointer;
 }
 
