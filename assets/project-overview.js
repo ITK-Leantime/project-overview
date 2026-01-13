@@ -3,9 +3,12 @@ import 'select2/dist/css/select2.css';
 import flatpickr from 'flatpickr';
 import { Danish } from 'flatpickr/dist/l10n/da.js';
 import 'flatpickr/dist/flatpickr.min.css';
+import TomSelect from 'tom-select';
+import 'tom-select/dist/css/tom-select.bootstrap5.css';
 import './project-overview.css';
 
 $(document).ready(function () {
+    console.log(TomSelect);
   initProjectOverviewFilters();
   initProjectOverviewTable();
 
@@ -145,6 +148,7 @@ function initProjectOverviewFilters() {
 }
 
 function initProjectOverviewTable() {
+  initTagsSelects();
   const contextMenu = $('#view-context-menu');
 
   // Status change
@@ -189,11 +193,6 @@ function initProjectOverviewTable() {
   $(document).on('change', '[id^=milestone-select-]', function () {
     const idArg = this.id.split('-')[2];
     changeMilestone(event, idArg, this.value);
-  });
-
-  $(document).on('change', '[id^=tags-]', function () {
-    const idArg = this.id.split('-')[1];
-    changeTags(event, idArg, this.value);
   });
   // end sorting
 
@@ -385,6 +384,44 @@ function initProjectOverviewTable() {
         setTimeout(function () {
           button.text(originalText);
         }, 2000);
+      },
+    });
+  });
+}
+
+function initTagsSelects() {
+  const allTags = window.allTags || [];
+
+  document.querySelectorAll('.ticket-tags-select').forEach((selectElement) => {
+    if (selectElement.tomselect) {
+      return;
+    }
+
+    const ticketId = selectElement.dataset.ticketId;
+
+    new TomSelect(selectElement, {
+      plugins: ['remove_button'],
+      maxItems: null,
+      create: true,
+      persist: false,
+      openOnFocus: false,
+      loadThrottle: 300,
+      load: function (query, callback) {
+        if (!query.length) {
+          this.close();
+          return callback();
+        }
+
+        const filtered = allTags
+          .filter((tag) => tag.toLowerCase().includes(query.toLowerCase()))
+          .slice(0, 50)
+          .map((tag) => ({ value: tag, text: tag }));
+
+        callback(filtered);
+      },
+      onChange: function (values) {
+        const tagsString = Array.isArray(values) ? values.join(',') : values;
+        changeTags({ target: selectElement }, ticketId, tagsString);
       },
     });
   });

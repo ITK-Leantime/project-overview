@@ -1058,3 +1058,9 @@ select#dateOptions {
     }
   }
 }
+#projectOverviewTabs .ts-dropdown-content {
+    background-color: #fff;
+}
+#projectOverviewTabs .ts-wrapper:not(.form-control, .form-select) {
+    height: 30px;
+}

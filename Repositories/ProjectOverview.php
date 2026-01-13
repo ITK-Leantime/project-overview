@@ -166,4 +166,39 @@ class ProjectOverview
 
         return $query->get()->toArray();
     }
+
+    /**
+     * Get all unique tags from all tickets
+     *
+     * @return array<int, string>
+     */
+    public function getAllUniqueTags(): array
+    {
+        $results = $this->query()
+            ->from('zp_tickets')
+            ->select('tags')
+            ->whereNotNull('tags')
+            ->where('tags', '!=', '')
+            ->distinct()
+            ->get()
+            ->pluck('tags')
+            ->toArray();
+
+        // Split comma-separated tags and collect unique values
+        $uniqueTags = [];
+        foreach ($results as $tagString) {
+            $tags = explode(',', $tagString);
+            foreach ($tags as $tag) {
+                $tag = trim($tag);
+                if ($tag !== '' && !in_array($tag, $uniqueTags)) {
+                    $uniqueTags[] = $tag;
+                }
+            }
+        }
+
+        // Sort alphabetically
+        sort($uniqueTags);
+
+        return $uniqueTags;
+    }
 }

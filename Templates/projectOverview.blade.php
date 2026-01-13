@@ -1,5 +1,8 @@
 @extends($layout)
 @section('content')
+    <script>
+        window.allTags = @json($allTags ?? []);
+    </script>
     <?php if (isset($tpl)) {
         echo $tpl->displayNotification();
     } ?>
@@ -250,10 +253,21 @@
 
                                                         @if ($column == 'tags')
                                                             <td>
-                                                                <div class="input-group input-group-sm mb-3">
-                                                                    <input type="text" id="tags-{{ $row->id }}"
-                                                                        class="form-control" value="{{ $row->tags }}">
-                                                                </div>
+                                                                <select class="ticket-tags-select"
+                                                                        id="tags-{{ $row->id }}"
+                                                                        data-ticket-id="{{ $row->id }}"
+                                                                        name="tags[]"
+                                                                        multiple
+                                                                        autocomplete="off">
+                                                                    @if (!empty($row->tags))
+                                                                        @foreach (explode(',', $row->tags) as $tag)
+                                                                            @php $trimmedTag = trim($tag); @endphp
+                                                                            @if (!empty($trimmedTag))
+                                                                                <option value="{{ $trimmedTag }}" selected>{{ $trimmedTag }}</option>
+                                                                            @endif
+                                                                        @endforeach
+                                                                    @endif
+                                                                </select>
                                                             </td>
                                                         @endif
                                                     @endforeach

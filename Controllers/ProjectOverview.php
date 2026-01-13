@@ -23,17 +23,20 @@ class ProjectOverview extends Controller
     private ProjectOverviewActionHandler $actionHandler;
     private ProjectOverviewHelper $projectOverviewHelper;
 
+    private \Leantime\Plugins\ProjectOverview\Services\ProjectOverview $projectOverviewService;
+
     /**
      * @param Template                     $tpl
      * @param ProjectOverviewActionHandler $actionHandler
      * @param ProjectOverviewHelper        $projectOverviewHelper
      * @return void
      */
-    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper): void
+    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, \Leantime\Plugins\ProjectOverview\Services\ProjectOverview $projectOverviewService): void
     {
         $this->tpl = $tpl;
         $this->actionHandler = $actionHandler;
         $this->projectOverviewHelper = $projectOverviewHelper;
+        $this->projectOverviewService = $projectOverviewService;
     }
 
     /**
@@ -119,7 +122,10 @@ class ProjectOverview extends Controller
         }
 
         $userViewsData = $this->projectOverviewHelper->getProjectOverviewData();
+        $allTags = $this->projectOverviewService->getAllUniqueTags();
+
         $this->tpl->assign('userViewsData', $userViewsData);
+        $this->tpl->assign('allTags', $allTags);
         return $this->tpl->display('ProjectOverview.projectOverview');
     }
 

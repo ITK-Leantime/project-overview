@@ -127,4 +127,15 @@ class ProjectOverview
     {
         return $this->projectOverviewRepository->getAllProjects();
     }
+
+    /**
+     * Get all unique tags from all tickets.
+     *
+     * @return array<int, string> An array of unique tags.
+     * @api
+     */
+    public function getAllUniqueTags(): array
+    {
+        return $this->projectOverviewRepository->getAllUniqueTags();
+    }
 }
