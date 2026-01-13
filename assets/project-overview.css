@@ -1060,7 +1060,12 @@ select#dateOptions {
 }
 #projectOverviewTabs .ts-dropdown-content {
     background-color: #fff;
+    cursor: text;
 }
 #projectOverviewTabs .ts-wrapper:not(.form-control, .form-select) {
     height: 30px;
+
+    .item {
+        z-index: 99 !important;
+    }
 }
