@@ -20,7 +20,7 @@
                 <input type="hidden" id="selectedViewId"
                     value="{{ $userViewsData->selectedView !== null ? urlencode($userViewsData->selectedView) : (!empty($userViewsData->userViews) ? urlencode(array_key_first($userViewsData->userViews)) : '') }}" />
                 <div id="filtersContainer" class="search-and-filter"
-                    hx-get="/projectOverview/projectOverview/loadFilters/{{ $userViewsData->selectedView !== null ? urlencode($userViewsData->selectedView) : (!empty($userViewsData->userViews) ? urlencode(array_key_first($userViewsData->userViews)) : '') }}"
+                    hx-get="/ProjectOverview/ProjectOverview/loadFilters/{{ $userViewsData->selectedView !== null ? urlencode($userViewsData->selectedView) : (!empty($userViewsData->userViews) ? urlencode(array_key_first($userViewsData->userViews)) : '') }}"
                     hx-target="#filtersContainer" hx-trigger="load">
                     <div id="filters-loader">
                         <div class="spinner"></div>
