@@ -64,7 +64,7 @@ class ProjectOverview extends Controller
         if (!AuthService::userIsAtLeast(Roles::$editor)) {
             return $this->tpl->displayJson(['Error' => 'Not Authorized'], 403);
         }
-        $redirectUrl = BASE_URL . '/ProjectOverview/projectOverview';
+        $redirectUrl = BASE_URL . '/ProjectOverview/ProjectOverview';
 
         $action = $_POST['action'] ?? null;
 
@@ -109,7 +109,7 @@ class ProjectOverview extends Controller
             if ($sharedView) {
                 $newViewId = $this->actionHandler->importSharedView($sharedView);
                 $this->tpl->setNotification(__('projectOverview.notification.view_imported'), 'success');
-                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/projectOverview?view=' . $newViewId);
+                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?view=' . $newViewId);
             } else {
                 $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
             }
@@ -152,7 +152,7 @@ class ProjectOverview extends Controller
             return $this->tpl->displayJson(['error' => 'View not found'], 404);
         }
 
-        $shareUrl = BASE_URL . '/ProjectOverview/projectOverview?share=' . $shareToken;
+        $shareUrl = BASE_URL . '/ProjectOverview/ProjectOverview?share=' . $shareToken;
 
         return $this->tpl->displayJson([
             'success' => true,

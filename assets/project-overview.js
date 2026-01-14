@@ -282,7 +282,7 @@ function initProjectOverviewTable() {
         // Send AJAX request to save the new order
         window.jQuery.ajax({
           dataType: 'json',
-          url: 'ProjectOverview/projectOverview/post',
+          url: 'ProjectOverview/ProjectOverview/post',
           method: 'POST',
           data: {
             action: 'saveTabOrder',
@@ -329,7 +329,7 @@ function initProjectOverviewTable() {
         window.jQuery('#selectedViewId').val(event.state.viewId);
 
         // Trigger HTMX to load the filters for this view
-        const hxGetUrl = `/projectOverview/projectOverview/loadFilters/${encodeURIComponent(event.state.viewId)}`;
+        const hxGetUrl = `/ProjectOverview/ProjectOverview/loadFilters/${encodeURIComponent(event.state.viewId)}`;
         window.jQuery('#filtersContainer').attr('hx-get', hxGetUrl);
         htmx.trigger('#filtersContainer', 'load');
       }
@@ -345,7 +345,7 @@ function initProjectOverviewTable() {
     // Request share link from server
     $.ajax({
       type: 'POST',
-      url: '/projectOverview/projectOverview/generateShareLink',
+      url: '/ProjectOverview/ProjectOverview/generateShareLink',
       data: {
         viewId: viewId,
       },

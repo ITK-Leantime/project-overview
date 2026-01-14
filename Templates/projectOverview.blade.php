@@ -35,7 +35,7 @@
                             @foreach ($userViewsData->userViews as $key => $userView)
                                 <li data-target="{{ $key }}">
                                     <a href="#view-{{ $key }}" class="tab-link" data-view-key="{{ $key }}"
-                                        hx-get="/projectOverview/projectOverview/loadFilters/{{ urlencode($key) }}"
+                                        hx-get="/ProjectOverview/ProjectOverview/loadFilters/{{ urlencode($key) }}"
                                         hx-target="#filtersContainer" hx-swap="innerHTML">
                                         {{ str_replace('_', ' ', $userView['title'] ?? 'View') }}
                                     </a>
