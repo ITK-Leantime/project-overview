@@ -301,14 +301,14 @@
     button[id^='status-ticket-'],
     button[id^='priority-ticket-'] {
       display: flex;
-        padding: 0;
-        margin-left: 0;
+      padding: 0;
+      margin-left: 0;
       span {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: calc(100% - 40px);
-          margin: auto 10px auto 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: calc(100% - 40px);
+        margin: auto 10px auto 0;
       }
       i {
         position: absolute;
@@ -322,12 +322,12 @@
       button {
         white-space: nowrap;
         overflow: hidden;
-          padding: 5px;
-          margin: 0;
-          &:hover {
-              opacity: 1;
-              box-shadow: none;
-          }
+        padding: 5px;
+        margin: 0;
+        &:hover {
+          opacity: 1;
+          box-shadow: none;
+        }
       }
     }
 
@@ -351,13 +351,13 @@
       position: relative;
       max-width: 150px;
       width: 100%;
-        margin: 0 auto 0 0;
+      margin: 0 auto 0 0;
       select {
         all: unset;
         display: block;
         width: 100%;
         height: 100%;
-          padding: 0 10px 0 0;
+        padding: 0 10px 0 0;
         cursor: pointer;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -376,7 +376,7 @@
       display: flex;
       align-items: center;
       position: relative;
-        display: block;
+      display: block;
     }
 
     .input-group input {
@@ -386,9 +386,9 @@
       border: none;
       text-align: center;
       box-sizing: border-box;
-        padding: 10px 0;
-        margin: auto;
-        width: 50px;
+      padding: 10px 0;
+      margin: auto;
+      width: 50px;
     }
 
     select:not(.editor-select select):not(.milestone-select select),
@@ -479,9 +479,9 @@ a {
   background: white !important;
   color: black !important;
 
-    &:hover:not([data-toggle]) {
-        background-color: rgba(0, 0, 0, 0.1) !important;
-    }
+  &:hover:not([data-toggle]) {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+  }
 }
 
 .status-circle {
@@ -493,7 +493,7 @@ a {
   border-radius: 50%;
   padding: 0 !important;
   flex-shrink: 0;
-    margin: auto 5px auto 0;
+  margin: auto 5px auto 0;
 
   &.label-warning,
   &.label-yellow {
@@ -1072,37 +1072,37 @@ select#dateOptions {
   }
 }
 #projectOverviewTabs .ts-dropdown-content {
-    background-color: #fff;
-    cursor: text;
+  background-color: #fff;
+  cursor: text;
 }
 #projectOverviewTabs .ts-wrapper:not(.form-control, .form-select) {
-    height: auto;
-    min-height: 30px;
+  height: auto;
+  min-height: 30px;
 
-    .item {
-        z-index: 99 !important;
-    }
+  .item {
+    z-index: 99 !important;
+  }
 }
 
 /* TomSelect dropdown - align text to left and position spinner absolutely */
 .ts-dropdown {
-    .ts-dropdown-content {
-        position: relative;
-        text-align: left !important;
-    }
+  .ts-dropdown-content {
+    position: relative;
+    text-align: left !important;
+  }
 
-    .spinner,
-    .loading {
-        position: absolute !important;
-        right: 8px !important;
-        top: 10px !important;
-        left: auto !important;
-        margin: 0 !important;
-        transform: scale(0.7);
-        transform-origin: top right;
-    }
+  .spinner,
+  .loading {
+    position: absolute !important;
+    right: 8px !important;
+    top: 10px !important;
+    left: auto !important;
+    margin: 0 !important;
+    transform: scale(0.7);
+    transform-origin: top right;
+  }
 
-    .spinner::after {
-        margin: 0 !important;
-    }
+  .spinner::after {
+    margin: 0 !important;
+  }
 }

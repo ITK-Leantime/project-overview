@@ -71,15 +71,15 @@
                                                         @if ($column == 'headline')
                                                             <td class="spacious">
                                                                 <a href="#/tickets/showTicket/{{ $row->id }}"
-                                                                   data-tippy-content="#{{ $row->id }} - {{ $row->headline }}"
-                                                                   data-tippy-placement="top">
+                                                                    data-tippy-content="#{{ $row->id }} - {{ $row->headline }}"
+                                                                    data-tippy-placement="top">
                                                                     {{ $row->headline }}
                                                                 </a>
                                                                 @if ($row->type === 'subtask' && isset($row->dependingTicketId) && $row->dependingTicketId > 0)
                                                                     <a href="#/tickets/showTicket/{{ $row->dependingTicketId }}"
-                                                                       class="subtask-icon-link"
-                                                                       data-tippy-content="Subtask of [#{{ $row->dependingTicketId }} - {{ $row->parentHeadline }}]"
-                                                                       data-tippy-placement="top">
+                                                                        class="subtask-icon-link"
+                                                                        data-tippy-content="Subtask of [#{{ $row->dependingTicketId }} - {{ $row->parentHeadline }}]"
+                                                                        data-tippy-placement="top">
                                                                         <i class="fa fa-code-branch subtask-icon"></i>
                                                                     </a>
                                                                 @endif
@@ -106,7 +106,8 @@
                                                                         id="status-ticket-{{ $row->id }}"
                                                                         class="table-button table-button-status {!! $userViewsData->statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"
                                                                         data-toggle="dropdown">
-                                                                        <span class="status-circle {!! $userViewsData->statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"></span>
+                                                                        <span
+                                                                            class="status-circle {!! $userViewsData->statusLabels[$row->projectId][$row->status]['class'] ?? '' !!}"></span>
                                                                         <span
                                                                             id="status-label">{{ $userViewsData->statusLabels[$row->projectId][$row->status]['name'] ?? '' }}</span>
                                                                         <i class="fa fa-caret-down"></i>
@@ -118,7 +119,8 @@
                                                                                     <button
                                                                                         class="table-button table-button-status status {!! $label['class'] !!}"
                                                                                         data-args="{{ $row->id }},{{ $newStatusId }},{{ $label['class'] }},{{ $label['name'] }}">
-                                                                                        <span class="status-circle {!! $label['class'] !!}"></span>
+                                                                                        <span
+                                                                                            class="status-circle {!! $label['class'] !!}"></span>
                                                                                         {{ $label['name'] }}
                                                                                     </button>
                                                                                 </li>
@@ -255,16 +257,15 @@
                                                         @if ($column == 'tags')
                                                             <td>
                                                                 <select class="ticket-tags-select"
-                                                                        id="tags-{{ $row->id }}"
-                                                                        data-ticket-id="{{ $row->id }}"
-                                                                        name="tags[]"
-                                                                        multiple
-                                                                        autocomplete="off">
+                                                                    id="tags-{{ $row->id }}"
+                                                                    data-ticket-id="{{ $row->id }}" name="tags[]"
+                                                                    multiple autocomplete="off">
                                                                     @if (!empty($row->tags))
                                                                         @foreach (explode(',', $row->tags) as $tag)
                                                                             @php $trimmedTag = trim($tag); @endphp
                                                                             @if (!empty($trimmedTag))
-                                                                                <option value="{{ $trimmedTag }}" selected>{{ $trimmedTag }}</option>
+                                                                                <option value="{{ $trimmedTag }}"
+                                                                                    selected>{{ $trimmedTag }}</option>
                                                                             @endif
                                                                         @endforeach
                                                                     @endif
