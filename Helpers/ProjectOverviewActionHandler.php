@@ -299,22 +299,9 @@ readonly class ProjectOverviewActionHandler
         // Get all users
         $allUsers = $this->userService->getAll();
 
+        // Loop users, get views and try to find a match.
         foreach ($allUsers as $user) {
-            $userViewsEncoded = $this->userRepository->getUserSettings($user['id'], 'projectoverview.view');
-
-            if (!$userViewsEncoded) {
-                continue;
-            }
-
-            $json = base64_decode($userViewsEncoded, true);
-            if ($json === false) {
-                continue;
-            }
-
-            $userViews = json_decode($json, true);
-            if (!is_array($userViews)) {
-                continue;
-            }
+            $userViews = $this->getUserViewsObject($user['id']);
 
             foreach ($userViews as $viewData) {
                 $view = UserViewDTO::fromArray($viewData);
@@ -380,14 +367,19 @@ readonly class ProjectOverviewActionHandler
     }
 
     /**
-     * Retrieves and decodes the users-views object.
+     * Retrieves the user views object for a given user ID.
      *
-     * @return array<string, mixed> Decoded array representing user views if successful, or null if retrieval or decoding fails.
+     * @param ?string $userId The ID of the user whose views object is to be retrieved.
+     * @return array<string, mixed> The user's views object as an associative array. Returns an empty array if no settings exist or decoding fails.
      */
-    public function getUserViewsObject(): array
+    public function getUserViewsObject(?string $userId = null): array
     {
+        if (!$userId)
+        {
+            $userId = session('userdata.id');
+        }
         // Retrieve user settings from user table
-        $userViewsEncoded = $this->userRepository->getUserSettings(session('userdata.id'), 'projectoverview.view');
+        $userViewsEncoded = $this->userRepository->getUserSettings($userId, 'projectoverview.view');
 
         if (!$userViewsEncoded) {
             return [];

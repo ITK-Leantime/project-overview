@@ -112,6 +112,9 @@ readonly class ProjectOverviewHelper
         $allPriorities = $this->ticketService->getPriorityLabels();
         $allStatusLabels = $this->ticketService->getStatusLabels();
 
+        // Calculate date ranges for each option using the service
+        $dateRanges = $this->projectOverviewService->calculateAllDateRanges();
+
         // Default user views data
         $userViewsData = [
             'users' => [],
@@ -172,6 +175,8 @@ readonly class ProjectOverviewHelper
             selectedColumns: $userViewsData['selectedColumns'],
             users: $userViewsData['users'],
             selectedViewId: $userViewsData['selectedViewId'],
+            dateRanges: $dateRanges,
         );
     }
+
 }

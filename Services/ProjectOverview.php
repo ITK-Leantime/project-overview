@@ -76,19 +76,14 @@ class ProjectOverview
      */
     public function getViewTasks(ViewDTO $viewDTO): array
     {
-        $today = CarbonImmutable::now()->startOfDay();
-
         $newFromDate = $viewDTO->fromDate;
         $newToDate = $viewDTO->toDate;
 
         // Determine from and to date based on dateType selection.
         if ($viewDTO->dateType !== DateTypeEnum::CUSTOM) {
-            $newFromDate = $today->format('Y-m-d');
-            $newToDate = (match ($viewDTO->dateType) {
-                DateTypeEnum::THIS_WEEK => $today->modify('monday this week +6 days'),
-                DateTypeEnum::NEXT_THREE_WEEKS => $today->modify('monday this week +20 days'),
-                default => $today->modify('monday this week +13 days'),
-            })->format('Y-m-d');
+            $dateRange = $this->calculateDateRangeForType($viewDTO->dateType);
+            $newFromDate = $dateRange['start'];
+            $newToDate = $dateRange['end'];
         } elseif ($viewDTO->fromDate && $viewDTO->toDate) {
             $newFromDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->fromDate)->format('Y-m-d');
             $newToDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->toDate)->format('Y-m-d');
@@ -108,6 +103,49 @@ class ProjectOverview
         );
 
         return $this->projectOverviewRepository->getViewTasks($processedDTO);
+    }
+
+    /**
+     * Calculate date range for a given date type.
+     *
+     * @param DateTypeEnum $dateType The date type to calculate range for
+     * @return array<string, string> Array with 'start' and 'end' keys in Y-m-d format
+     * @api
+     */
+    public function calculateDateRangeForType(DateTypeEnum $dateType): array
+    {
+        $today = CarbonImmutable::now()->startOfDay();
+        $monday = $today->modify('monday this week');
+
+        return match ($dateType) {
+            DateTypeEnum::THIS_WEEK => [
+                'start' => $monday->format('Y-m-d'),
+                'end' => $monday->modify('+6 days')->format('Y-m-d'),
+            ],
+            DateTypeEnum::NEXT_THREE_WEEKS => [
+                'start' => $monday->format('Y-m-d'),
+                'end' => $monday->modify('+20 days')->format('Y-m-d'),
+            ],
+            default => [ // NEXT_TWO_WEEKS
+                'start' => $monday->format('Y-m-d'),
+                'end' => $monday->modify('+13 days')->format('Y-m-d'),
+            ],
+        };
+    }
+
+    /**
+     * Calculate all date ranges for filter options.
+     *
+     * @return array<string, array<string, string>> Array of date ranges keyed by date type value
+     * @api
+     */
+    public function calculateAllDateRanges(): array
+    {
+        return [
+            DateTypeEnum::THIS_WEEK->value => $this->calculateDateRangeForType(DateTypeEnum::THIS_WEEK),
+            DateTypeEnum::NEXT_TWO_WEEKS->value => $this->calculateDateRangeForType(DateTypeEnum::NEXT_TWO_WEEKS),
+            DateTypeEnum::NEXT_THREE_WEEKS->value => $this->calculateDateRangeForType(DateTypeEnum::NEXT_THREE_WEEKS),
+        ];
     }
 
     /**

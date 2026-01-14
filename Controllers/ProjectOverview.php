@@ -4,10 +4,8 @@ namespace Leantime\Plugins\ProjectOverview\Controllers;
 
 use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Support\Facades\Log;
 use Leantime\Core\Controller\Controller;
 use Leantime\Core\Controller\Frontcontroller;
-use Leantime\Core\Events\EventDispatcher;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth as AuthService;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
@@ -93,7 +91,7 @@ class ProjectOverview extends Controller
     }
 
     /**
-     * Gathers data, services it as ProjectOverviewDTO and feeds it to the template.
+     * Gathers users view data and feeds it to the template.
      *
      * @return Response
      * @throws BindingResolutionException
@@ -102,7 +100,7 @@ class ProjectOverview extends Controller
     public function get(): Response
     {
         // Handle shared view import
-        if (isset($_GET['share']) && !empty($_GET['share'])) {
+        if (!empty($_GET['share'])) {
             $shareToken = $_GET['share'];
             $sharedView = $this->actionHandler->findViewByShareToken($shareToken);
 
@@ -115,17 +113,23 @@ class ProjectOverview extends Controller
             }
         }
 
-        // Check for flash notification
+        // Check for flash notification and display it.
         if (session()->has('project_overview-flash_notification')) {
             $notification = session('project_overview-flash_notification');
             $this->tpl->setNotification($notification['message'], $notification['type']);
         }
 
+        // Get user views data.
         $userViewsData = $this->projectOverviewHelper->getProjectOverviewData();
+
+        // Get unique tags for the tag search field.
         $allTags = $this->projectOverviewService->getAllUniqueTags();
 
+        // Assign data to template.
         $this->tpl->assign('userViewsData', $userViewsData);
         $this->tpl->assign('allTags', $allTags);
+
+        // Display template.
         return $this->tpl->display('ProjectOverview.projectOverview');
     }
 

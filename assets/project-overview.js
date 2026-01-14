@@ -24,8 +24,13 @@ $(document).ready(function () {
   // end HTMX swap events
 });
 
+/**
+ * Initializes the project overview filters by setting up various UI components.
+ *
+ * @return {void} This function does not return a value.
+ */
 function initProjectOverviewFilters() {
-  // Flatpickr
+  // Init date range select
   const dateRange = flatpickr('#dateRange', {
     mode: 'range',
     dateFormat: 'd-m-Y',
@@ -35,7 +40,7 @@ function initProjectOverviewFilters() {
     locale: Danish,
   });
 
-  // Filter select2
+  // Init filter select2
   const filterSelect = $('#filterSelect')
     .select2({
       closeOnSelect: false,
@@ -56,7 +61,7 @@ function initProjectOverviewFilters() {
     return filterSelect.select2('data')?.length;
   });
 
-  // Columns select2
+  // Init column select2
   const columnSelect = $('#columnSelect')
     .select2({
       closeOnSelect: false,
@@ -74,44 +79,30 @@ function initProjectOverviewFilters() {
     return columnSelect.select2('data')?.length;
   });
 
+
   $('#dateOptions')
     .on('change', function () {
       const dateRangeElement = $(document).find('div.date-range-filter');
       const dateRangeInput = $('#dateRange');
-      const selectedOption = $(this).val();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      const selectedOption = $(this).find('option:selected');
 
-      // Get Monday of current week
-      const monday = new Date(today);
-      monday.setDate(monday.getDate() - monday.getDay() + 1);
+      // Get pre-calculated dates from data attributes
+      const startDate = selectedOption.data('start-date');
+      const endDate = selectedOption.data('end-date');
 
-      let endDate;
-      if (selectedOption === 'this week') {
-        // THIS_WEEK: monday this week +6 days
-        endDate = new Date(monday);
-        endDate.setDate(endDate.getDate() + 6);
-        dateRange.setDate([monday, endDate]);
+      if (startDate && endDate) {
+        // Parse YYYY-MM-DD format to Date objects
+        const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+
+        const start = new Date(startYear, startMonth - 1, startDay);
+        const end = new Date(endYear, endMonth - 1, endDay);
+
+        dateRange.setDate([start, end]);
         dateRange.set('clickOpens', false);
         $(dateRangeElement).addClass('date-range-disabled');
         dateRangeInput.prop('readonly', true);
-      } else if (selectedOption === 'next two weeks') {
-        // Default case: monday this week +13 days
-        endDate = new Date(monday);
-        endDate.setDate(endDate.getDate() + 13);
-        dateRange.setDate([monday, endDate]);
-        dateRange.set('clickOpens', false);
-        $(dateRangeElement).addClass('date-range-disabled');
-        dateRangeInput.prop('readonly', true);
-      } else if (selectedOption === 'next three weeks') {
-        // NEXT_THREE_WEEKS: monday this week +20 days
-        endDate = new Date(monday);
-        endDate.setDate(endDate.getDate() + 20);
-        dateRange.setDate([monday, endDate]);
-        dateRange.set('clickOpens', false);
-        $(dateRangeElement).addClass('date-range-disabled');
-        dateRangeInput.prop('readonly', true);
-      } else if (selectedOption === 'custom') {
+      } else if (selectedOption.val() === 'custom') {
         dateRange.set('clickOpens', true);
         $(dateRangeElement).removeClass('date-range-disabled');
         dateRangeInput.prop('readonly', false);
@@ -119,7 +110,7 @@ function initProjectOverviewFilters() {
     })
     .trigger('change');
 
-  // Assignee select2
+  // Init assignee select2
   const userSelect = $('#userSelect')
     .select2({
       closeOnSelect: false,

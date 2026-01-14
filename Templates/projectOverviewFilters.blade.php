@@ -15,13 +15,19 @@
     <div class="date-options">
         <select name="dateType" id="dateOptions">
             <option value="{{ DateTypeEnum::THIS_WEEK->value }}"
-                {{ $filtersData->dateType === DateTypeEnum::THIS_WEEK->value ? 'selected' : '' }}>
+                {{ $filtersData->dateType === DateTypeEnum::THIS_WEEK->value ? 'selected' : '' }}
+                data-start-date="{{ $filtersData->dateRanges[DateTypeEnum::THIS_WEEK->value]['start'] ?? '' }}"
+                data-end-date="{{ $filtersData->dateRanges[DateTypeEnum::THIS_WEEK->value]['end'] ?? '' }}">
                 {{ __('projectOverview.this_week') }}</option>
             <option value="{{ DateTypeEnum::NEXT_TWO_WEEKS->value }}"
-                {{ $filtersData->dateType === DateTypeEnum::NEXT_TWO_WEEKS->value ? 'selected' : '' }}>
+                {{ $filtersData->dateType === DateTypeEnum::NEXT_TWO_WEEKS->value ? 'selected' : '' }}
+                data-start-date="{{ $filtersData->dateRanges[DateTypeEnum::NEXT_TWO_WEEKS->value]['start'] ?? '' }}"
+                data-end-date="{{ $filtersData->dateRanges[DateTypeEnum::NEXT_TWO_WEEKS->value]['end'] ?? '' }}">
                 {{ __('projectOverview.next_two_weeks') }}</option>
             <option value="{{ DateTypeEnum::NEXT_THREE_WEEKS->value }}"
-                {{ $filtersData->dateType === DateTypeEnum::NEXT_THREE_WEEKS->value ? 'selected' : '' }}>
+                {{ $filtersData->dateType === DateTypeEnum::NEXT_THREE_WEEKS->value ? 'selected' : '' }}
+                data-start-date="{{ $filtersData->dateRanges[DateTypeEnum::NEXT_THREE_WEEKS->value]['start'] ?? '' }}"
+                data-end-date="{{ $filtersData->dateRanges[DateTypeEnum::NEXT_THREE_WEEKS->value]['end'] ?? '' }}">
                 {{ __('projectOverview.next_three_weeks') }}</option>
             <option value="{{ DateTypeEnum::CUSTOM->value }}"
                 {{ $filtersData->dateType === DateTypeEnum::CUSTOM->value ? 'selected' : '' }}>

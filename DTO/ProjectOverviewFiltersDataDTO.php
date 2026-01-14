@@ -26,6 +26,7 @@ readonly class ProjectOverviewFiltersDataDTO
      * @param array<string>                    $selectedColumns An array of selected column names.
      * @param array<int>                       $users           Users associated or involved (array of user IDs).
      * @param string|null                      $selectedViewId  The ID of the selected view, can be null.
+     * @param array<string, array<string, string>> $dateRanges Pre-calculated date ranges for each date type option.
      */
     public function __construct(
         public array $allUsers,
@@ -44,6 +45,7 @@ readonly class ProjectOverviewFiltersDataDTO
         public array $selectedColumns,
         public array $users,
         public ?string $selectedViewId,
+        public array $dateRanges = [],
     ) {
     }
 }

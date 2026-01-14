@@ -109,26 +109,18 @@ class ProjectOverview
             ->where('ticket.type', '<>', 'milestone')
             ->where('ticket.status', '>', '0')
             ->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
-                if ($viewDTO->dateType !== DateTypeEnum::CUSTOM) {
-                    $today = CarbonImmutable::now()->startOfDay();
-                    $startDate = $today->modify('monday this week');
-                    $endDate = match ($viewDTO->dateType) {
-                        DateTypeEnum::THIS_WEEK => $startDate->modify('+1 week')->subDay(),
-                        DateTypeEnum::NEXT_THREE_WEEKS => $startDate->modify('+3 weeks')->subDay(),
-                        default => $startDate->modify('+2 weeks')->subDay(),
-                    };
-                        $query->where('ticket.dateToFinish', '>=', $startDate)
-                         ->where('ticket.dateToFinish', '<', $endDate->addDay());
-                } elseif ($fromDate && $toDate) {
-                    $fromDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->fromDate);
-                    $toDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->toDate);
-                    $query->whereBetween('ticket.dateToFinish', [$fromDate, $toDate]);
+                // Date ranges are already calculated in the Service layer and passed via DTO
+                if ($fromDate && $toDate) {
+                    $startDate = CarbonImmutable::createFromFormat('Y-m-d', $fromDate)->startOfDay();
+                    $endDate = CarbonImmutable::createFromFormat('Y-m-d', $toDate)->endOfDay();
+                    $query->where('ticket.dateToFinish', '>=', $startDate)
+                        ->where('ticket.dateToFinish', '<=', $endDate);
                 }
 
                 if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
                     $query->orWhereBetween('ticket.dateToFinish', [
                         CarbonImmutable::createFromFormat(self::DATE_FORMAT, '2023-03-14')->endOfDay(),
-                        $toDate ?? CarbonImmutable::now(),
+                        $toDate ? CarbonImmutable::createFromFormat('Y-m-d', $toDate) : CarbonImmutable::now(),
                     ]);
                 }
 
