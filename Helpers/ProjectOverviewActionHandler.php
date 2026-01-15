@@ -19,7 +19,6 @@ readonly class ProjectOverviewActionHandler
     private const FILTER_PREFIX_PRIORITY = 'priority_';
     private const FILTER_PREFIX_STATUS = 'status_';
     private const FILTER_PREFIX_CUSTOM = 'custom_';
-    private const DATE_FORMAT = 'Y-m-d';
 
     /**
      * Initialize dependencies.
@@ -56,7 +55,6 @@ readonly class ProjectOverviewActionHandler
         $columns = $postData['columns'] ?? [];
         $filters = $postData['filters'] ?? [];
 
-        // Destruct combined filter post object.
         $groupedFilters = [
             'projects' => [],
             'priorities' => [],
@@ -64,6 +62,7 @@ readonly class ProjectOverviewActionHandler
             'custom' => [],
         ];
 
+        // Destruct combined filter post object.
         foreach ($filters as $filter) {
             if (preg_match('/^([^_]+)_(.+)/', $filter, $matches)) {
                 [, $group, $value] = $matches;
@@ -100,14 +99,15 @@ readonly class ProjectOverviewActionHandler
 
         // Check if view already exists and overwrite if requested.
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
-            // Update the existing view, preserve share token
+            // Update the existing view, preserve share token and order
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
             $userViewsObject[$existingViewId] = new UserViewDTO(
                 id: $existingView->id,
                 title: $existingView->title,
                 view: $viewDTO,
                 shareToken: $existingView->shareToken,
-                createdAt: $existingView->createdAt
+                createdAt: $existingView->createdAt,
+                order: $existingView->order
             );
             $redirectUrl .= '?view=' . $existingViewId;
             session()->flash('project_overview-flash_notification', [
@@ -115,6 +115,13 @@ readonly class ProjectOverviewActionHandler
                 'type' => 'success',
             ]);
         } else {
+            // Calculate the next order value (max order + 1)
+            $maxOrder = 0;
+            foreach ($userViewsObject as $view) {
+                $viewDTO_temp = UserViewDTO::fromArray($view);
+                $maxOrder = max($maxOrder, $viewDTO_temp->order);
+            }
+
             // Create a new view with unique ID
             $newViewId = uniqid('view_', true);
             $userViewsObject[$newViewId] = new UserViewDTO(
@@ -122,7 +129,8 @@ readonly class ProjectOverviewActionHandler
                 title: 'View ' . (count($userViewsObject) + 1),
                 view: $viewDTO,
                 shareToken: null,
-                createdAt: time()
+                createdAt: time(),
+                order: $maxOrder + 1
             );
             $redirectUrl .= '?view=' . $newViewId;
             session()->flash('project_overview-flash_notification', [
@@ -179,7 +187,7 @@ readonly class ProjectOverviewActionHandler
         $userViewsObject = $this->getUserViewsObject();
 
         // Replace spaces with underscores for better handling.
-        $viewName = str_replace(' ', '_', $_POST['viewName']);
+        $viewName = str_replace(' ', '_', $viewName);
 
         // Update the view with the new title
         if (isset($userViewsObject[$viewId])) {
@@ -190,7 +198,8 @@ readonly class ProjectOverviewActionHandler
                 title: $viewName,
                 view: $existingView->view,
                 shareToken: $existingView->shareToken,
-                createdAt: $existingView->createdAt
+                createdAt: $existingView->createdAt,
+                order: $existingView->order
             );
 
             $this->saveUserViewsObject($userViewsObject);
@@ -236,7 +245,8 @@ readonly class ProjectOverviewActionHandler
             title: $existingView->title,
             view: $existingView->view,
             shareToken: $shareToken,
-            createdAt: $existingView->createdAt
+            createdAt: $existingView->createdAt,
+            order: $existingView->order
         );
 
         $this->saveUserViewsObject($userViewsObject);
@@ -280,6 +290,13 @@ readonly class ProjectOverviewActionHandler
     {
         $userViewsObject = $this->getUserViewsObject();
 
+        // Calculate the next order value (max order + 1)
+        $maxOrder = 0;
+        foreach ($userViewsObject as $view) {
+            $viewDTO = UserViewDTO::fromArray($view);
+            $maxOrder = max($maxOrder, $viewDTO->order);
+        }
+
         // Create a new view with a unique ID (no share token for the copy)
         $newViewId = uniqid('view_', true);
         $userViewsObject[$newViewId] = new UserViewDTO(
@@ -287,7 +304,8 @@ readonly class ProjectOverviewActionHandler
             title: $sharedView->title . ' (Shared)',
             view: $sharedView->view,
             shareToken: null,
-            createdAt: time()
+            createdAt: time(),
+            order: $maxOrder + 1
         );
 
         $this->saveUserViewsObject($userViewsObject);
@@ -346,7 +364,16 @@ readonly class ProjectOverviewActionHandler
             return [];
         }
         // Json decode
-        return json_decode($json, true) ?? [];
+        $userViews = json_decode($json, true) ?? [];
+
+        // Sort views by order attribute
+        uasort($userViews, function ($a, $b) {
+            $orderA = $a['order'] ?? 0;
+            $orderB = $b['order'] ?? 0;
+            return $orderA <=> $orderB;
+        });
+
+        return $userViews;
     }
 
     /**
@@ -399,23 +426,25 @@ readonly class ProjectOverviewActionHandler
                 ]));
             }
 
-            $reorderedUserViews = [];
-
-            // Reorder views based on the new order.
-            foreach ($newOrder as $viewKey) {
+            // Update the order attribute for each view based on its position in the newOrder array
+            foreach ($newOrder as $index => $viewKey) {
                 if (isset($userViewsObject[$viewKey])) {
-                    $reorderedUserViews[$viewKey] = $userViewsObject[$viewKey];
-                }
-            }
+                    $existingView = UserViewDTO::fromArray($userViewsObject[$viewKey]);
 
-            foreach ($userViewsObject as $key => $view) {
-                if (!isset($reorderedUserViews[$key])) {
-                    $reorderedUserViews[$key] = $view;
+                    // Create a new UserViewDTO with updated order
+                    $userViewsObject[$viewKey] = new UserViewDTO(
+                        id: $existingView->id,
+                        title: $existingView->title,
+                        view: $existingView->view,
+                        shareToken: $existingView->shareToken,
+                        createdAt: $existingView->createdAt,
+                        order: $index
+                    );
                 }
             }
 
             // Save updated views object
-            $this->saveUserViewsObject($reorderedUserViews);
+            $this->saveUserViewsObject($userViewsObject);
 
             exit(json_encode([
                 'status' => 'success',

@@ -15,13 +15,15 @@ readonly class UserViewDTO
      * @param ViewDTO     $view       The view configuration
      * @param string|null $shareToken Token for sharing this view (optional)
      * @param int|null    $createdAt  Unix timestamp when view was created
+     * @param int         $order      Display order of the view (lower numbers appear first)
      */
     public function __construct(
         public string $id,
         public string $title,
         public ViewDTO $view,
         public ?string $shareToken = null,
-        public ?int $createdAt = null
+        public ?int $createdAt = null,
+        public int $order = 0
     ) {
     }
 
@@ -49,6 +51,7 @@ readonly class UserViewDTO
             ],
             'shareToken' => $this->shareToken,
             'createdAt' => $this->createdAt,
+            'order' => $this->order,
         ];
     }
 
@@ -87,7 +90,8 @@ readonly class UserViewDTO
                 customFilters: $viewData['customFilters'] ?? []
             ),
             shareToken: $data['shareToken'] ?? null,
-            createdAt: $data['createdAt'] ?? null
+            createdAt: $data['createdAt'] ?? null,
+            order: $data['order'] ?? 0
         );
     }
 }
