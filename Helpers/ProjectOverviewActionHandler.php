@@ -96,7 +96,6 @@ readonly class ProjectOverviewActionHandler
 
         $userViewsObject = $this->getUserViewsObject();
         $existingViewId = $postData['viewId'] ?? null;
-        $resultViewId = null;
 
         // Check if view already exists and overwrite if requested.
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
