@@ -331,13 +331,11 @@ readonly class ProjectOverviewActionHandler
             }
         }
 
-        // Json encode
+        // JSON encode
         $json = json_encode($viewsArray);
-        // Base64 encode
-        $encodedViewObjects = base64_encode($json);
 
-        // Save to user settings in user table
-        $this->userService->updateUserSettings('projectoverview', 'view', $encodedViewObjects);
+        // Save to user settings in the user table
+        $this->userService->updateUserSettings('projectoverview', 'view', $json);
     }
 
     /**
@@ -352,19 +350,18 @@ readonly class ProjectOverviewActionHandler
             $userId = session('userdata.id');
         }
         // Retrieve user settings from user table
-        $userViewsEncoded = $this->userRepository->getUserSettings($userId, 'projectoverview.view');
+        $userViewsJson = $this->userRepository->getUserSettings($userId, 'projectoverview.view');
 
-        if (!$userViewsEncoded) {
+        if (!$userViewsJson) {
             return [];
         }
-        // base64 decode
-        $json = base64_decode($userViewsEncoded, true);
 
-        if ($json === false) {
+        // JSON decode
+        $userViews = json_decode($userViewsJson, true);
+
+        if (!is_array($userViews)) {
             return [];
         }
-        // Json decode
-        $userViews = json_decode($json, true) ?? [];
 
         // Sort views by order attribute
         uasort($userViews, function ($a, $b) {

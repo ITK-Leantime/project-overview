@@ -97,15 +97,15 @@
     <div class="save-view">
         @if (!empty($userViews))
             <button type="submit" name="overwriteView" value="1"
-                    onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
-                    class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
+                onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
+                class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
         @endif
         <button type="submit"
-                class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
-        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}"/>
+            class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
+        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}" />
         @if (!empty($userViews))
-            <button type="button" class="copy-view-button" data-original="{{ __('projectOverview.share_view_link') }}"
-                    name="copyView">
+            <button type="button" class="copy-view-button"
+                data-original="{{ __('projectOverview.share_view_link') }}" name="copyView">
                 {{ __('projectOverview.share_view_link') }}
             </button>
         @endif
