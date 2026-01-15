@@ -178,5 +178,4 @@ readonly class ProjectOverviewHelper
             dateRanges: $dateRanges,
         );
     }
-
 }

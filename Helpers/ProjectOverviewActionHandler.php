@@ -374,8 +374,7 @@ readonly class ProjectOverviewActionHandler
      */
     public function getUserViewsObject(?string $userId = null): array
     {
-        if (!$userId)
-        {
+        if (!$userId) {
             $userId = session('userdata.id');
         }
         // Retrieve user settings from user table

@@ -38,6 +38,22 @@ function initProjectOverviewFilters() {
     readonly: false,
     weekNumbers: true,
     locale: Danish,
+    onChange: function (selectedDates, dateStr, instance) {
+      if (selectedDates && selectedDates.length === 2) {
+        const [startDate, endDate] = selectedDates;
+
+        // Format dates to d-m-Y
+        const formatDate = (date) => {
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+        };
+
+        $('#fromDate').val(formatDate(startDate));
+        $('#toDate').val(formatDate(endDate));
+      }
+    },
   });
 
   // Init filter select2
@@ -79,7 +95,7 @@ function initProjectOverviewFilters() {
     return columnSelect.select2('data')?.length;
   });
 
-
+  // Init date range select
   $('#dateOptions')
     .on('change', function () {
       const dateRangeElement = $(document).find('div.date-range-filter');
@@ -92,7 +108,9 @@ function initProjectOverviewFilters() {
 
       if (startDate && endDate) {
         // Parse YYYY-MM-DD format to Date objects
-        const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+        const [startYear, startMonth, startDay] = startDate
+          .split('-')
+          .map(Number);
         const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
 
         const start = new Date(startYear, startMonth - 1, startDay);
