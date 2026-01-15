@@ -96,6 +96,7 @@ readonly class ProjectOverviewActionHandler
 
         $userViewsObject = $this->getUserViewsObject();
         $existingViewId = $postData['viewId'] ?? null;
+        $resultViewId = null;
 
         // Check if view already exists and overwrite if requested.
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
@@ -109,7 +110,9 @@ readonly class ProjectOverviewActionHandler
                 createdAt: $existingView->createdAt,
                 order: $existingView->order
             );
-            $redirectUrl .= '?view=' . $existingViewId;
+            $resultViewId = $existingViewId;
+
+
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_updated'),
                 'type' => 'success',
@@ -132,7 +135,7 @@ readonly class ProjectOverviewActionHandler
                 createdAt: time(),
                 order: $maxOrder + 1
             );
-            $redirectUrl .= '?view=' . $newViewId;
+            $resultViewId = $newViewId;
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.view_created'),
                 'type' => 'success',
@@ -141,7 +144,7 @@ readonly class ProjectOverviewActionHandler
 
         $this->saveUserViewsObject($userViewsObject);
 
-        return $redirectUrl;
+        return $redirectUrl . (str_contains($redirectUrl, '?') ? '&' : '?') . http_build_query(['viewId' => $resultViewId]);
     }
 
 
@@ -215,9 +218,7 @@ readonly class ProjectOverviewActionHandler
             ]);
         }
 
-        $redirectUrl .= '?view=' . $viewId;
-
-        return $redirectUrl;
+        return $redirectUrl . (str_contains($redirectUrl, '?') ? '&' : '?') . http_build_query(['viewId' => $viewId]);
     }
 
     /**
