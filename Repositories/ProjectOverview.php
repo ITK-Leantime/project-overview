@@ -57,6 +57,7 @@ class ProjectOverview
                 $query->where('state', '!=', '1')
                     ->orWhereNull('state');
             })
+            ->orderBy('name', 'ASC')
             ->get()
             ->keyBy('id')
             ->map(function ($item) {
@@ -113,8 +114,8 @@ class ProjectOverview
                 if ($fromDate && $toDate) {
                     $startDate = CarbonImmutable::createFromFormat('Y-m-d', $fromDate)->startOfDay();
                     $endDate = CarbonImmutable::createFromFormat('Y-m-d', $toDate)->endOfDay();
-                    $query->where('ticket.dateToFinish', '>=', $startDate)
-                        ->where('ticket.dateToFinish', '<=', $endDate);
+                    $query->where('ticket.dateToFinish', '>', $startDate)
+                        ->where('ticket.dateToFinish', '<', $endDate);
                 }
 
                 if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {

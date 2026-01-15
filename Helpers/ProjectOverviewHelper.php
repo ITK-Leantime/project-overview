@@ -43,9 +43,6 @@ readonly class ProjectOverviewHelper
         $userViewObject = $this->actionHandler->getUserViewsObject();
         $allProjects = $this->projectOverviewService->getAllProjects();
         $viewId = $_GET['view'] ?? null;
-        uasort($allProjects, function ($a, $b) {
-            return strcmp($a['name'], $b['name']);
-        });
         $allUsers = $this->userService->getAll();
 
         usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
@@ -120,8 +117,8 @@ readonly class ProjectOverviewHelper
         // Sort projects alphabetically
         uasort($allProjects, fn($a, $b) => strcmp($a['name'], $b['name']));
 
-        // Get precalculated date ranges
-        $dateRanges = $this->projectOverviewService->calculateAllDateRanges();
+        // Get precalculated date ranges for display (with inclusive end dates)
+        $dateRanges = $this->projectOverviewService->calculateDisplayDateRanges();
 
         // Default user views data
         $userViewsData = [

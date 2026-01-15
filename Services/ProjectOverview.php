@@ -120,21 +120,22 @@ class ProjectOverview
         return match ($dateType) {
             DateTypeEnum::THIS_WEEK => [
                 'start' => $monday->format('Y-m-d'),
-                'end' => $monday->modify('+6 days')->format('Y-m-d'),
+                'end' => $monday->modify('+1 week')->format('Y-m-d'),
             ],
             DateTypeEnum::NEXT_THREE_WEEKS => [
                 'start' => $monday->format('Y-m-d'),
-                'end' => $monday->modify('+20 days')->format('Y-m-d'),
+                'end' => $monday->modify('+3 weeks')->format('Y-m-d'),
             ],
             default => [ // NEXT_TWO_WEEKS
                 'start' => $monday->format('Y-m-d'),
-                'end' => $monday->modify('+13 days')->format('Y-m-d'),
+                'end' => $monday->modify('+2 weeks')->format('Y-m-d'),
             ],
         };
     }
 
     /**
      * Calculate all date ranges for filter options.
+     * Returns programmatic date ranges for predefined date range types.
      *
      * @return array<string, array<string, string>> Array of date ranges keyed by date type value
      * @api
@@ -146,6 +147,24 @@ class ProjectOverview
             DateTypeEnum::NEXT_TWO_WEEKS->value => $this->calculateDateRangeForType(DateTypeEnum::NEXT_TWO_WEEKS),
             DateTypeEnum::NEXT_THREE_WEEKS->value => $this->calculateDateRangeForType(DateTypeEnum::NEXT_THREE_WEEKS),
         ];
+    }
+
+    /**
+     * Calculate display-friendly date ranges for date range UI element.
+     *
+     * @return array<string, array<string, string>> Array of display date ranges keyed by date type value
+     * @api
+     */
+    public function calculateDisplayDateRanges(): array
+    {
+        $ranges = $this->calculateAllDateRanges();
+
+        foreach ($ranges as $key => $range) {
+            $endDate = CarbonImmutable::createFromFormat('Y-m-d', $range['end']);
+            $ranges[$key]['end'] = $endDate->subDay()->format('Y-m-d');
+        }
+
+        return $ranges;
     }
 
     /**
