@@ -8,7 +8,7 @@ use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
 use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 
 /**
- * This is the project overview repository, that makes (hopefully) the relevant sql queries.
+ * This is the project overview repository that makes the relevant SQL queries.
  */
 class ProjectOverview
 {
