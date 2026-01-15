@@ -103,7 +103,7 @@
         <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}" />
         <button type="button" class="copy-view-button" data-original="{{ __('projectOverview.share_view_link') }}"
             name="copyView">
-            <i class="fa fa-share-alt"></i> {{ __('projectOverview.share_view_link') }}
+            {{ __('projectOverview.share_view_link') }}
         </button>
     </div>
 </form>

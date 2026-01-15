@@ -152,6 +152,7 @@ class ProjectOverview extends Controller
             return $this->tpl->displayJson(['error' => 'View ID required'], 400);
         }
 
+        // Generate a share token for the view.
         $shareToken = $this->actionHandler->generateShareToken($viewId);
 
         if ($shareToken === false) {
