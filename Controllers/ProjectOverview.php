@@ -22,6 +22,7 @@ class ProjectOverview extends Controller
     private ProjectOverviewHelper $projectOverviewHelper;
 
     private \Leantime\Plugins\ProjectOverview\Services\ProjectOverview $projectOverviewService;
+    private ProjectOverviewActionHandler $projectOverviewActionHandler;
 
     /**
      * @param Template                     $tpl
@@ -29,12 +30,13 @@ class ProjectOverview extends Controller
      * @param ProjectOverviewHelper        $projectOverviewHelper
      * @return void
      */
-    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, \Leantime\Plugins\ProjectOverview\Services\ProjectOverview $projectOverviewService): void
+    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, \Leantime\Plugins\ProjectOverview\Services\ProjectOverview $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
     {
         $this->tpl = $tpl;
         $this->actionHandler = $actionHandler;
         $this->projectOverviewHelper = $projectOverviewHelper;
         $this->projectOverviewService = $projectOverviewService;
+        $this->projectOverviewActionHandler = $projectOverviewActionHandler;
     }
 
     /**
@@ -51,8 +53,12 @@ class ProjectOverview extends Controller
         // Get filters data.
         $filtersData = $this->projectOverviewHelper->getProjectOverviewFiltersData($data);
 
+        // Get user views data.
+        $userViews = $this->projectOverviewActionHandler->getUserViewsObject();
+
         // Assign data to template.
         $this->tpl->assign('filtersData', $filtersData);
+        $this->tpl->assign('userViews', $userViews);
 
         // Display template.
         return $this->tpl->display('ProjectOverview.projectOverviewFilters');
