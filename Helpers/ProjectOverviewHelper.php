@@ -100,19 +100,27 @@ readonly class ProjectOverviewHelper
     public function getProjectOverviewFiltersData(array $data): ProjectOverviewFiltersDataDTO
     {
         $selectedViewId = $data['id'] ?? null;
+
+        // Get all users
         $allUsers = $this->userService->getAll();
+        // Get all projects
+        $allProjects = $this->projectOverviewService->getAllProjects();
+        // Get all priorities
+        $allPriorities = $this->ticketService->getPriorityLabels();
+        // Get all status labels
+        $allStatusLabels = $this->ticketService->getStatusLabels();
+
+        // Add unassigned user option
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'Unassigned',
             'lastname' => '',
         ]);
-        $allProjects = $this->projectOverviewService->getAllProjects();
+
+        // Sort projects alphabetically
         uasort($allProjects, fn($a, $b) => strcmp($a['name'], $b['name']));
 
-        $allPriorities = $this->ticketService->getPriorityLabels();
-        $allStatusLabels = $this->ticketService->getStatusLabels();
-
-        // Calculate date ranges for each option using the service
+        // Get precalculated date ranges
         $dateRanges = $this->projectOverviewService->calculateAllDateRanges();
 
         // Default user views data

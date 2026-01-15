@@ -30,62 +30,6 @@ readonly class ProjectOverviewActionHandler
     }
 
     /**
-     * Adjusts the period based on the provided POST data.
-     *
-     * @param array<string, mixed> $postData The POST data containing fromDate, toDate, and backward flag.
-     * @return string The adjusted redirect URL.
-     */
-    public function adjustPeriod(array $postData, string $redirectUrl): string
-    {
-        $queryParams = [];
-
-        if (isset($postData['showThisWeek'])) {
-            $now = CarbonImmutable::now();
-            $queryParams['fromDate'] = $now->startOfWeek()->format(self::DATE_FORMAT);
-            $queryParams['toDate'] = $now->endOfWeek()->format(self::DATE_FORMAT);
-        }
-
-        if (isset($postData['fromDate']) && empty($postData['showThisWeek'])) {
-            $queryParams['fromDate'] = $postData['fromDate'];
-        }
-
-        if (isset($postData['toDate']) && empty($postData['showThisWeek'])) {
-            $queryParams['toDate'] = $postData['toDate'];
-        }
-
-        if (isset($postData['fromDate']) && isset($postData['toDate'])) {
-            $fromDate = CarbonImmutable::createFromFormat('d-m-Y', $postData['fromDate']);
-            $toDate = CarbonImmutable::createFromFormat('d-m-Y', $postData['toDate']);
-            $interval = $fromDate->diffInDays($toDate) + 1;
-
-            if (isset($postData['backward']) && $postData['backward'] == '1') {
-                $fromDate = $fromDate->subDays($interval);
-                $toDate = $toDate->subDays($interval);
-            } elseif (isset($postData['forward']) && $postData['forward'] == '1') {
-                $fromDate = $fromDate->addDays($interval);
-                $toDate = $toDate->addDays($interval);
-            }
-
-            $queryParams['fromDate'] = $fromDate->format(self::DATE_FORMAT);
-            $queryParams['toDate'] = $toDate->format(self::DATE_FORMAT);
-        }
-
-        if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
-            $queryParams['userIds'] = implode(',', array_map('trim', explode(',', $_GET['userIds'])));
-        }
-
-        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
-            $queryParams['searchTerm'] = $_GET['searchTerm'];
-        }
-
-        if (!empty($queryParams)) {
-            $redirectUrl .= '?' . http_build_query($queryParams);
-        }
-
-        return $redirectUrl;
-    }
-
-    /**
      * Saves a view.
      *
      * @param array<string, mixed> $postData    An associative array containing view data.
@@ -104,12 +48,15 @@ readonly class ProjectOverviewActionHandler
         if ($dateType === null) {
             $dateType = DateTypeEnum::NEXT_TWO_WEEKS;
         }
+        // If the dateType is custom, use the fromDate and toDate values from the daterange select.
         if ($dateType === DateTypeEnum::CUSTOM) {
             $fromDate = $postData['fromDate'] ?? null;
             $toDate = $postData['toDate'] ?? null;
         }
         $columns = $postData['columns'] ?? [];
         $filters = $postData['filters'] ?? [];
+
+        // Destruct combined filter post object.
         $groupedFilters = [
             'projects' => [],
             'priorities' => [],
@@ -120,7 +67,7 @@ readonly class ProjectOverviewActionHandler
         foreach ($filters as $filter) {
             if (preg_match('/^([^_]+)_(.+)/', $filter, $matches)) {
                 [, $group, $value] = $matches;
-                // Map the filter prefix to the grouped filter key
+                // Map the filter prefix to the grouped filter key.
                 $filterMap = [
                     rtrim(self::FILTER_PREFIX_PROJECT, '_') => 'projects',
                     rtrim(self::FILTER_PREFIX_PRIORITY, '_') => 'priorities',
@@ -134,6 +81,7 @@ readonly class ProjectOverviewActionHandler
             }
         }
 
+        // Create view DTO.
         $viewDTO = new ViewDTO(
             title: null,
             users: (array)$users,
@@ -150,8 +98,9 @@ readonly class ProjectOverviewActionHandler
         $userViewsObject = $this->getUserViewsObject();
         $existingViewId = $postData['viewId'] ?? null;
 
+        // Check if view already exists and overwrite if requested.
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
-            // Update existing view, preserve share token
+            // Update the existing view, preserve share token
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
             $userViewsObject[$existingViewId] = new UserViewDTO(
                 id: $existingView->id,
@@ -166,7 +115,7 @@ readonly class ProjectOverviewActionHandler
                 'type' => 'success',
             ]);
         } else {
-            // Create new view with unique ID
+            // Create a new view with unique ID
             $newViewId = uniqid('view_', true);
             $userViewsObject[$newViewId] = new UserViewDTO(
                 id: $newViewId,
@@ -197,7 +146,10 @@ readonly class ProjectOverviewActionHandler
      */
     public function deleteView(string $viewId): void
     {
+        // Get user views object
         $userViewsObject = $this->getUserViewsObject();
+
+        // Unset view and save.
         if (isset($userViewsObject[$viewId])) {
             unset($userViewsObject[$viewId]);
             $this->saveUserViewsObject($userViewsObject);
@@ -223,12 +175,16 @@ readonly class ProjectOverviewActionHandler
      */
     public function renameView(string $viewId, string $viewName, string $redirectUrl): string|false
     {
+        // Get user views object.
         $userViewsObject = $this->getUserViewsObject();
 
+        // Replace spaces with underscores for better handling.
+        $viewName = str_replace(' ', '_', $_POST['viewName']);
+
+        // Update the view with the new title
         if (isset($userViewsObject[$viewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$viewId]);
 
-            // Update the view with the new title
             $userViewsObject[$viewId] = new UserViewDTO(
                 id: $existingView->id,
                 title: $viewName,
@@ -425,6 +381,7 @@ readonly class ProjectOverviewActionHandler
     public function saveTabOrder(array $postData): void
     {
         try {
+            // Get user views object.
             $userViewsObject = $this->getUserViewsObject();
             $newOrder = $postData['order'] ?? [];
 
@@ -444,6 +401,7 @@ readonly class ProjectOverviewActionHandler
 
             $reorderedUserViews = [];
 
+            // Reorder views based on the new order.
             foreach ($newOrder as $viewKey) {
                 if (isset($userViewsObject[$viewKey])) {
                     $reorderedUserViews[$viewKey] = $userViewsObject[$viewKey];
@@ -456,6 +414,7 @@ readonly class ProjectOverviewActionHandler
                 }
             }
 
+            // Save updated views object
             $this->saveUserViewsObject($reorderedUserViews);
 
             exit(json_encode([

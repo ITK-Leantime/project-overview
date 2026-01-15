@@ -48,8 +48,13 @@ class ProjectOverview extends Controller
      */
     public function loadFilters(array $data): ?Response
     {
+        // Get filters data.
         $filtersData = $this->projectOverviewHelper->getProjectOverviewFiltersData($data);
+
+        // Assign data to template.
         $this->tpl->assign('filtersData', $filtersData);
+
+        // Display template.
         return $this->tpl->display('ProjectOverview.projectOverviewFilters');
     }
 
@@ -70,16 +75,13 @@ class ProjectOverview extends Controller
             case 'saveView':
                 $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl);
                 break;
-            case 'adjustPeriod':
-                $redirectUrl = $this->actionHandler->adjustPeriod($_POST, $redirectUrl);
-                break;
             case 'deleteView':
                 $viewId = $_POST['viewId'];
                 $this->actionHandler->deleteView($viewId);
                 break;
             case 'renameView':
                 $viewId = $_POST['viewId'];
-                $viewName = str_replace(' ', '_', $_POST['viewName']);
+                $viewName = $_POST['viewName'];
                 $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
                 break;
             case 'saveTabOrder':

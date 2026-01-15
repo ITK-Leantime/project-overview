@@ -156,9 +156,11 @@ function initProjectOverviewFilters() {
 }
 
 function initProjectOverviewTable() {
+  // Init tags select for each row.
   initTagsSelects();
   const contextMenu = $('#view-context-menu');
 
+  // Start sorting
   // Status change
   $(document).on('click', '.dropdown-item .table-button.status', function () {
     const [ticketId, newStatus, className, name] = $(this)
@@ -204,7 +206,7 @@ function initProjectOverviewTable() {
   });
   // end sorting
 
-  // Open .tab-context-menu when clicked on three dots beside view name.
+  // Init click event on context menu
   $(document).on('click', 'span.tab-context-menu', ({ target }) => {
     const currentName = $(target).siblings('.tab-link').first().text().trim();
     const rect = target.parentElement.getBoundingClientRect();
@@ -228,7 +230,7 @@ function initProjectOverviewTable() {
     }, 100);
   });
 
-  // Close .tab-context-menu when clicked outside.
+  // Close context menu when clicked outside.
   $(document).on('click', function (event) {
     if (
       !$(event.target).closest('#view-context-menu').length &&
@@ -262,6 +264,7 @@ function initProjectOverviewTable() {
   // Use window.jQuery to access the globally loaded jQuery UI
   const $projectOverviewTabs = window.jQuery('#projectOverviewTabs');
 
+  // Init view tabs with sorting
   $projectOverviewTabs
     .tabs({
       activate: function (event, ui) {
@@ -345,6 +348,7 @@ function initProjectOverviewTable() {
     }
   });
 
+  // Init copy view button click
   $(document).on('click', 'button.copy-view-button', function (e) {
     e.preventDefault();
     const button = $(this);
@@ -400,6 +404,7 @@ function initProjectOverviewTable() {
 function initTagsSelects() {
   const allTags = window.allTags || [];
 
+  // Loop tags select and init Tomselect
   document.querySelectorAll('.ticket-tags-select').forEach((selectElement) => {
     if (selectElement.tomselect) {
       return;
@@ -420,6 +425,7 @@ function initTagsSelects() {
           return callback();
         }
 
+        // Use allTags array bound to window in template
         const filtered = allTags
           .filter((tag) => tag.toLowerCase().includes(query.toLowerCase()))
           .slice(0, 50)
@@ -470,6 +476,7 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
   }
 }
 
+// change priority ajax
 function changePriority(ticketId, newPriorityId, newLabel) {
   if (newPriorityId && ticketId) {
     jQuery
@@ -501,6 +508,7 @@ function changePriority(ticketId, newPriorityId, newLabel) {
   }
 }
 
+// Change duedate ajax
 function changeDueDate(event, ticketId, newDueDate) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -527,6 +535,7 @@ function changeDueDate(event, ticketId, newDueDate) {
   }
 }
 
+// Change assigned user ajax
 function changeAssignedUser(event, ticketId, userId) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -549,6 +558,7 @@ function changeAssignedUser(event, ticketId, userId) {
   }
 }
 
+// Change plan hours ajax
 function changePlanHours(event, ticketId, newPlanHours) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -571,6 +581,7 @@ function changePlanHours(event, ticketId, newPlanHours) {
   }
 }
 
+// Change hours remaining ajax
 function changeHoursRemaining(event, ticketId, newHoursRemaining) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -593,6 +604,7 @@ function changeHoursRemaining(event, ticketId, newHoursRemaining) {
   }
 }
 
+// Change milestone ajax
 function changeMilestone(event, ticketId, newMilestoneId) {
   const parentElement = jQuery(event.target).closest('td');
   if (newMilestoneId && ticketId) {
@@ -614,6 +626,7 @@ function changeMilestone(event, ticketId, newMilestoneId) {
   }
 }
 
+// Change tags ajax
 function changeTags(event, ticketId, newTags) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -636,6 +649,7 @@ function changeTags(event, ticketId, newTags) {
   }
 }
 
+// Change sort
 function changeSortBy(sortBy) {
   const params = new URLSearchParams(document.location.search);
   const url = new URL(window.location.href);
@@ -653,6 +667,7 @@ function changeSortBy(sortBy) {
   window.location.assign(url);
 }
 
+// Save success animation
 function saveSuccess(elem) {
   elem.addClass('save-success');
 
@@ -661,6 +676,7 @@ function saveSuccess(elem) {
   }, 1000);
 }
 
+// Save error animation
 function saveError(elem) {
   elem.addClass('save-error');
 
