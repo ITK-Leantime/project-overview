@@ -178,16 +178,7 @@ class ProjectOverview
             ->toArray();
 
         // Split comma-separated tags and collect unique values
-        $uniqueTags = [];
-        foreach ($results as $tagString) {
-            $tags = explode(',', $tagString);
-            foreach ($tags as $tag) {
-                $tag = trim($tag);
-                if ($tag !== '' && !in_array($tag, $uniqueTags)) {
-                    $uniqueTags[] = $tag;
-                }
-            }
-        }
+        $uniqueTags = array_unique(array_filter(array_map('trim', explode(',', $tagString))));
 
         // Sort alphabetically
         sort($uniqueTags);
