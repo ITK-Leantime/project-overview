@@ -45,9 +45,10 @@ class ProjectOverview extends Controller
      *
      * @param array<string, string> $data
      *
-     * @used Called via HTMX GET request
      * @throws Exception
      * @return Response|null
+     *
+     * @noinspection PhpUnused Called via HTMX
      */
     public function loadFilters(array $data): ?Response
     {
@@ -147,6 +148,8 @@ class ProjectOverview extends Controller
      * Generate a share token for a view
      *
      * @return Response
+     *
+     * @noinspection PhpUnused Called via AJAX.
      */
     public function generateShareLink(): Response
     {
