@@ -7,10 +7,8 @@ import TomSelect from 'tom-select';
 import 'tom-select/dist/css/tom-select.bootstrap5.css';
 import './project-overview.css';
 
-
 $(document).ready(function () {
-
-    window.fronendDateFormat = $(document).find('#frontendDateFormat').val();
+  window.fronendDateFormat = $(document).find('#frontendDateFormat').val();
   initProjectOverviewFilters();
   initProjectOverviewTable();
 

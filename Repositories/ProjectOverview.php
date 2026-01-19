@@ -12,7 +12,6 @@ use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as projectOverview
  */
 class ProjectOverview
 {
-
     /**
      * Executes a database query using the specified database connection.
      *
