@@ -115,7 +115,7 @@ class ProjectOverview extends Controller
             if ($sharedView) {
                 $newViewId = $this->actionHandler->importSharedView($sharedView);
                 $this->tpl->setNotification(__('projectOverview.notification.view_imported'), 'success');
-                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?view=' . $newViewId);
+                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview' . http_build_query(['view' => $newViewId]));
             } else {
                 $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
             }
