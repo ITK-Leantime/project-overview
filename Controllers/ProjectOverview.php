@@ -11,6 +11,7 @@ use Leantime\Domain\Auth\Services\Auth as AuthService;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewHelper;
 use Symfony\Component\HttpFoundation\Response;
+use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as projectOverviewService;
 use Leantime\Core\UI\Template;
 
 /**
@@ -21,7 +22,7 @@ class ProjectOverview extends Controller
     private ProjectOverviewActionHandler $actionHandler;
     private ProjectOverviewHelper $projectOverviewHelper;
 
-    private \Leantime\Plugins\ProjectOverview\Services\ProjectOverview $projectOverviewService;
+    private projectOverviewService $projectOverviewService;
     private ProjectOverviewActionHandler $projectOverviewActionHandler;
 
     /**
@@ -30,7 +31,7 @@ class ProjectOverview extends Controller
      * @param ProjectOverviewHelper        $projectOverviewHelper
      * @return void
      */
-    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, \Leantime\Plugins\ProjectOverview\Services\ProjectOverview $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
+    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, projectOverviewService $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
     {
         $this->tpl = $tpl;
         $this->actionHandler = $actionHandler;
@@ -82,11 +83,11 @@ class ProjectOverview extends Controller
                 $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl);
                 break;
             case 'deleteView':
-                $viewId = $_POST['viewId'];
+                $viewId = $_POST['view'];
                 $this->actionHandler->deleteView($viewId);
                 break;
             case 'renameView':
-                $viewId = $_POST['viewId'];
+                $viewId = $_POST['view'];
                 $viewName = $_POST['viewName'];
                 $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
                 break;
@@ -115,7 +116,7 @@ class ProjectOverview extends Controller
             if ($sharedView) {
                 $newViewId = $this->actionHandler->importSharedView($sharedView);
                 $this->tpl->setNotification(__('projectOverview.notification.view_imported'), 'success');
-                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview' . http_build_query(['view' => $newViewId]));
+                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query(['view' => $newViewId]));
             } else {
                 $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
             }
@@ -136,9 +137,10 @@ class ProjectOverview extends Controller
         // Assign data to template.
         $this->tpl->assign('userViewsData', $userViewsData);
         $this->tpl->assign('allTags', $allTags);
+        $this->tpl->assign('frontendDateFormat', projectOverviewService::FRONTEND_DATE_FORMAT);
 
         // Display template.
-        return $this->tpl->display('ProjectOverview.projectOverview');
+        return $this->tpl->display('ProjectOverview.ProjectOverview');
     }
 
     /**
@@ -152,7 +154,7 @@ class ProjectOverview extends Controller
             return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
         }
 
-        $viewId = $_POST['viewId'] ?? null;
+        $viewId = $_POST['view'] ?? null;
 
         if (empty($viewId)) {
             return $this->tpl->displayJson(['error' => 'View ID required'], 400);
@@ -165,7 +167,7 @@ class ProjectOverview extends Controller
             return $this->tpl->displayJson(['error' => 'View not found'], 404);
         }
 
-        $shareUrl = BASE_URL . '/ProjectOverview/ProjectOverview?share=' . $shareToken;
+        $shareUrl = BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query(['share' => $shareToken]);
 
         return $this->tpl->displayJson([
             'success' => true,

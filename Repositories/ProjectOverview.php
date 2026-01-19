@@ -5,14 +5,13 @@ namespace Leantime\Plugins\ProjectOverview\Repositories;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
-use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
+use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as projectOverviewService;
 
 /**
  * This is the project overview repository that makes the relevant SQL queries.
  */
 class ProjectOverview
 {
-    private const DATE_FORMAT = 'Y-m-d';
 
     /**
      * Executes a database query using the specified database connection.
@@ -112,16 +111,16 @@ class ProjectOverview
             ->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
                 // Date ranges are already calculated in the Service layer and passed via DTO
                 if ($fromDate && $toDate) {
-                    $startDate = CarbonImmutable::createFromFormat('Y-m-d', $fromDate)->startOfDay();
-                    $endDate = CarbonImmutable::createFromFormat('Y-m-d', $toDate)->endOfDay();
+                    $startDate = CarbonImmutable::createFromFormat(projectOverviewService::BACKEND_DATE_FORMAT, $fromDate)->startOfDay();
+                    $endDate = CarbonImmutable::createFromFormat(projectOverviewService::BACKEND_DATE_FORMAT, $toDate)->endOfDay();
                     $query->where('ticket.dateToFinish', '>', $startDate)
                         ->where('ticket.dateToFinish', '<', $endDate);
                 }
 
                 if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
                     $query->orWhereBetween('ticket.dateToFinish', [
-                        CarbonImmutable::createFromFormat(self::DATE_FORMAT, '2023-03-14')->endOfDay(),
-                        $toDate ? CarbonImmutable::createFromFormat('Y-m-d', $toDate) : CarbonImmutable::now(),
+                        CarbonImmutable::createFromFormat(projectOverviewService::BACKEND_DATE_FORMAT, '2023-03-14')->endOfDay(),
+                        $toDate ? CarbonImmutable::createFromFormat(projectOverviewService::BACKEND_DATE_FORMAT, $toDate) : CarbonImmutable::now(),
                     ]);
                 }
 
@@ -178,7 +177,16 @@ class ProjectOverview
             ->toArray();
 
         // Split comma-separated tags and collect unique values
-        $uniqueTags = array_unique(array_filter(array_map('trim', explode(',', $tagString))));
+        $uniqueTags = [];
+        foreach ($results as $tagString) {
+            $tags = explode(',', $tagString);
+            foreach ($tags as $tag) {
+                $tag = trim($tag);
+                if ($tag !== '' && !in_array($tag, $uniqueTags)) {
+                    $uniqueTags[] = $tag;
+                }
+            }
+        }
 
         // Sort alphabetically
         sort($uniqueTags);

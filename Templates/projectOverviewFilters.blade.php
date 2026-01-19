@@ -102,7 +102,7 @@
         @endif
         <button type="submit"
             class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
-        <input type="hidden" name="viewId" value="{{ $filtersData->selectedViewId }}" />
+        <input type="hidden" name="view" value="{{ $filtersData->selectedViewId }}" />
         @if (!empty($userViews))
             <button type="button" class="copy-view-button"
                 data-original="{{ __('projectOverview.share_view_link') }}" name="copyView">

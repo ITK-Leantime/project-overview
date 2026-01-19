@@ -22,6 +22,9 @@ class ProjectOverview
         __DIR__ . '/../dist/js/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.js',
     ];
 
+    public const FRONTEND_DATE_FORMAT = 'd-m-Y';
+    public const BACKEND_DATE_FORMAT = 'Y-m-d';
+
     /** Constructor method for the class.
      *
      * @param ProjectOverviewRepository $projectOverviewRepository The ticket repository instance.
@@ -85,8 +88,8 @@ class ProjectOverview
             $newFromDate = $dateRange['start'];
             $newToDate = $dateRange['end'];
         } elseif ($viewDTO->fromDate && $viewDTO->toDate) {
-            $newFromDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->fromDate)->format('Y-m-d');
-            $newToDate = CarbonImmutable::createFromFormat('d-m-Y', $viewDTO->toDate)->format('Y-m-d');
+            $newFromDate = CarbonImmutable::createFromFormat(self::FRONTEND_DATE_FORMAT, $viewDTO->fromDate)->format(self::BACKEND_DATE_FORMAT);
+            $newToDate = CarbonImmutable::createFromFormat(self::FRONTEND_DATE_FORMAT, $viewDTO->toDate)->format(self::BACKEND_DATE_FORMAT);
         }
 
         $processedDTO = new ViewDTO(
@@ -119,16 +122,16 @@ class ProjectOverview
 
         return match ($dateType) {
             DateTypeEnum::THIS_WEEK => [
-                'start' => $monday->format('Y-m-d'),
-                'end' => $monday->modify('+1 week')->format('Y-m-d'),
+                'start' => $monday->format(self::BACKEND_DATE_FORMAT),
+                'end' => $monday->modify('+1 week')->format(self::BACKEND_DATE_FORMAT),
             ],
             DateTypeEnum::NEXT_THREE_WEEKS => [
-                'start' => $monday->format('Y-m-d'),
-                'end' => $monday->modify('+3 weeks')->format('Y-m-d'),
+                'start' => $monday->format(self::BACKEND_DATE_FORMAT),
+                'end' => $monday->modify('+3 weeks')->format(self::BACKEND_DATE_FORMAT),
             ],
             default => [ // NEXT_TWO_WEEKS
-                'start' => $monday->format('Y-m-d'),
-                'end' => $monday->modify('+2 weeks')->format('Y-m-d'),
+                'start' => $monday->format(self::BACKEND_DATE_FORMAT),
+                'end' => $monday->modify('+2 weeks')->format(self::BACKEND_DATE_FORMAT),
             ],
         };
     }
@@ -160,8 +163,8 @@ class ProjectOverview
         $ranges = $this->calculateAllDateRanges();
 
         foreach ($ranges as $key => $range) {
-            $endDate = CarbonImmutable::createFromFormat('Y-m-d', $range['end']);
-            $ranges[$key]['end'] = $endDate->subDay()->format('Y-m-d');
+            $endDate = CarbonImmutable::createFromFormat(self::BACKEND_DATE_FORMAT, $range['end']);
+            $ranges[$key]['end'] = $endDate->subDay()->format(self::BACKEND_DATE_FORMAT);
         }
 
         return $ranges;

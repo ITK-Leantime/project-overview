@@ -7,10 +7,8 @@ use Leantime\Domain\Tickets\Services\Tickets;
 use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewFiltersDataDTO;
-use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\UserViewDTO;
-use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
-use Leantime\Plugins\ProjectOverview\Services\ProjectOverview;
+use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 
 /**
  * Class ProjectOverviewHelper
@@ -23,7 +21,7 @@ readonly class ProjectOverviewHelper
      */
     public function __construct(
         private ProjectOverviewActionHandler $actionHandler,
-        private ProjectOverview $projectOverviewService,
+        private ProjectOverviewService $projectOverviewService,
         private Tickets $ticketService,
         private UserService $userService
     ) {
@@ -117,6 +115,7 @@ readonly class ProjectOverviewHelper
         // Sort projects alphabetically
         uasort($allProjects, fn($a, $b) => strcmp($a['name'], $b['name']));
 
+
         // Get precalculated date ranges for display (with inclusive end dates)
         $dateRanges = $this->projectOverviewService->calculateDisplayDateRanges();
 
@@ -125,8 +124,8 @@ readonly class ProjectOverviewHelper
             'users' => [],
             'allColumns' => $this->actionHandler->getAvailableColumns(),
             'dateType' => '',
-            'fromDate' => date('d-m-Y', strtotime('last monday')),
-            'toDate' => date('d-m-Y', strtotime('sunday next week')),
+            'fromDate' => date(ProjectOverviewService::FRONTEND_DATE_FORMAT, strtotime('last monday')),
+            'toDate' => date(ProjectOverviewService::FRONTEND_DATE_FORMAT, strtotime('sunday next week')),
             'projectFilters' => [],
             'priorityFilters' => [],
             'statusFilters' => [],
@@ -151,8 +150,8 @@ readonly class ProjectOverviewHelper
                         'users' => $viewDTO->users,
                         'selectedColumns' => $viewDTO->columns,
                         'dateType' => $viewDTO->dateType->value,
-                        'fromDate' => date('d-m-Y', strtotime($viewDTO->fromDate)),
-                        'toDate' => date('d-m-Y', strtotime($viewDTO->toDate)),
+                        'fromDate' => date(ProjectOverviewService::FRONTEND_DATE_FORMAT, strtotime($viewDTO->fromDate)),
+                        'toDate' => date(ProjectOverviewService::FRONTEND_DATE_FORMAT, strtotime($viewDTO->toDate)),
                         'projectFilters' => $viewDTO->projectFilters,
                         'priorityFilters' => $viewDTO->priorityFilters,
                         'statusFilters' => $viewDTO->statusFilters,

@@ -7,7 +7,10 @@ import TomSelect from 'tom-select';
 import 'tom-select/dist/css/tom-select.bootstrap5.css';
 import './project-overview.css';
 
+
 $(document).ready(function () {
+
+    window.fronendDateFormat = $(document).find('#frontendDateFormat').val();
   initProjectOverviewFilters();
   initProjectOverviewTable();
 
@@ -33,12 +36,12 @@ function initProjectOverviewFilters() {
   // Init date range select
   const dateRange = flatpickr('#dateRange', {
     mode: 'range',
-    dateFormat: 'd-m-Y',
+    dateFormat: window.fronendDateFormat,
     allowInput: false,
     readonly: false,
     weekNumbers: true,
     locale: Danish,
-    onChange: function (selectedDates, dateStr, instance) {
+    onChange: function (selectedDates) {
       if (selectedDates && selectedDates.length === 2) {
         const [startDate, endDate] = selectedDates;
 
@@ -221,7 +224,7 @@ function initProjectOverviewTable() {
       .find('input[name="viewName"]')
       .val(currentName)
       .end()
-      .find('input[name="viewId"]')
+      .find('input[name="view"]')
       .val(viewId);
 
     // Delay focus slightly
@@ -274,7 +277,7 @@ function initProjectOverviewTable() {
         const viewId = ui.newPanel.attr('id').replace('view-', '');
         const url = new URL(window.location.href);
         url.searchParams.set('view', viewId);
-        window.history.pushState({ viewId: viewId }, '', url);
+        window.history.pushState({ view: viewId }, '', url);
 
         // Update hidden input
         window.jQuery('#selectedViewId').val(viewId);
@@ -327,7 +330,7 @@ function initProjectOverviewTable() {
   if (!urlViewId) {
     const url = new URL(window.location.href);
     url.searchParams.set('view', selectedViewId);
-    window.history.replaceState({ viewId: selectedViewId }, '', url);
+    window.history.replaceState({ view: selectedViewId }, '', url);
   }
 
   // Handle browser back/forward buttons
@@ -338,7 +341,7 @@ function initProjectOverviewTable() {
         .index();
       if (viewIndex >= 0) {
         $projectOverviewTabs.tabs('option', 'active', viewIndex);
-        window.jQuery('#selectedViewId').val(event.state.viewId);
+        window.jQuery('#selectedView').val(event.state.viewId);
 
         // Trigger HTMX to load the filters for this view
         const hxGetUrl = `/ProjectOverview/ProjectOverview/loadFilters/${encodeURIComponent(event.state.viewId)}`;
@@ -360,7 +363,7 @@ function initProjectOverviewTable() {
       type: 'POST',
       url: '/ProjectOverview/ProjectOverview/generateShareLink',
       data: {
-        viewId: viewId,
+        view: viewId,
       },
       dataType: 'json',
       success: function (response) {

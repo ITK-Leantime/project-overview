@@ -17,6 +17,7 @@
     <div class="maincontent">
         <div class="maincontentinner">
             <div class="project-overview-container">
+                <input type="hidden" id="frontendDateFormat" value="{{ $frontendDateFormat }}">
                 <input type="hidden" id="selectedViewId"
                     value="{{ $userViewsData->selectedView !== null ? urlencode($userViewsData->selectedView) : (!empty($userViewsData->userViews) ? urlencode(array_key_first($userViewsData->userViews)) : '') }}" />
                 <div id="filtersContainer" class="search-and-filter"
@@ -286,7 +287,7 @@
         </div>
         <div id="view-context-menu">
             <form method="POST">
-                <input type="hidden" name="viewId" />
+                <input type="hidden" name="view" />
                 <span>Edit view name:</span>
                 <input name="viewName" type="text" />
                 <div class="buttons flex-container gap-1">

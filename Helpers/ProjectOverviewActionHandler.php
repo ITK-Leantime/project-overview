@@ -95,7 +95,7 @@ readonly class ProjectOverviewActionHandler
         );
 
         $userViewsObject = $this->getUserViewsObject();
-        $existingViewId = $postData['viewId'] ?? null;
+        $existingViewId = $postData['view'] ?? null;
 
         // Check if view already exists and overwrite if requested.
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
@@ -143,7 +143,7 @@ readonly class ProjectOverviewActionHandler
 
         $this->saveUserViewsObject($userViewsObject);
 
-        return $redirectUrl . (str_contains($redirectUrl, '?') ? '&' : '?') . http_build_query(['viewId' => $resultViewId]);
+        return $redirectUrl . (str_contains($redirectUrl, '?') ? '&' : '?') . http_build_query(['view' => $resultViewId]);
     }
 
 
@@ -217,7 +217,7 @@ readonly class ProjectOverviewActionHandler
             ]);
         }
 
-        return $redirectUrl . (str_contains($redirectUrl, '?') ? '&' : '?') . http_build_query(['viewId' => $viewId]);
+        return $redirectUrl . (str_contains($redirectUrl, '?') ? '&' : '?') . http_build_query(['view' => $viewId]);
     }
 
     /**
