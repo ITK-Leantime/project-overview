@@ -232,7 +232,9 @@
                                                                     <div class="milestone-select">
                                                                         <select id="milestone-select-{{ $row->id }}"
                                                                             class="form-select">
-                                                                            <option value="-1"></option>
+                                                                            <option value="-1">
+                                                                                {{ __('projectOverview.no_project_milestone_selected') }}
+                                                                            </option>
                                                                             @foreach ($row->projectMilestones as $projectMilestone)
                                                                                 <option value={{ $projectMilestone->id }}
                                                                                     id="milestone-option-{{ $projectMilestone->id }}"
@@ -241,10 +243,16 @@
                                                                                 </option>
                                                                             @endforeach
                                                                         </select>
+                                                                        <i class="fa fa-caret-down"></i>
                                                                     </div>
                                                                 @endif
                                                                 @if (count($row->projectMilestones) === 0)
-                                                                    {{ __('projectOverview.no_project_milestones') }}
+                                                                    <p class="no-project-milestones"
+                                                                        data-tippy-content="{{ __('projectOverview.no_project_milestones_text') }}"
+                                                                        data-tippy-placement="top">
+                                                                        {{ __('projectOverview.no_project_milestones') }}
+                                                                    </p>
+
                                                                 @endif
                                                             </td>
                                                         @endif
