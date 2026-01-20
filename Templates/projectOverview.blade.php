@@ -91,12 +91,6 @@
                                                             <td class="spacious">
                                                                 <a class="project-link"
                                                                     href="{{ $row->projectLink }}">{{ $row->projectName }}</a>
-                                                                @if (isset($row->dependingTicketId) && $row->dependingTicketId > 0)
-                                                                    (
-                                                                    <a
-                                                                        href="#/tickets/showTicket/{{ $row->dependingTicketId }}">{{ $row->parentHeadline }}</a>
-                                                                    )
-                                                                @endif
                                                             </td>
                                                         @endif
 
