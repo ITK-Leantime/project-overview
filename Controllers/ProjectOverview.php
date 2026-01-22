@@ -11,7 +11,7 @@ use Leantime\Domain\Auth\Services\Auth as AuthService;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewHelper;
 use Symfony\Component\HttpFoundation\Response;
-use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as projectOverviewService;
+use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 use Leantime\Core\UI\Template;
 
 /**
@@ -22,8 +22,10 @@ class ProjectOverview extends Controller
     private ProjectOverviewActionHandler $actionHandler;
     private ProjectOverviewHelper $projectOverviewHelper;
 
-    private projectOverviewService $projectOverviewService;
+    private ProjectOverviewService $projectOverviewService;
     private ProjectOverviewActionHandler $projectOverviewActionHandler;
+
+    public const PARAM_VIEW = 'view';
 
     /**
      * @param Template                     $tpl
@@ -31,7 +33,7 @@ class ProjectOverview extends Controller
      * @param ProjectOverviewHelper        $projectOverviewHelper
      * @return void
      */
-    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, projectOverviewService $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
+    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, ProjectOverviewService $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
     {
         $this->tpl = $tpl;
         $this->actionHandler = $actionHandler;
@@ -84,11 +86,11 @@ class ProjectOverview extends Controller
                 $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl);
                 break;
             case 'deleteView':
-                $viewId = $_POST['view'];
+                $viewId = $_POST[self::PARAM_VIEW];
                 $this->actionHandler->deleteView($viewId);
                 break;
             case 'renameView':
-                $viewId = $_POST['view'];
+                $viewId = $_POST[self::PARAM_VIEW];
                 $viewName = $_POST['viewName'];
                 $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
                 break;
@@ -117,7 +119,7 @@ class ProjectOverview extends Controller
             if ($sharedView) {
                 $newViewId = $this->actionHandler->importSharedView($sharedView);
                 $this->tpl->setNotification(__('projectOverview.notification.view_imported'), 'success');
-                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query(['view' => $newViewId]));
+                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query([self::PARAM_VIEW => $newViewId]));
             } else {
                 $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
             }
@@ -157,7 +159,7 @@ class ProjectOverview extends Controller
             return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
         }
 
-        $viewId = $_POST['view'] ?? null;
+        $viewId = $_POST[self::PARAM_VIEW] ?? null;
 
         if (empty($viewId)) {
             return $this->tpl->displayJson(['error' => 'View ID required'], 400);

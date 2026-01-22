@@ -5,7 +5,7 @@ namespace Leantime\Plugins\ProjectOverview\Repositories;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
-use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as projectOverviewService;
+use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 
 /**
  * This is the project overview repository that makes the relevant SQL queries.
@@ -110,16 +110,16 @@ class ProjectOverview
             ->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
                 // Date ranges are already calculated in the Service layer and passed via DTO
                 if ($fromDate && $toDate) {
-                    $startDate = CarbonImmutable::createFromFormat(projectOverviewService::BACKEND_DATE_FORMAT, $fromDate)->startOfDay();
-                    $endDate = CarbonImmutable::createFromFormat(projectOverviewService::BACKEND_DATE_FORMAT, $toDate)->endOfDay();
+                    $startDate = CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $fromDate)->startOfDay();
+                    $endDate = CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $toDate)->endOfDay();
                     $query->where('ticket.dateToFinish', '>', $startDate)
                         ->where('ticket.dateToFinish', '<', $endDate);
                 }
 
                 if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
                     $query->orWhereBetween('ticket.dateToFinish', [
-                        CarbonImmutable::createFromFormat(projectOverviewService::BACKEND_DATE_FORMAT, '2023-03-14')->endOfDay(),
-                        $toDate ? CarbonImmutable::createFromFormat(projectOverviewService::BACKEND_DATE_FORMAT, $toDate) : CarbonImmutable::now(),
+                        CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, '2023-03-14')->endOfDay(),
+                        $toDate ? CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $toDate) : CarbonImmutable::now(),
                     ]);
                 }
 

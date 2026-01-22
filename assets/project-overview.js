@@ -8,7 +8,7 @@ import 'tom-select/dist/css/tom-select.bootstrap5.css';
 import './project-overview.css';
 
 $(document).ready(function () {
-  window.fronendDateFormat = $(document).find('#frontendDateFormat').val();
+  window.frontendDateFormat = $(document).find('#frontendDateFormat').val();
   initProjectOverviewFilters();
   initProjectOverviewTable();
 
@@ -34,7 +34,7 @@ function initProjectOverviewFilters() {
   // Init date range select
   const dateRange = flatpickr('#dateRange', {
     mode: 'range',
-    dateFormat: window.fronendDateFormat,
+    dateFormat: window.frontendDateFormat,
     allowInput: false,
     readonly: false,
     weekNumbers: true,
