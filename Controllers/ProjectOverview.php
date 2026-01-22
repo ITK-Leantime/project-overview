@@ -2,178 +2,182 @@
 
 namespace Leantime\Plugins\ProjectOverview\Controllers;
 
-use Carbon\CarbonImmutable;
+use Exception;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Leantime\Core\Controller\Controller;
 use Leantime\Core\Controller\Frontcontroller;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth as AuthService;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
+use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewHelper;
 use Symfony\Component\HttpFoundation\Response;
-use Leantime\Domain\Tickets\Services\Tickets as TicketService;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
-use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Core\UI\Template;
 
 /**
- * ProjectOverview
+ * Class ProjectOverview
  */
 class ProjectOverview extends Controller
 {
+    private ProjectOverviewActionHandler $actionHandler;
+    private ProjectOverviewHelper $projectOverviewHelper;
+
     private ProjectOverviewService $projectOverviewService;
-    private TicketService $ticketService;
-    private UserService $userService;
+    private ProjectOverviewActionHandler $projectOverviewActionHandler;
+
+    public const PARAM_VIEW = 'view';
 
     /**
-     * @param ProjectOverviewService $projectOverviewService
-     * @param TicketService          $ticketService
-     * @param UserService            $userService
-     * @param Template               $tpl
+     * @param Template                     $tpl
+     * @param ProjectOverviewActionHandler $actionHandler
+     * @param ProjectOverviewHelper        $projectOverviewHelper
      * @return void
      */
-    public function init(ProjectOverviewService $projectOverviewService, TicketService $ticketService, UserService $userService, Template $tpl): void
+    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, ProjectOverviewService $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
     {
-        $this->projectOverviewService = $projectOverviewService;
-        $this->ticketService = $ticketService;
-        $this->userService = $userService;
         $this->tpl = $tpl;
+        $this->actionHandler = $actionHandler;
+        $this->projectOverviewHelper = $projectOverviewHelper;
+        $this->projectOverviewService = $projectOverviewService;
+        $this->projectOverviewActionHandler = $projectOverviewActionHandler;
+    }
+
+    /**
+     * Loads filters data and serves it back to the template.
+     *
+     * @param array<string, string> $data
+     *
+     * @throws Exception
+     * @return Response|null
+     *
+     * @noinspection PhpUnused Called via HTMX
+     */
+    public function loadFilters(array $data): ?Response
+    {
+        // Get filters data.
+        $filtersData = $this->projectOverviewHelper->getProjectOverviewFiltersData($data);
+
+        // Get user views data.
+        $userViews = $this->projectOverviewActionHandler->getUserViewsObject();
+
+        // Assign data to template.
+        $this->tpl->assign('filtersData', $filtersData);
+        $this->tpl->assign('userViews', $userViews);
+
+        // Display template.
+        return $this->tpl->display('ProjectOverview.projectOverviewFilters');
     }
 
     /**
      * @return Response
-     * @throws \Exception
+     * @throws Exception
      */
     public function post(): Response
     {
         if (!AuthService::userIsAtLeast(Roles::$editor)) {
             return $this->tpl->displayJson(['Error' => 'Not Authorized'], 403);
         }
-        $redirectUrl = BASE_URL . '/ProjectOverview/projectOverview';
+        $redirectUrl = BASE_URL . '/ProjectOverview/ProjectOverview';
 
-        $actionHandler = new ProjectOverviewActionHandler();
+        $action = $_POST['action'] ?? null;
 
-        if (isset($_POST['action'])) {
-            if ($_POST['action'] == 'adjustPeriod') {
-                $redirectUrl = $actionHandler->adjustPeriod($_POST, $redirectUrl);
-            }
+        switch ($action) {
+            case 'saveView':
+                $redirectUrl = $this->actionHandler->saveView($_POST, $redirectUrl);
+                break;
+            case 'deleteView':
+                $viewId = $_POST[self::PARAM_VIEW];
+                $this->actionHandler->deleteView($viewId);
+                break;
+            case 'renameView':
+                $viewId = $_POST[self::PARAM_VIEW];
+                $viewName = $_POST['viewName'];
+                $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
+                break;
+            case 'saveTabOrder':
+                $this->actionHandler->saveTabOrder($_POST);
+                break;
         }
 
         return Frontcontroller::redirect($redirectUrl);
     }
+
     /**
-     * Gathers data and feeds it to the template.
+     * Gathers users view data and feeds it to the template.
      *
      * @return Response
+     * @throws BindingResolutionException
+     * @throws Exception
      */
     public function get(): Response
     {
-        $userIdArray = [];
-        $searchTermForFilter = null;
-        $sortByForFilter = null;
-        $sortOrderForFilter = null;
-        $noDueDateForFilter = 'true';
-        $overdueTicketsForFilter = 'true';
-        $loadAllConfirm = $_GET['loadAllConfirm'] ?? false;
-        $allProjects = $this->projectOverviewService->getAllProjects();
+        // Handle shared view import
+        if (!empty($_GET['share'])) {
+            $shareToken = $_GET['share'];
+            $sharedView = $this->actionHandler->findViewByShareToken($shareToken);
 
-        try {
-            if (isset($_GET['fromDate']) && $_GET['fromDate'] !== '') {
-                $fromDateValue = trim($_GET['fromDate']);
-                if (str_starts_with($fromDateValue, '+') || str_starts_with($fromDateValue, '-')) {
-                    $fromDate = CarbonImmutable::now()->startOfDay()->modify($fromDateValue);
-                } else {
-                    $fromDate = CarbonImmutable::createFromFormat('Y-m-d', $fromDateValue)->startOfDay();
-                }
+            if ($sharedView) {
+                $newViewId = $this->actionHandler->importSharedView($sharedView);
+                $this->tpl->setNotification(__('projectOverview.notification.view_imported'), 'success');
+                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query([self::PARAM_VIEW => $newViewId]));
             } else {
-                $fromDate = CarbonImmutable::now()->startOfWeek(CarbonImmutable::MONDAY)->startOfDay();
+                $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
             }
-
-
-            if (isset($_GET['toDate']) && $_GET['toDate'] !== '') {
-                $toDateValue = trim($_GET['toDate']);
-                if (str_starts_with($toDateValue, '+') || str_starts_with($toDateValue, '-')) {
-                    $toDate = CarbonImmutable::now()->startOfDay()->modify($toDateValue);
-                } else {
-                    $toDate = CarbonImmutable::createFromFormat('Y-m-d', $toDateValue)->endOfDay();
-                }
-            } else {
-                $toDate = CarbonImmutable::now()->endOfWeek(CarbonImmutable::SUNDAY)->endOfDay();
-            }
-        } catch (\Exception $e) {
-            $fromDate = CarbonImmutable::now()->startOfWeek(CarbonImmutable::MONDAY)->startOfDay();
-            $toDate = CarbonImmutable::now()->endOfWeek(CarbonImmutable::SUNDAY)->endOfDay();
         }
 
-        if (isset($_GET['userIds']) && $_GET['userIds'] !== '') {
-            $userIdArray = explode(',', $_GET['userIds']);
-        }
-        if (isset($_GET['searchTerm']) && $_GET['searchTerm'] !== '') {
-            $searchTermForFilter = $_GET['searchTerm'];
-        }
-        if (isset($_GET['noDueDate']) && $_GET['noDueDate'] !== '') {
-            $noDueDateForFilter = $_GET['noDueDate'];
-        }
-        if (isset($_GET['overdueTickets']) && $_GET['overdueTickets'] !== '') {
-            $overdueTicketsForFilter = $_GET['overdueTickets'];
-        }
-        if (isset($_GET['sortBy']) && isset($_GET['sortOrder']) && $_GET['sortBy'] !== '' && $_GET['sortOrder'] !== '') {
-            $sortByForFilter = $_GET['sortBy'];
-            $sortOrderForFilter = $_GET['sortOrder'];
+        // Check for flash notification and display it.
+        if (session()->has('project_overview-flash_notification')) {
+            $notification = session('project_overview-flash_notification');
+            $this->tpl->setNotification($notification['message'], $notification['type']);
         }
 
-        $this->tpl->assign('fromDate', $fromDate);
-        $this->tpl->assign('toDate', $toDate);
-        $this->tpl->assign('selectedFilterUser', $userIdArray);
-        $this->tpl->assign('currentSearchTerm', $searchTermForFilter);
-        $this->tpl->assign('overdueTickets', $overdueTicketsForFilter);
-        $this->tpl->assign('noDueDate', $noDueDateForFilter);
+        // Get user views data.
+        $userViewsData = $this->projectOverviewHelper->getProjectOverviewData();
 
-        $noDueDate = $noDueDateForFilter === 'false' ? 0 : 1;
-        $overdueTickets = $overdueTicketsForFilter === 'false' ? 0 : 1;
-        $allTickets = [];
-        $projectIds = [];
+        // Get unique tags for the tag search field.
+        $allTags = $this->projectOverviewService->getAllUniqueTags();
 
-        // Get all tickets, and their corresponding projects.
-        if (!empty($userIdArray) || $loadAllConfirm) {
-            $allTickets = $this->projectOverviewService->getTasks($userIdArray, $searchTermForFilter, $fromDate, $toDate, $noDueDate, $overdueTickets, $sortByForFilter, $sortOrderForFilter);
-            $projectIds = array_unique(array_column($allTickets, 'projectId'));
+        // Assign data to template.
+        $this->tpl->assign('userViewsData', $userViewsData);
+        $this->tpl->assign('allTags', $allTags);
+        $this->tpl->assign('frontendDateFormat', projectOverviewService::FRONTEND_DATE_FORMAT);
+
+        // Display template.
+        return $this->tpl->display('ProjectOverview.ProjectOverview');
+    }
+
+    /**
+     * Generate a share token for a view
+     *
+     * @return Response
+     *
+     * @noinspection PhpUnused Called via AJAX.
+     */
+    public function generateShareLink(): Response
+    {
+        if (!AuthService::userIsAtLeast(Roles::$editor)) {
+            return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
         }
 
-        $userAndProject = [];
-        $milestonesAndProject = [];
+        $viewId = $_POST[self::PARAM_VIEW] ?? null;
 
-        $projectTicketStatuses = [];
-        // Get users and milestones by project, as these differ by project.
-        foreach ($projectIds as &$projectId) {
-            $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
-            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
-            $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
+        if (empty($viewId)) {
+            return $this->tpl->displayJson(['error' => 'View ID required'], 400);
         }
 
-        foreach ($allTickets as $ticket) {
-            if ($ticket->dueDate == '0000-00-00') {
-                $ticket->dueDate = null;
-            }
-            $ticket->projectUsers = $userAndProject[$ticket->projectId];
-            $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
-            $ticket->projectName = $allProjects[$ticket->projectId]['name'];
-            $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
-            $ticket->sumHours = round($ticket->sumHours, 2);
+        // Generate a share token for the view.
+        $shareToken = $this->actionHandler->generateShareToken($viewId);
+
+        if ($shareToken === false) {
+            return $this->tpl->displayJson(['error' => 'View not found'], 404);
         }
 
-        $this->tpl->assign('fromDate', $fromDate);
-        $this->tpl->assign('toDate', $toDate);
-        // The two below gets hardcoded labels from the ticket repo.
-        $this->tpl->assign('priorities', $this->ticketService->getPriorityLabels());
-        $this->tpl->assign('statusLabels', $projectTicketStatuses);
-        $this->tpl->assign('sortBy', $sortByForFilter);
-        $this->tpl->assign('sortOrder', $sortOrderForFilter);
-        $this->tpl->assign('allSelectedUsers', $userIdArray);
+        $shareUrl = BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query(['share' => $shareToken]);
 
-        $this->tpl->assign('allUsers', $this->userService->getAll());
-
-        // All tickets assignet to the template
-        $this->tpl->assign('allTickets', $allTickets);
-
-        return $this->tpl->display('ProjectOverview.projectOverview');
+        return $this->tpl->displayJson([
+            'success' => true,
+            'shareUrl' => $shareUrl,
+            'shareToken' => $shareToken,
+        ]);
     }
 }

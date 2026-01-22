@@ -5,9 +5,10 @@
 ## [4.0.0] - 2026-01-22
 
 * [PR-67](https://github.com/ITK-Leantime/project-overview/pull/67)
-  * Add share view functionality.
+  * Add ability to share views via a link
 * [PR-66](https://github.com/ITK-Leantime/project-overview/pull/66)
-  * Introduce a view-based approach.
+  * Introduce a view-based approach
+  * Added use of DTOs to control data flow
 
 ## [3.3.3] - 2025-08-21
 

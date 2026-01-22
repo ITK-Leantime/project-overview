@@ -3,168 +3,444 @@ import 'select2/dist/css/select2.css';
 import flatpickr from 'flatpickr';
 import { Danish } from 'flatpickr/dist/l10n/da.js';
 import 'flatpickr/dist/flatpickr.min.css';
+import TomSelect from 'tom-select';
+import 'tom-select/dist/css/tom-select.bootstrap5.css';
+import './project-overview.css';
 
 $(document).ready(function () {
-  const table = document.getElementById('sortable-table');
+  window.frontendDateFormat = $(document).find('#frontendDateFormat').val();
+  initProjectOverviewFilters();
+  initProjectOverviewTable();
 
-  flatpickr('#dateRange', {
+  // begin HTMX swap events
+  document.body.addEventListener('htmx:beforeSettle', (e) => {
+    e.detail.target.style.visibility = 'hidden';
+  });
+  document.addEventListener('htmx:afterSettle', function (e) {
+    e.detail.target.style.visibility = '';
+    if (e.target.id === 'filtersContainer') {
+      initProjectOverviewFilters();
+    }
+  });
+  // end HTMX swap events
+});
+
+/**
+ * Initializes the project overview filters by setting up various UI components.
+ *
+ * @return {void} This function does not return a value.
+ */
+function initProjectOverviewFilters() {
+  // Init date range select
+  const dateRange = flatpickr('#dateRange', {
     mode: 'range',
-    dateFormat: 'd-m-Y',
+    dateFormat: window.frontendDateFormat,
     allowInput: false,
     readonly: false,
     weekNumbers: true,
     locale: Danish,
-    onChange: function (selectedDates, dateStr, instance) {
+    onChange: function (selectedDates) {
       if (selectedDates && selectedDates.length === 2) {
-        instance.element.form.submit();
+        const [startDate, endDate] = selectedDates;
+
+        // Format dates to d-m-Y
+        const formatDate = (date) => {
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}-${month}-${year}`;
+        };
+
+        $('#fromDate').val(formatDate(startDate));
+        $('#toDate').val(formatDate(endDate));
       }
     },
   });
 
-  $.fn.select2.amd.require(['select2/selection/search'], function (Search) {
-    const oldRemoveChoice = Search.prototype.searchRemoveChoice;
-
-    Search.prototype.searchRemoveChoice = function () {
-      oldRemoveChoice.apply(this, arguments);
-      $(select2).select2('close');
-    };
-
-    const select2 = $('.project-overview-assignee-select')
-      .select2({
-        closeOnSelect: true,
-        tags: false,
-        matcher: function (params, data) {
-          if ($.trim(params.term) === '') {
-            return data;
-          }
-
-          if (!params.term) {
-            return data;
-          }
-
-          const keywords = params.term.split(' ');
-          const text = data.text.toUpperCase();
-
-          for (const keyword of keywords) {
-            if (text.indexOf(keyword.toUpperCase()) === -1) {
-              return null;
-            }
-          }
-          return data;
-        },
-      })
-      .on('select2:unselect', function (e) {
-        let self = this;
-
-        // after a delay, refresh the select2
-        setTimeout(function () {
-          $(self)
-            .data('select2')
-            .$container.find('.select2-search__field')
-            .val('');
-        }, 100);
-      });
-
-    select2
-      .data('select2')
-      .$container.find('.select2-search__field')
-      .on('keydown', function () {
-        setTimeout(function () {
-          let select2Results = $(
-            '.select2-results__option:not(.select2-results__option--selected)'
-          );
-          if (select2Results.length === 1) {
-            select2Results.trigger('mouseenter');
-          }
-        }, 100);
-      });
-
-    // Assign event handlers to dynamic elements
-    $(document).on('click', '.dropdown-item .table-button.status', function () {
-      const idArgs = $(this).data('args').split(',');
-      changeStatus(idArgs[0], idArgs[1], idArgs[2], idArgs[3]);
+  // Init filter select2
+  const filterSelect = $('#filterSelect')
+    .select2({
+      closeOnSelect: false,
+      dropdownCssClass: 'project-overview-dropdown',
+    })
+    .on('select2:select', () => {
+      $(this).val(null).trigger('change');
+    })
+    .on('change.select2', () => {
+      $(filterSelect)
+        .next('.select2')
+        .attr('data-length', function () {
+          return filterSelect.select2('data')?.length;
+        });
     });
 
-    $(document).on(
-      'click',
-      '.dropdown-item .table-button.priority',
-      function () {
-        const idArgs = $(this).data('args').split(',');
-        changePriority(idArgs[0], idArgs[1], idArgs[2]);
+  filterSelect.next('.select2').attr('data-length', function () {
+    return filterSelect.select2('data')?.length;
+  });
+
+  // Init column select2
+  const columnSelect = $('#columnSelect')
+    .select2({
+      closeOnSelect: false,
+      dropdownCssClass: 'project-overview-dropdown',
+    })
+    .on('change.select2', () => {
+      $(columnSelect)
+        .next('.select2')
+        .attr('data-length', function () {
+          return columnSelect.select2('data')?.length;
+        });
+    });
+
+  columnSelect.next('.select2').attr('data-length', function () {
+    return columnSelect.select2('data')?.length;
+  });
+
+  // Init date range select
+  $('#dateOptions')
+    .on('change', function () {
+      const dateRangeElement = $(document).find('div.date-range-filter');
+      const dateRangeInput = $('#dateRange');
+      const selectedOption = $(this).find('option:selected');
+
+      // Get pre-calculated dates from data attributes
+      const startDate = selectedOption.data('start-date');
+      const endDate = selectedOption.data('end-date');
+
+      if (startDate && endDate) {
+        // Parse YYYY-MM-DD format to Date objects
+        const [startYear, startMonth, startDay] = startDate
+          .split('-')
+          .map(Number);
+        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+
+        const start = new Date(startYear, startMonth - 1, startDay);
+        const end = new Date(endYear, endMonth - 1, endDay);
+
+        dateRange.setDate([start, end]);
+        dateRange.set('clickOpens', false);
+        $(dateRangeElement).addClass('date-range-disabled');
+        dateRangeInput.prop('readonly', true);
+      } else if (selectedOption.val() === 'custom') {
+        dateRange.set('clickOpens', true);
+        $(dateRangeElement).removeClass('date-range-disabled');
+        dateRangeInput.prop('readonly', false);
       }
-    );
-    $(document).on('click', '[id^=sort_]', function () {
-      changeSortBy(this.id.replace('sort_', ''));
-    });
-    $(document).on('change', '[id^=due-date-]', function () {
-      const date = $(this).val();
-      const ticketId = $(this).data('ticketid');
-      changeDueDate(event, ticketId, date);
-    });
+    })
+    .trigger('change');
 
-    $(document).on('change', '[id^=assigned-user-]', function () {
-      const idArg = $(this).attr('id').split('-')[2];
-      changeAssignedUser(event, idArg, this.value);
+  // Init assignee select2
+  const userSelect = $('#userSelect')
+    .select2({
+      closeOnSelect: false,
+      dropdownCssClass: 'project-overview-dropdown',
+      matcher: function (params, data) {
+        if (!params.term) return data;
+        const keywords = params.term.split(' ');
+        const text = data.text.toUpperCase();
+        for (const keyword of keywords) {
+          if (text.indexOf(keyword.toUpperCase()) === -1) return null;
+        }
+        return data;
+      },
+    })
+    .on('change.select2', () => {
+      $(userSelect)
+        .next('.select2')
+        .attr('data-length', function () {
+          return userSelect.select2('data')?.length;
+        });
     });
+  userSelect.next('.select2').attr('data-length', function () {
+    return userSelect.select2('data')?.length;
+  });
+}
 
-    $(document).on('change', '[id^=plan-hours-]', function () {
-      const idArg = $(this).attr('id').split('-')[2];
-      changePlanHours(event, idArg, this.value);
-    });
+function initProjectOverviewTable() {
+  // Init tags select for each row.
+  initTagsSelects();
+  const contextMenu = $('#view-context-menu');
 
-    $(document).on('change', '[id^=remaining-hours-]', function () {
-      const idArg = $(this).attr('id').split('-')[2];
-      changeHoursRemaining(event, idArg, this.value);
-    });
+  // Start sorting
+  // Status change
+  $(document).on('click', '.dropdown-item .table-button.status', function () {
+    const [ticketId, newStatus, className, name] = $(this)
+      .data('args')
+      .split(',');
+    changeStatus(ticketId, newStatus, className, name);
+  });
 
-    $(document).on('change', '[id^=milestone-select-]', function () {
-      const idArg = $(this).attr('id').split('-')[2];
-      changeMilestone(event, idArg, this.value);
-    });
+  // Priority change
+  $(document).on('click', '.dropdown-item .table-button.priority', function () {
+    const [ticketId, newPriority, label] = $(this).data('args').split(',');
+    changePriority(ticketId, newPriority, label);
+  });
 
-    $(document).on('change', '[id^=tags-]', function () {
-      const idArg = $(this).attr('id').split('-')[1];
-      changeTags(event, idArg, this.value);
-    });
+  // begin sorting
+  $(document).on('click', '[id^=sort_]', function () {
+    changeSortBy(this.id.replace('sort_', ''));
+  });
 
-    // Event handlers for static elements
-    $('#search-term').on('change', function () {
-      redirectWithSearchTerm(this.value);
-    });
-    $('#overdue-tickets').on('change', function () {
-      changeOverdueTickets(this.checked);
-    });
+  $(document).on('change', '[id^=due-date-]', function () {
+    const ticketId = $(this).data('ticketid');
+    changeDueDate(event, ticketId, $(this).val());
+  });
 
-    $('#empty-due-date').on('change', function () {
-      changeTicketsWithoutDueDateIncluded(this.checked);
-    });
+  $(document).on('change', '[id^=assigned-user-]', function () {
+    const idArg = this.id.split('-')[2];
+    changeAssignedUser(event, idArg, this.value);
+  });
 
-    $('#user-filter').on('change', function () {
-      let values = $(select2).select2('data');
-      let ids = values.map(function (item) {
-        return item.id;
-      });
-      redirectWithUserId(ids);
-    });
+  $(document).on('change', '[id^=plan-hours-]', function () {
+    const idArg = this.id.split('-')[2];
+    changePlanHours(event, idArg, this.value);
+  });
 
-    $('#date-from').on('change', function () {
-      changeDateFrom(this.value);
-    });
+  $(document).on('change', '[id^=remaining-hours-]', function () {
+    const idArg = this.id.split('-')[2];
+    changeHoursRemaining(event, idArg, this.value);
+  });
 
-    $('#date-to').on('focusout', function () {
-      changeDateTo(this.value);
-    });
-    const userSelecthasSelectedValues =
-      select2.val() && select2.val().length > 0;
-    if (!userSelecthasSelectedValues) {
-      $(document)
-        .find('select.project-overview-assignee-select')
-        .select2('open');
-    } else {
-      $(document).find('select.project-overview-assignee-select').focus();
+  $(document).on('change', '[id^=milestone-select-]', function () {
+    const idArg = this.id.split('-')[2];
+    changeMilestone(event, idArg, this.value);
+  });
+  // end sorting
+
+  // Init click event on context menu
+  $(document).on('click', 'span.tab-context-menu', ({ target }) => {
+    const currentName = $(target).siblings('.tab-link').first().text().trim();
+    const rect = target.parentElement.getBoundingClientRect();
+    const viewId = $(target).parent().data('target');
+    $('.settings-for-target').text(viewId);
+    contextMenu
+      .css({
+        left: `${rect.left + window.scrollX - 175}px`,
+        top: `${rect.top + window.scrollY - rect.height - 25}px`,
+      })
+      .addClass('shown')
+      .find('input[name="viewName"]')
+      .val(currentName)
+      .end()
+      .find('input[name="view"]')
+      .val(viewId);
+
+    // Delay focus slightly
+    setTimeout(() => {
+      contextMenu.find('input[name="viewName"]').focus();
+    }, 100);
+  });
+
+  // Close context menu when clicked outside.
+  $(document).on('click', function (event) {
+    if (
+      !$(event.target).closest('#view-context-menu').length &&
+      !$(event.target).closest('span.tab-context-menu').length
+    ) {
+      contextMenu.removeClass('shown');
     }
   });
-});
+  // Close .tab-context-menu when clicking on any other tab.
+  $(document).on('click', '#projectOverviewTabs > ul > li', ({ target }) => {
+    if (!$(target).closest('span.tab-context-menu').length) {
+      contextMenu.removeClass('shown');
+    }
+  });
+  // Expand Project results.
+  $(document).on('click', '.select2-results__group', ({ target }) => {
+    $(target).toggleClass('show-all-projects');
+  });
+
+  // Check if URL has a view parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlViewId = urlParams.get('view');
+  let selectedViewId = $(document).find('#selectedViewId').val();
+
+  // If URL has a view parameter and it exists in the tabs, use that
+  if (urlViewId && window.jQuery(`li[data-target='${urlViewId}']`).length > 0) {
+    selectedViewId = urlViewId;
+    window.jQuery('#selectedViewId').val(urlViewId);
+  }
+
+  // Use window.jQuery to access the globally loaded jQuery UI
+  const $projectOverviewTabs = window.jQuery('#projectOverviewTabs');
+
+  // Init view tabs with sorting
+  $projectOverviewTabs
+    .tabs({
+      activate: function (event, ui) {
+        window.jQuery('#edit-time-log-modal').removeClass('shown');
+
+        // Update URL when tab is activated
+        const viewId = ui.newPanel.attr('id').replace('view-', '');
+        const url = new URL(window.location.href);
+        url.searchParams.set('view', viewId);
+        window.history.pushState({ view: viewId }, '', url);
+
+        // Update hidden input
+        window.jQuery('#selectedViewId').val(viewId);
+      },
+      active: window.jQuery(`li[data-target='${selectedViewId}']`).index(),
+    })
+    .find('ul')
+    .sortable({
+      items: 'li',
+      axis: 'x',
+      tolerance: 'pointer',
+      update: function (event, ui) {
+        var newOrder = window
+          .jQuery(this)
+          .sortable('toArray', { attribute: 'data-target' });
+
+        // Send AJAX request to save the new order
+        window.jQuery.ajax({
+          dataType: 'json',
+          url: 'ProjectOverview/ProjectOverview/post',
+          method: 'POST',
+          data: {
+            action: 'saveTabOrder',
+            order: newOrder,
+          },
+          success: function (response) {
+            if (response.status === 'success') {
+              window.jQuery.growl({
+                message: response.message || 'Tab order saved successfully',
+              });
+            } else {
+              window.jQuery.growl({
+                message: response.message || 'Failed to save tab order',
+              });
+            }
+          },
+          error: function (xhr, status, error) {
+            window.jQuery.growl({
+              message: 'Error saving tab order: ' + error,
+            });
+          },
+        });
+      },
+    });
+
+  // Fade in after initialization
+  $projectOverviewTabs.removeClass('is-hidden');
+
+  // Set initial URL state
+  if (!urlViewId) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', selectedViewId);
+    window.history.replaceState({ view: selectedViewId }, '', url);
+  }
+
+  // Handle browser back/forward buttons
+  window.addEventListener('popstate', function (event) {
+    if (event.state && event.state.viewId) {
+      const viewIndex = window
+        .jQuery(`li[data-target='${event.state.viewId}']`)
+        .index();
+      if (viewIndex >= 0) {
+        $projectOverviewTabs.tabs('option', 'active', viewIndex);
+        window.jQuery('#selectedView').val(event.state.viewId);
+
+        // Trigger HTMX to load the filters for this view
+        const hxGetUrl = `/ProjectOverview/ProjectOverview/loadFilters/${encodeURIComponent(event.state.viewId)}`;
+        window.jQuery('#filtersContainer').attr('hx-get', hxGetUrl);
+        htmx.trigger('#filtersContainer', 'load');
+      }
+    }
+  });
+
+  // Init copy view button click
+  $(document).on('click', 'button.copy-view-button', function (e) {
+    e.preventDefault();
+    const button = $(this);
+    const originalText = button.data('original') || button.text();
+    const viewId = $('#selectedViewId').val();
+
+    // Request share link from server
+    $.ajax({
+      type: 'POST',
+      url: '/ProjectOverview/ProjectOverview/generateShareLink',
+      data: {
+        view: viewId,
+      },
+      dataType: 'json',
+      success: function (response) {
+        if (response.success && response.shareUrl) {
+          // Copy to clipboard
+          navigator.clipboard
+            .writeText(response.shareUrl)
+            .then(function () {
+              button.data('original', originalText);
+              button.text('Copied!');
+              setTimeout(function () {
+                button.text(originalText);
+              }, 2000);
+            })
+            .catch(function (err) {
+              console.error('Failed to copy to clipboard:', err);
+              button.text('Failed');
+              setTimeout(function () {
+                button.text(originalText);
+              }, 2000);
+            });
+        } else {
+          console.error('Failed to generate share link:', response);
+          button.text('Error');
+          setTimeout(function () {
+            button.text(originalText);
+          }, 2000);
+        }
+      },
+      error: function (xhr, status, error) {
+        console.error('AJAX error:', error);
+        button.text('Error');
+        setTimeout(function () {
+          button.text(originalText);
+        }, 2000);
+      },
+    });
+  });
+}
+
+function initTagsSelects() {
+  const allTags = window.allTags || [];
+
+  // Loop tags select and init Tomselect
+  document.querySelectorAll('.ticket-tags-select').forEach((selectElement) => {
+    if (selectElement.tomselect) {
+      return;
+    }
+
+    const ticketId = selectElement.dataset.ticketId;
+
+    new TomSelect(selectElement, {
+      plugins: ['remove_button'],
+      maxItems: null,
+      create: true,
+      persist: false,
+      openOnFocus: false,
+      loadThrottle: 300,
+      load: function (query, callback) {
+        if (!query.length) {
+          this.close();
+          return callback();
+        }
+
+        // Use allTags array bound to window in template
+        const filtered = allTags
+          .filter((tag) => tag.toLowerCase().includes(query.toLowerCase()))
+          .slice(0, 50)
+          .map((tag) => ({ value: tag, text: tag }));
+
+        callback(filtered);
+      },
+      onChange: function (values) {
+        const tagsString = Array.isArray(values) ? values.join(',') : values;
+        changeTags({ target: selectElement }, ticketId, tagsString);
+      },
+    });
+  });
+}
 
 function changeStatus(ticketId, newStatusId, newClass, newLabel) {
   if (newStatusId !== undefined && ticketId) {
@@ -182,14 +458,26 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
         // But if I instead create a get-request it returns 200 and an otherwise empty
         // response. So this is what I chose to do, and is also what is done in
         // in other places (I am looking at you ticketcontroller.js).
-        jQuery(`#status-ticket-${ticketId}`)
-          .removeClass()
-          .addClass(`table-button ${newClass}`);
-        jQuery(`#status-ticket-${ticketId} #status-label`).text(newLabel);
+
+        // Update ALL buttons with this ID (same ticket can appear in multiple views)
+        document
+          .querySelectorAll(`#status-ticket-${ticketId}`)
+          .forEach((button) => {
+            button.className = `table-button table-button-status ${newClass}`;
+            const circle = button.querySelector('.status-circle');
+            if (circle) {
+              circle.className = `status-circle ${newClass}`;
+            }
+            const label = button.querySelector('#status-label');
+            if (label) {
+              label.textContent = newLabel;
+            }
+          });
       });
   }
 }
 
+// change priority ajax
 function changePriority(ticketId, newPriorityId, newLabel) {
   if (newPriorityId && ticketId) {
     jQuery
@@ -206,14 +494,22 @@ function changePriority(ticketId, newPriorityId, newLabel) {
         // But if I instead create a get-request it returns 200 and an otherwise empty
         // response. So this is what I chose to do, and is also what is done in
         // in other places (I am looking at you ticketcontroller.js).
-        jQuery(`#priority-ticket-${ticketId}`)
-          .removeClass()
-          .addClass(`table-button priority-bg-${newPriorityId}`);
-        jQuery(`#priority-ticket-${ticketId} #priority-label`).text(newLabel);
+
+        // Update ALL buttons with this ID (same ticket can appear in multiple views)
+        document
+          .querySelectorAll(`#priority-ticket-${ticketId}`)
+          .forEach((button) => {
+            button.className = `table-button table-button-status`;
+            const label = button.querySelector('#priority-label');
+            if (label) {
+              label.textContent = newLabel;
+            }
+          });
       });
   }
 }
 
+// Change duedate ajax
 function changeDueDate(event, ticketId, newDueDate) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -240,6 +536,7 @@ function changeDueDate(event, ticketId, newDueDate) {
   }
 }
 
+// Change assigned user ajax
 function changeAssignedUser(event, ticketId, userId) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -262,6 +559,7 @@ function changeAssignedUser(event, ticketId, userId) {
   }
 }
 
+// Change plan hours ajax
 function changePlanHours(event, ticketId, newPlanHours) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -284,6 +582,7 @@ function changePlanHours(event, ticketId, newPlanHours) {
   }
 }
 
+// Change hours remaining ajax
 function changeHoursRemaining(event, ticketId, newHoursRemaining) {
   const parentElement = jQuery(event.target).closest('td');
 
@@ -306,6 +605,7 @@ function changeHoursRemaining(event, ticketId, newHoursRemaining) {
   }
 }
 
+// Change milestone ajax
 function changeMilestone(event, ticketId, newMilestoneId) {
   const parentElement = jQuery(event.target).closest('td');
   if (newMilestoneId && ticketId) {
@@ -327,17 +627,18 @@ function changeMilestone(event, ticketId, newMilestoneId) {
   }
 }
 
+// Change tags ajax
 function changeTags(event, ticketId, newTags) {
   const parentElement = jQuery(event.target).closest('td');
 
-  if (newTags && ticketId) {
+  if (ticketId) {
     jQuery
       .ajax({
         type: 'PATCH',
         url: leantime.appUrl + '/api/tickets',
         data: {
           id: ticketId,
-          tags: newTags,
+          tags: newTags || '',
         },
       })
       .then(() => {
@@ -349,33 +650,7 @@ function changeTags(event, ticketId, newTags) {
   }
 }
 
-function redirectWithUserId(searchUserIds) {
-  if (Array.isArray(searchUserIds)) {
-    searchUserIds = searchUserIds.join(',');
-  }
-  searchUserIds === 'all'
-    ? updateLocation('userIds', '')
-    : updateLocation('userIds', searchUserIds);
-}
-
-function redirectWithSearchTerm(searchTerm) {
-  searchTerm === 'all'
-    ? updateLocation('searchTerm', '')
-    : updateLocation('searchTerm', searchTerm);
-}
-
-function changeDateFrom(dateFrom) {
-  dateFrom === ''
-    ? updateLocation('dateFrom', '')
-    : updateLocation('dateFrom', formatDate(dateFrom));
-}
-
-function changeTicketsWithoutDueDateIncluded(checked) {
-  checked
-    ? updateLocation('noDueDate', true)
-    : updateLocation('noDueDate', false);
-}
-
+// Change sort
 function changeSortBy(sortBy) {
   const params = new URLSearchParams(document.location.search);
   const url = new URL(window.location.href);
@@ -393,37 +668,7 @@ function changeSortBy(sortBy) {
   window.location.assign(url);
 }
 
-function changeOverdueTickets(checked) {
-  checked
-    ? updateLocation('overdueTickets', true)
-    : updateLocation('overdueTickets', false);
-}
-
-function changeDateTo(dateTo) {
-  dateTo === ''
-    ? updateLocation('dateTo', '')
-    : updateLocation('dateTo', formatDate(dateTo));
-}
-
-function updateLocation(key, value) {
-  let params = new URLSearchParams(document.location.search);
-  let url = new URL(window.location.href);
-
-  if (params.has(key)) {
-    url.searchParams.delete(key);
-  }
-
-  if (value !== '' && typeof value === 'string' && value.includes(',')) {
-    url.searchParams.set(key, value.split(','));
-  }
-
-  if (value !== '') {
-    url.searchParams.set(key, value);
-  }
-
-  window.location.assign(url);
-}
-
+// Save success animation
 function saveSuccess(elem) {
   elem.addClass('save-success');
 
@@ -432,22 +677,11 @@ function saveSuccess(elem) {
   }, 1000);
 }
 
+// Save error animation
 function saveError(elem) {
   elem.addClass('save-error');
 
   setTimeout(() => {
     elem.removeClass('save-error');
   }, 1000);
-}
-
-function formatDate(date) {
-  const localDate = new Date(date);
-  const yyyy = localDate.getFullYear();
-  let mm = localDate.getMonth() + 1; // Months start at 0!
-  let dd = localDate.getDate();
-
-  dd = dd < 10 ? `0${dd}` : dd;
-  mm = mm < 10 ? `0${mm}` : mm;
-
-  return dd + '/' + mm + '/' + yyyy;
 }

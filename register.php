@@ -16,12 +16,12 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
     // https://github.com/ITK-Leantime/leantime/blob/0ff10e759a557af717e905ed5a1d324c9cf8c1d8/app/Domain/Menu/Repositories/Menu.php#L107
     $menuStructure['personal'][21] = [
         'type' => 'item',
-        'title' => '<span class="fa-solid fa-list-check"></span> ' . __('projectOverview.menu_title'),
+        'title' => '<span class="fa-solid fa-list-check"></span> ProjectOverview',
         'icon' => 'fa-solid fa-list-check',
         'tooltip' => __('projectOverview.menu_tooltip'),
-        'href' => '/ProjectOverview/projectOverview',
+        'href' => '/ProjectOverview/ProjectOverview',
         'active' => ['ProjectOverview'],
-        'module' => 'tickets',
+        'module' => 'ProjectOverview',
     ];
     return $menuStructure;
 }
@@ -33,7 +33,7 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
  */
 function addProjectOverviewToPersonalMenu(array $sections): array
 {
-    $sections['ProjectOverview.projectOverview'] = 'personal';
+    $sections['ProjectOverview.ProjectOverview'] = 'personal';
     return $sections;
 }
 
@@ -51,11 +51,11 @@ EventDispatcher::add_event_listener(
     'leantime.core.template.tpl.*.afterScriptLibTags',
     function () {
 
-        if (null !== (session('userdata.id')) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/projectOverview')) {
-            $jsUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => '%%VERSION%%']);
-            echo '<script src="' . htmlspecialchars($jsUrl) . '"></script>';
-            $cssUrl = '/dist/css/project-overview.css?' . http_build_query(['v' => '%%VERSION%%']);
-            echo '<link rel="stylesheet" href="' . htmlspecialchars($cssUrl) . '"></link>';
+        if (null !== (session('userdata.id')) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/ProjectOverview')) {
+            $projectOverviewUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => '%%VERSION%%']);
+            echo '<script type="module" src="' . htmlspecialchars($projectOverviewUrl) . '"></script>';
+            $projectOverviewStyle = '/dist/css/project-overview.css?' . http_build_query(['v' => '%%VERSION%%']);
+            echo '<link rel="stylesheet" href="' . htmlspecialchars($projectOverviewStyle) . '"></link>';
         }
     },
     5
