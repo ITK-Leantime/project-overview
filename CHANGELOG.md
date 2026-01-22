@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-01-22
+
+* [PR-67](https://github.com/ITK-Leantime/project-overview/pull/67)
+  * Add share view functionality.
+* [PR-66](https://github.com/ITK-Leantime/project-overview/pull/66)
+  * Introduce a view-based approach.
+
 ## [3.3.3] - 2025-08-21
 
 * [PR-64](https://github.com/ITK-Leantime/project-overview/pull/64)
@@ -198,7 +205,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.3...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.0...HEAD
+[4.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.3...4.0.0
 [3.3.3]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.2...3.3.3
 [3.3.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.1...3.3.2
 [3.3.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.0...3.3.1
