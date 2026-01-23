@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-70](https://github.com/ITK-Leantime/project-overview/pull/70)
+  * Uncapitalize first letter of template name in controller.
+
 ## [4.0.0] - 2026-01-22
 
 * [PR-67](https://github.com/ITK-Leantime/project-overview/pull/67)

@@ -143,7 +143,7 @@ class ProjectOverview extends Controller
         $this->tpl->assign('frontendDateFormat', projectOverviewService::FRONTEND_DATE_FORMAT);
 
         // Display template.
-        return $this->tpl->display('ProjectOverview.ProjectOverview');
+        return $this->tpl->display('ProjectOverview.projectOverview');
     }
 
     /**
