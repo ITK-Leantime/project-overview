@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.0.1] - 2026-01-23
+
 * [PR-70](https://github.com/ITK-Leantime/project-overview/pull/70)
   * Uncapitalize first letter of template name in controller.
 
@@ -209,7 +211,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.0...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.1...HEAD
+[4.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.3...4.0.0
 [3.3.3]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.2...3.3.3
 [3.3.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.1...3.3.2
