@@ -289,11 +289,15 @@
 
     #status-dropdown-menu,
     .priority .dropdown-menu {
-      width: 100%;
+      min-width: 180px;
+      width: auto;
       border: 1px solid var(--itk-border-color);
       box-shadow: var(--itk-box-shadow);
     }
-    .status.btn-group,
+    .status.btn-group {
+      width: auto;
+      min-width: 150px;
+    }
     .priority.btn-group {
       width: 100%;
       max-width: 175px;
@@ -317,15 +321,15 @@
     }
     button[id^='status-ticket-'] + .dropdown-menu,
     button[id^='priority-ticket-'] + .dropdown-menu {
-      width: 100%;
+      min-width: 180px;
+      width: auto;
 
       button {
         white-space: nowrap;
-        overflow: hidden;
-        padding: 5px;
+        padding: 5px 10px;
         margin: 0;
         &:hover {
-          opacity: 1;
+          opacity: 0.8;
           box-shadow: none;
         }
       }
@@ -426,43 +430,107 @@
     border-radius: 0;
   }
 }
-.dropdown-item > button,
-button.label-,
-button,
-a {
-  &.label-warning,
-  &.label-yellow,
-  &.label-info,
-  &.label-important,
-  &.label-danger,
-  &.label-red,
-  &.label-success,
-  &.label-green,
-  &.label-default,
-  &.label-purple,
-  &.label-pink,
-  &.label-brown,
-  &.label-blue,
-  &.label-dark-blue,
-  &.label-darker-blue,
-  &.label-dark-green,
-  &.label-grey {
-    &:not(.table-button-status) {
-      background: var(--yellow) !important;
-      color: var(--yellow-text-color) !important;
-      border-radius: 0;
-      margin-left: 0px;
-    }
-  }
-
-  &.label-default.milestone {
-    color: var(--blue-text-color) !important;
-  }
-
-  &:not(.label-default).milestone {
-    color: white !important;
-  }
+/* Status button color classes */
+button.label-warning,
+button.label-yellow {
+  background: var(--yellow) !important;
+  color: var(--yellow-text-color) !important;
 }
+
+button.label-info {
+  background: var(--blue) !important;
+  color: var(--blue-text-color) !important;
+}
+
+button.label-important,
+button.label-danger,
+button.label-red {
+  background: var(--red) !important;
+  color: var(--red-text-color) !important;
+}
+
+button.label-success,
+button.label-green {
+  background: var(--green) !important;
+  color: var(--green-text-color) !important;
+}
+
+button.label-default,
+button.label-grey {
+  background: var(--grey) !important;
+  color: var(--grey-text-color) !important;
+}
+
+button.label-purple {
+  background: var(--purple) !important;
+  color: var(--purple-text-color) !important;
+}
+
+button.label-pink {
+  background: var(--pink) !important;
+  color: var(--pink-text-color) !important;
+}
+
+button.label-brown {
+  background: var(--brown) !important;
+  color: var(--brown-text-color) !important;
+}
+
+button.label-blue {
+  background: var(--blue) !important;
+  color: var(--blue-text-color) !important;
+}
+
+button.label-dark-blue {
+  background: var(--dark-blue) !important;
+  color: var(--dark-blue-text-color) !important;
+}
+
+button.label-darker-blue {
+  background: var(--darker-blue) !important;
+  color: var(--darker-blue-text-color) !important;
+}
+
+button.label-dark-green {
+  background: var(--dark-green) !important;
+  color: var(--dark-green-text-color) !important;
+}
+
+/* Priority button color classes */
+button.priority-bg-1 {
+  background: var(--dark-red) !important;
+  color: var(--dark-red-text-color) !important;
+}
+
+button.priority-bg-2 {
+  background: var(--red) !important;
+  color: var(--red-text-color) !important;
+}
+
+button.priority-bg-3 {
+  background: var(--yellow) !important;
+  color: var(--yellow-text-color) !important;
+}
+
+button.priority-bg-4 {
+  background: var(--green) !important;
+  color: var(--green-text-color) !important;
+}
+
+button.priority-bg-5 {
+  background: var(--dark-grey) !important;
+  color: var(--dark-grey-text-color) !important;
+}
+
+/* Milestone specific colors */
+button.label-default.milestone {
+  color: var(--blue-text-color) !important;
+}
+
+button.milestone:not(.label-default) {
+  color: white !important;
+}
+
 .dropdown-item > .table-button:hover {
   opacity: 0.7;
 }
@@ -471,16 +539,11 @@ a {
   border: 0;
   display: flex;
   width: 100%;
-  background: white !important;
-  color: black !important;
 }
 
 .table-button-status {
-  background: white !important;
-  color: black !important;
-
   &:hover:not([data-toggle]) {
-    background-color: rgba(0, 0, 0, 0.1) !important;
+    opacity: 0.8;
   }
 }
 
