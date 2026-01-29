@@ -131,7 +131,7 @@
                                                                 <div class="btn-group priority">
                                                                     <button type="button"
                                                                         id="priority-ticket-{{ $row->id }}"
-                                                                        class="table-button table-button-status"
+                                                                        class="table-button table-button-status priority-bg-{{ $row->priority }}"
                                                                         data-toggle="dropdown">
                                                                         @if (is_numeric($row->priority) && isset($userViewsData->allPriorities[$row->priority]))
                                                                             <span
@@ -153,7 +153,7 @@
                                                                             <li class="dropdown-item">
                                                                                 <button type="button"
                                                                                     data-args="{{ $row->id }},{{ $newPriorityId }},{{ $priorityLabel }}"
-                                                                                    class="table-button table-button-status priority">
+                                                                                    class="table-button table-button-status priority priority-bg-{{ $newPriorityId }}">
                                                                                     {{ $priorityLabel }}
                                                                                 </button>
                                                                             </li>

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-72](https://github.com/ITK-Leantime/project-overview/pull/72)
+  * Added colors to the status labels (so they are not all yellow)
+
 ## [4.0.1] - 2026-01-23
 
 * [PR-70](https://github.com/ITK-Leantime/project-overview/pull/70)
