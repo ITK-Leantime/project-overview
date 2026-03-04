@@ -5,7 +5,7 @@
 ## [4.0.2] - 2026-03-04
 
 * [PR-73](https://github.com/ITK-Leantime/project-overview/pull/73)
-  * Adjusted subqueries made via `app('db')->connection()->raw(...)` 
+  * Adjusted subqueries made via `app('db')->connection()->raw(...)`
 
 ## [4.0.1] - 2026-01-23
 
