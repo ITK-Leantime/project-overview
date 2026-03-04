@@ -86,7 +86,7 @@ class ProjectOverview
                 'ticket.hourRemaining',
                 'ticket.date',
                 'ticket.milestoneid',
-                app('db')->connection()->raw("CAST(ticket.dateToFinish AS DATE) as dueDate"),
+                app('db')->connection()->raw('CAST(ticket.dateToFinish AS DATE) as dueDate'),
                 'ticket.projectId',
                 'ticket.tags',
                 'ticket.priority',
@@ -100,7 +100,7 @@ class ProjectOverview
                 't2.firstname AS editorFirstname',
                 't2.lastname AS editorLastname',
                 app('db')->connection()->raw("(SELECT GROUP_CONCAT(CONCAT(u.firstname, ' ', u.lastname, ': ', ROUND(IFNULL((SELECT SUM(hours) FROM zp_timesheets WHERE ticketId = ticket.id AND userId = u.id), 0), 2)) SEPARATOR '\n') FROM zp_user u WHERE u.id IN (SELECT DISTINCT userId FROM zp_timesheets WHERE ticketId = ticket.id)) as userHours"),
-                app('db')->connection()->raw("(SELECT ROUND(IFNULL(SUM(hours), 0), 2) FROM zp_timesheets WHERE ticketId = ticket.id) as sumHours"),
+                app('db')->connection()->raw('(SELECT ROUND(IFNULL(SUM(hours), 0), 2) FROM zp_timesheets WHERE ticketId = ticket.id) as sumHours'),
             ])
             ->leftJoin('zp_user AS t1', 'ticket.userId', '=', 't1.id')
             ->leftJoin('zp_user AS t2', 'ticket.editorId', '=', 't2.id')
