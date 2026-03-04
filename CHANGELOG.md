@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [4.0.2] - 2026-03-04
+
+* [PR-73](https://github.com/ITK-Leantime/project-overview/pull/73)
+  * Adjusted subqueries made via `app('db')->connection()->raw(...)` 
+
 ## [4.0.1] - 2026-01-23
 
 * [PR-70](https://github.com/ITK-Leantime/project-overview/pull/70)
@@ -211,7 +216,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.1...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.2...HEAD
+[4.0.2]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.1...4.0.2
 [4.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.3...4.0.0
 [3.3.3]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.2...3.3.3
