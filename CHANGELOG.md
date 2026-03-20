@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+* [PR-77](https://github.com/ITK-Leantime/project-overview/pull/77)
+  * Add live-share views: subscribers always see the owner's latest view config
+  * Fix install() to handle missing directories and broken symlinks
+
 ## [4.0.1] - 2026-01-23
 
 * [PR-70](https://github.com/ITK-Leantime/project-overview/pull/70)
