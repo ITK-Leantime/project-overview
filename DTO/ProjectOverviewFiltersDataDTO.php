@@ -27,7 +27,7 @@ readonly class ProjectOverviewFiltersDataDTO
      * @param array<int>                           $users           Users associated or involved (array of user IDs).
      * @param string|null                          $selectedViewId  The ID of the selected view, can be null.
      * @param array<string, array<string, string>> $dateRanges      Pre-calculated date ranges for each date type option.
-     * @param bool                                  $isSubscription  Whether the selected view is a live-share subscription.
+     * @param bool                                 $isSubscription  Whether the selected view is a live-share subscription.
      */
     public function __construct(
         public array $allUsers,

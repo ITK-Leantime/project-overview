@@ -10,15 +10,15 @@ use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 readonly class UserViewDTO
 {
     /**
-     * @param string      $id                   Unique identifier for the view
-     * @param string      $title                User-friendly title of the view
-     * @param ViewDTO     $view                 The view configuration
-     * @param string|null $shareToken            Token for sharing this view (optional)
-     * @param int|null    $createdAt             Unix timestamp when view was created
-     * @param int         $order                 Display order of the view (lower numbers appear first)
-     * @param string|null $subscribedToUserId    The view owner's user ID (for live-share subscriptions)
-     * @param string|null $subscribedToViewId    The owner's view ID (for live-share subscriptions)
-     * @param string|null $subscribedFromName    Owner's display name (avoids extra lookups for tab rendering)
+     * @param string      $id                 Unique identifier for the view
+     * @param string      $title              User-friendly title of the view
+     * @param ViewDTO     $view               The view configuration
+     * @param string|null $shareToken         Token for sharing this view (optional)
+     * @param int|null    $createdAt          Unix timestamp when view was created
+     * @param int         $order              Display order of the view (lower numbers appear first)
+     * @param string|null $subscribedToUserId The view owner's user ID (for live-share subscriptions)
+     * @param string|null $subscribedToViewId The owner's view ID (for live-share subscriptions)
+     * @param string|null $subscribedFromName Owner's display name (avoids extra lookups for tab rendering)
      */
     public function __construct(
         public string $id,
