@@ -6,6 +6,11 @@
   * Add live-share views: subscribers always see the owner's latest view config
   * Fix install() to handle missing directories and broken symlinks
 
+## [4.0.2] - 2026-03-04
+
+* [PR-73](https://github.com/ITK-Leantime/project-overview/pull/73)
+  * Adjusted subqueries made via `app('db')->connection()->raw(...)`
+
 ## [4.0.1] - 2026-01-23
 
 * [PR-70](https://github.com/ITK-Leantime/project-overview/pull/70)
@@ -215,32 +220,33 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.1...HEAD
-[4.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/4.0.0...4.0.1
-[4.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.3...4.0.0
-[3.3.3]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.2...3.3.3
-[3.3.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.1...3.3.2
-[3.3.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.3.0...3.3.1
-[3.3.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.2.1...3.3.0
-[3.2.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.2...3.2.0
-[3.1.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.1...3.1.2
-[3.1.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.1.0...3.1.1
-[3.1.0]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.3...3.1.0
-[3.0.3]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.2...3.0.3
-[3.0.2]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.1...3.0.2
-[3.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/3.0.0...3.0.1
-[3.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.3.0...3.0.0
-[2.3.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.2.1...2.3.0
-[2.2.1]: https://github.com/olivierlacan/keep-a-changelog/compare/2.2.0...2.2.1
-[2.2.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.5...2.2.0
-[2.1.5]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.4...2.1.5
-[2.1.4]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.3...2.1.4
-[2.1.3]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.2...2.1.3
-[2.1.2]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.1...2.1.2
-[2.1.1]: https://github.com/olivierlacan/keep-a-changelog/compare/2.1.0...2.1.1
-[2.1.0]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.3...2.1.0
-[2.0.3]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.2...2.0.3
-[2.0.2]: https://github.com/olivierlacan/keep-a-changelog/compare/2.0.1...2.0.2
-[2.0.1]: https://github.com/olivierlacan/keep-a-changelog/compare/v2.0.0...2.0.1
-[2.0.0]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.0.0...v2.0.0
-[1.0.0]: https://github.com/olivierlacan/keep-a-changelog/releases/tag/v1.0.0
+[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.0.2...HEAD
+[4.0.2]: https://github.com/ITK-Leantime/project-overview/compare/4.0.1...4.0.2
+[4.0.1]: https://github.com/ITK-Leantime/project-overview/compare/4.0.0...4.0.1
+[4.0.0]: https://github.com/ITK-Leantime/project-overview/compare/3.3.3...4.0.0
+[3.3.3]: https://github.com/ITK-Leantime/project-overview/compare/3.3.2...3.3.3
+[3.3.2]: https://github.com/ITK-Leantime/project-overview/compare/3.3.1...3.3.2
+[3.3.1]: https://github.com/ITK-Leantime/project-overview/compare/3.3.0...3.3.1
+[3.3.0]: https://github.com/ITK-Leantime/project-overview/compare/3.2.1...3.3.0
+[3.2.0]: https://github.com/ITK-Leantime/project-overview/compare/3.1.2...3.2.0
+[3.1.2]: https://github.com/ITK-Leantime/project-overview/compare/3.1.1...3.1.2
+[3.1.1]: https://github.com/ITK-Leantime/project-overview/compare/3.1.0...3.1.1
+[3.1.0]: https://github.com/ITK-Leantime/project-overview/compare/3.0.3...3.1.0
+[3.0.3]: https://github.com/ITK-Leantime/project-overview/compare/3.0.2...3.0.3
+[3.0.2]: https://github.com/ITK-Leantime/project-overview/compare/3.0.1...3.0.2
+[3.0.1]: https://github.com/ITK-Leantime/project-overview/compare/3.0.0...3.0.1
+[3.0.0]: https://github.com/ITK-Leantime/project-overview/compare/2.3.0...3.0.0
+[2.3.0]: https://github.com/ITK-Leantime/project-overview/compare/2.2.1...2.3.0
+[2.2.1]: https://github.com/ITK-Leantime/project-overview/compare/2.2.0...2.2.1
+[2.2.0]: https://github.com/ITK-Leantime/project-overview/compare/2.1.5...2.2.0
+[2.1.5]: https://github.com/ITK-Leantime/project-overview/compare/2.1.4...2.1.5
+[2.1.4]: https://github.com/ITK-Leantime/project-overview/compare/2.1.3...2.1.4
+[2.1.3]: https://github.com/ITK-Leantime/project-overview/compare/2.1.2...2.1.3
+[2.1.2]: https://github.com/ITK-Leantime/project-overview/compare/2.1.1...2.1.2
+[2.1.1]: https://github.com/ITK-Leantime/project-overview/compare/2.1.0...2.1.1
+[2.1.0]: https://github.com/ITK-Leantime/project-overview/compare/2.0.3...2.1.0
+[2.0.3]: https://github.com/ITK-Leantime/project-overview/compare/2.0.2...2.0.3
+[2.0.2]: https://github.com/ITK-Leantime/project-overview/compare/2.0.1...2.0.2
+[2.0.1]: https://github.com/ITK-Leantime/project-overview/compare/2.0.0...2.0.1
+[2.0.0]: https://github.com/ITK-Leantime/project-overview/compare/1.0.0...2.0.0
+[1.0.0]: https://github.com/ITK-Leantime/project-overview/releases/tag/1.0.0
