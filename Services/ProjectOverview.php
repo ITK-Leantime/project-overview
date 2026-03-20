@@ -41,10 +41,19 @@ class ProjectOverview
     public function install(): void
     {
         foreach (self::getAssets() as $source => $target) {
-            if (file_exists($target)) {
-                unlink($target);
+            // Ensure the target directory exists
+            $targetDir = dirname($target);
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
             }
-            symlink($source, $target);
+
+            // Remove any existing file or broken symlink at target path
+            @unlink($target);
+
+            // Only create symlink if the source file exists
+            if (file_exists($source)) {
+                symlink($source, $target);
+            }
         }
     }
 
