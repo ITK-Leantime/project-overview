@@ -2,7 +2,7 @@
 <form method="POST">
     <input type="hidden" name="action" value="saveView" />
     <div>
-        <select name="users[]" id="userSelect" multiple>
+        <select name="users[]" id="userSelect" multiple {{ $filtersData->isSubscription ? 'disabled' : '' }}>
             @foreach ($filtersData->allUsers as $user)
                 <option value="{{ $user['id'] }}"
                     {{ in_array($user['id'], $filtersData->users ?? []) ? 'selected' : '' }}>
@@ -13,7 +13,7 @@
     </div>
 
     <div class="date-options">
-        <select name="dateType" id="dateOptions">
+        <select name="dateType" id="dateOptions" {{ $filtersData->isSubscription ? 'disabled' : '' }}>
             <option value="{{ DateTypeEnum::THIS_WEEK->value }}"
                 {{ $filtersData->dateType === DateTypeEnum::THIS_WEEK->value ? 'selected' : '' }}
                 data-start-date="{{ $filtersData->dateRanges[DateTypeEnum::THIS_WEEK->value]['start'] ?? '' }}"
@@ -44,7 +44,7 @@
     </div>
 
     <div class="filters">
-        <select name="filters[]" id="filterSelect" multiple>
+        <select name="filters[]" id="filterSelect" multiple {{ $filtersData->isSubscription ? 'disabled' : '' }}>
             <optgroup label="Projects">
                 @foreach ($filtersData->allProjects as $project)
                     <option value="project_{{ $project['id'] }}"
@@ -85,7 +85,7 @@
 
 
     <div class="columns-display">
-        <select name="columns[]" id="columnSelect" multiple>
+        <select name="columns[]" id="columnSelect" multiple {{ $filtersData->isSubscription ? 'disabled' : '' }}>
             @foreach ($filtersData->allColumns ?? [] as $column)
                 <option value="{{ $column }}"
                     {{ empty($filtersData->selectedColumns) || in_array($column, $filtersData->selectedColumns) ? 'selected' : '' }}>
@@ -95,7 +95,7 @@
     </div>
 
     <div class="save-view">
-        @if (!empty($userViews))
+        @if (!empty($userViews) && !$filtersData->isSubscription)
             <button type="submit" name="overwriteView" value="1"
                 onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
                 class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
@@ -103,10 +103,14 @@
         <button type="submit"
             class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
         <input type="hidden" name="view" value="{{ $filtersData->selectedViewId }}" />
-        @if (!empty($userViews))
+        @if (!empty($userViews) && !$filtersData->isSubscription)
             <button type="button" class="copy-view-button"
                 data-original="{{ __('projectOverview.share_view_link') }}" name="copyView">
                 {{ __('projectOverview.share_view_link') }}
+            </button>
+            <button type="button" class="copy-live-share-button"
+                data-original="{{ __('projectOverview.live_share_link') }}" name="copyLiveShare">
+                {{ __('projectOverview.live_share_link') }}
             </button>
         @endif
     </div>

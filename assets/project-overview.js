@@ -349,56 +349,79 @@ function initProjectOverviewTable() {
     }
   });
 
-  // Init copy view button click
+  // Init copy view button click (share as copy)
   $(document).on('click', 'button.copy-view-button', function (e) {
     e.preventDefault();
-    const button = $(this);
-    const originalText = button.data('original') || button.text();
-    const viewId = $('#selectedViewId').val();
+    copyShareLink($(this), 'share');
+  });
 
-    // Request share link from server
-    $.ajax({
-      type: 'POST',
-      url: '/ProjectOverview/ProjectOverview/generateShareLink',
-      data: {
-        view: viewId,
-      },
-      dataType: 'json',
-      success: function (response) {
-        if (response.success && response.shareUrl) {
-          // Copy to clipboard
-          navigator.clipboard
-            .writeText(response.shareUrl)
-            .then(function () {
-              button.data('original', originalText);
-              button.text('Copied!');
-              setTimeout(function () {
-                button.text(originalText);
-              }, 2000);
-            })
-            .catch(function (err) {
-              console.error('Failed to copy to clipboard:', err);
-              button.text('Failed');
-              setTimeout(function () {
-                button.text(originalText);
-              }, 2000);
-            });
-        } else {
-          console.error('Failed to generate share link:', response);
-          button.text('Error');
-          setTimeout(function () {
-            button.text(originalText);
-          }, 2000);
-        }
-      },
-      error: function (xhr, status, error) {
-        console.error('AJAX error:', error);
+  // Init copy live-share button click (share as subscription)
+  $(document).on('click', 'button.copy-live-share-button', function (e) {
+    e.preventDefault();
+    copyShareLink($(this), 'subscribe');
+  });
+}
+
+/**
+ * Generate a share link and copy it to clipboard.
+ *
+ * @param {jQuery} button The button element that was clicked.
+ * @param {string} linkType The type of share link ('share' or 'subscribe').
+ */
+function copyShareLink(button, linkType) {
+  const originalText = button.data('original') || button.text();
+  const viewId = $('#selectedViewId').val();
+
+  // Request share link from server
+  $.ajax({
+    type: 'POST',
+    url: '/ProjectOverview/ProjectOverview/generateShareLink',
+    data: {
+      view: viewId,
+    },
+    dataType: 'json',
+    success: function (response) {
+      if (response.success && response.shareToken) {
+        // Build URL with the appropriate query parameter
+        const shareUrl =
+          window.location.origin +
+          '/ProjectOverview/ProjectOverview?' +
+          linkType +
+          '=' +
+          response.shareToken;
+
+        // Copy to clipboard
+        navigator.clipboard
+          .writeText(shareUrl)
+          .then(function () {
+            button.data('original', originalText);
+            button.text('Copied!');
+            setTimeout(function () {
+              button.text(originalText);
+            }, 2000);
+          })
+          .catch(function (err) {
+            console.error('Failed to copy to clipboard:', err);
+            button.text('Failed');
+            setTimeout(function () {
+              button.text(originalText);
+            }, 2000);
+          });
+      } else {
+        console.error('Failed to generate share link:', response);
         button.text('Error');
         setTimeout(function () {
           button.text(originalText);
         }, 2000);
-      },
-    });
+      }
+    },
+    error: function (xhr, status, error) {
+      console.error('AJAX error:', error);
+      button.text('Error');
+      setTimeout(function () {
+        button.text(originalText);
+      }, 2000);
+    },
   });
 }
 

@@ -39,6 +39,13 @@
                                         hx-get="/ProjectOverview/ProjectOverview/loadFilters/{{ urlencode($key) }}"
                                         hx-target="#filtersContainer" hx-swap="innerHTML">
                                         {{ str_replace('_', ' ', $userView['title'] ?? 'View') }}
+                                        @if (!empty($userView['isSubscription']))
+                                            <span class="subscription-indicator"
+                                                data-tippy-content="{{ __('projectOverview.subscription_indicator') }}: {{ $userView['subscribedFromName'] ?? '' }}"
+                                                data-tippy-placement="top">
+                                                <i class="fa fa-link"></i>
+                                            </span>
+                                        @endif
                                     </a>
                                     <span class="tab-context-menu">...</span>
                                 </li>
