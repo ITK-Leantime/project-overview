@@ -111,13 +111,25 @@ class ProjectOverview extends Controller
      */
     public function get(): Response
     {
-        // Handle shared view import
-        if (!empty($_GET['share'])) {
-            $shareToken = $_GET['share'];
-            $sharedView = $this->actionHandler->findViewByShareToken($shareToken);
+        // Handle live-share subscription
+        if (!empty($_GET['subscribe'])) {
+            $lookupResult = $this->actionHandler->findViewByShareToken($_GET['subscribe']);
 
-            if ($sharedView) {
-                $newViewId = $this->actionHandler->importSharedView($sharedView);
+            if ($lookupResult) {
+                $newViewId = $this->actionHandler->subscribeToView($lookupResult);
+                $this->tpl->setNotification(__('projectOverview.notification.view_subscribed'), 'success');
+                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query([self::PARAM_VIEW => $newViewId]));
+            } else {
+                $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
+            }
+        }
+
+        // Handle shared view import (copy)
+        if (!empty($_GET['share'])) {
+            $lookupResult = $this->actionHandler->findViewByShareToken($_GET['share']);
+
+            if ($lookupResult) {
+                $newViewId = $this->actionHandler->importSharedView($lookupResult);
                 $this->tpl->setNotification(__('projectOverview.notification.view_imported'), 'success');
                 return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query([self::PARAM_VIEW => $newViewId]));
             } else {

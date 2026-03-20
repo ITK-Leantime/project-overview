@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\UserViewDTO;
+use Leantime\Plugins\ProjectOverview\DTO\SharedViewLookupResult;
 use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Domain\Users\Repositories\Users as UserRepository;
 use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
@@ -100,6 +101,15 @@ readonly class ProjectOverviewActionHandler
         // Check if view already exists and overwrite if requested.
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             // Update the existing view, preserve share token and order
+            $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
+
+            // Prevent overwriting a subscription — force "save as new" instead
+            if ($existingView->isSubscription()) {
+                $overwriteView = false;
+            }
+        }
+
+        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
             $userViewsObject[$existingViewId] = new UserViewDTO(
                 id: $existingView->id,
@@ -255,12 +265,12 @@ readonly class ProjectOverviewActionHandler
     }
 
     /**
-     * Find a view by its share token across all users
+     * Find a view by its share token across all users.
      *
      * @param string $shareToken The share token to search for
-     * @return UserViewDTO|null The view if found, null otherwise
+     * @return SharedViewLookupResult|null The lookup result with view and owner info, or null if not found
      */
-    public function findViewByShareToken(string $shareToken): ?UserViewDTO
+    public function findViewByShareToken(string $shareToken): ?SharedViewLookupResult
     {
         // Get all users
         $allUsers = $this->userService->getAll();
@@ -272,7 +282,11 @@ readonly class ProjectOverviewActionHandler
             foreach ($userViews as $viewData) {
                 $view = UserViewDTO::fromArray($viewData);
                 if ($view->shareToken === $shareToken) {
-                    return $view;
+                    return new SharedViewLookupResult(
+                        view: $view,
+                        ownerUserId: (string) $user['id'],
+                        ownerName: trim($user['firstname'] . ' ' . $user['lastname']),
+                    );
                 }
             }
         }
@@ -281,12 +295,12 @@ readonly class ProjectOverviewActionHandler
     }
 
     /**
-     * Import a shared view into the current user's views
+     * Import a shared view into the current user's views (creates a copy).
      *
-     * @param UserViewDTO $sharedView The shared view to import
+     * @param SharedViewLookupResult $lookupResult The lookup result containing the shared view and owner info
      * @return string The new view ID
      */
-    public function importSharedView(UserViewDTO $sharedView): string
+    public function importSharedView(SharedViewLookupResult $lookupResult): string
     {
         $userViewsObject = $this->getUserViewsObject();
 
@@ -301,8 +315,8 @@ readonly class ProjectOverviewActionHandler
         $newViewId = uniqid('view_', true);
         $userViewsObject[$newViewId] = new UserViewDTO(
             id: $newViewId,
-            title: $sharedView->title . ' (Shared)',
-            view: $sharedView->view,
+            title: $lookupResult->view->title . ' (Shared)',
+            view: $lookupResult->view->view,
             shareToken: null,
             createdAt: time(),
             order: $maxOrder + 1
@@ -311,6 +325,79 @@ readonly class ProjectOverviewActionHandler
         $this->saveUserViewsObject($userViewsObject);
 
         return $newViewId;
+    }
+
+    /**
+     * Subscribe to a shared view (live-share). Creates a subscription reference in the subscriber's views.
+     *
+     * @param SharedViewLookupResult $lookupResult The lookup result containing the view and owner info
+     * @return string The new subscription view ID
+     */
+    public function subscribeToView(SharedViewLookupResult $lookupResult): string
+    {
+        $userViewsObject = $this->getUserViewsObject();
+
+        // Calculate the next order value (max order + 1)
+        $maxOrder = 0;
+        foreach ($userViewsObject as $view) {
+            $viewDTO = UserViewDTO::fromArray($view);
+            $maxOrder = max($maxOrder, $viewDTO->order);
+        }
+
+        // Create a subscription view with a reference to the owner's view
+        $newViewId = uniqid('view_', true);
+        $userViewsObject[$newViewId] = new UserViewDTO(
+            id: $newViewId,
+            title: $lookupResult->view->title . ' (Live)',
+            view: $lookupResult->view->view,
+            shareToken: null,
+            createdAt: time(),
+            order: $maxOrder + 1,
+            subscribedToUserId: $lookupResult->ownerUserId,
+            subscribedToViewId: $lookupResult->view->id,
+            subscribedFromName: $lookupResult->ownerName,
+        );
+
+        $this->saveUserViewsObject($userViewsObject);
+
+        return $newViewId;
+    }
+
+    /**
+     * Resolve a subscription by fetching the owner's current view configuration.
+     *
+     * @param UserViewDTO $subscriberView The subscriber's view containing subscription references
+     * @return UserViewDTO|null The owner's resolved view, or null if the owner deleted it
+     */
+    public function resolveSubscription(UserViewDTO $subscriberView): ?UserViewDTO
+    {
+        if (!$subscriberView->isSubscription()) {
+            return null;
+        }
+
+        $ownerViews = $this->getUserViewsObject($subscriberView->subscribedToUserId);
+
+        if (!isset($ownerViews[$subscriberView->subscribedToViewId])) {
+            return null;
+        }
+
+        return UserViewDTO::fromArray($ownerViews[$subscriberView->subscribedToViewId]);
+    }
+
+    /**
+     * Remove a subscription view from the current user's views.
+     *
+     * @param string $viewId The ID of the subscription view to remove
+     * @return void
+     */
+    public function removeSubscription(string $viewId): void
+    {
+        $userViewsObject = $this->getUserViewsObject();
+
+        if (isset($userViewsObject[$viewId])) {
+            unset($userViewsObject[$viewId]);
+            $this->saveUserViewsObject($userViewsObject);
+        }
     }
 
     /**

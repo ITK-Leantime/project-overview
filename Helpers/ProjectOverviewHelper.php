@@ -49,9 +49,34 @@ readonly class ProjectOverviewHelper
             'firstname' => 'unassigned',
             'lastname' => '',
         ]);
+        $ownerViewsCache = [];
+        $removedSubscriptions = [];
+
         foreach ($userViewObject as $key => $userViewData) {
             $userView = UserViewDTO::fromArray($userViewData);
-            $viewDTO = $userView->view;
+
+            // Resolve subscriptions — use the owner's view config for data fetching
+            if ($userView->isSubscription()) {
+                $resolvedView = $this->actionHandler->resolveSubscription($userView);
+
+                if ($resolvedView === null) {
+                    // Owner deleted the view — auto-remove the broken subscription
+                    $this->actionHandler->removeSubscription($key);
+                    $removedSubscriptions[] = $userView->title;
+                    unset($userViewObject[$key]);
+                    continue;
+                }
+
+                // Use the owner's ViewDTO for ticket fetching, keep subscriber metadata
+                $viewDTO = $resolvedView->view;
+                $userViewObject[$key]['isSubscription'] = true;
+                $userViewObject[$key]['subscribedFromName'] = $userView->subscribedFromName;
+                // Update the stored view config so template columns are correct
+                $userViewObject[$key]['view'] = $resolvedView->toArray()['view'];
+            } else {
+                $viewDTO = $userView->view;
+                $userViewObject[$key]['isSubscription'] = false;
+            }
 
             $viewTickets = $this->projectOverviewService->getViewTasks($viewDTO);
             $projectIds = array_unique(array_column($viewTickets, 'projectId'));
@@ -75,6 +100,14 @@ readonly class ProjectOverviewHelper
             }
             $userViewObject[$key]['tickets'] = $viewTickets;
         }
+        // Flash notification for auto-removed broken subscriptions
+        if (!empty($removedSubscriptions)) {
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.subscription_removed'),
+                'type' => 'info',
+            ]);
+        }
+
         return new ProjectOverviewDTO(
             userViews: $userViewObject,
             statusLabels: $projectTicketStatuses,
@@ -136,6 +169,7 @@ readonly class ProjectOverviewHelper
         ];
 
         // Override with user view data if available
+        $isSubscription = false;
         if ($selectedViewId !== null) {
             $userViewArray = $this->actionHandler->getUserViewsObject();
 
@@ -143,7 +177,19 @@ readonly class ProjectOverviewHelper
                 $userViewData = $userViewArray[$selectedViewId] ?? null;
                 if ($userViewData) {
                     $userView = UserViewDTO::fromArray($userViewData);
-                    $viewDTO = $userView->view;
+
+                    // If this is a subscription, resolve the owner's view config
+                    if ($userView->isSubscription()) {
+                        $isSubscription = true;
+                        $resolvedView = $this->actionHandler->resolveSubscription($userView);
+                        if ($resolvedView !== null) {
+                            $viewDTO = $resolvedView->view;
+                        } else {
+                            $viewDTO = $userView->view;
+                        }
+                    } else {
+                        $viewDTO = $userView->view;
+                    }
 
                     $userViewsData = array_merge($userViewsData, [
                         'title' => $userView->title,
@@ -180,6 +226,7 @@ readonly class ProjectOverviewHelper
             users: $userViewsData['users'],
             selectedViewId: $userViewsData['selectedViewId'],
             dateRanges: $dateRanges,
+            isSubscription: $isSubscription,
         );
     }
 }
