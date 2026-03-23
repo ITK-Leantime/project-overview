@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-78](https://github.com/ITK-Leantime/project-overview/pull/78)
+  * Fix issue regarding sorting
+  * Sorting is now coupled to the view config
 * [PR-77](https://github.com/ITK-Leantime/project-overview/pull/77)
   * Add live-share views: subscribers always see the owner's latest view config
   * Fix install() to handle missing directories and broken symlinks
