@@ -4,6 +4,7 @@ dist
 node_modules
 *.cache
 composer.lock
+.claude
 
 # Release artifacts
 release/

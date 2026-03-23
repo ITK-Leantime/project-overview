@@ -34,7 +34,8 @@
                     <div id="projectOverviewTabs" class="is-hidden">
                         <ul>
                             @foreach ($userViewsData->userViews as $key => $userView)
-                                <li data-target="{{ $key }}" {{ !empty($userView['isSubscription']) ? 'data-is-subscription=true' : '' }}>
+                                <li data-target="{{ $key }}"
+                                    {{ !empty($userView['isSubscription']) ? 'data-is-subscription=true' : '' }}>
                                     <a href="#view-{{ $key }}" class="tab-link" data-view-key="{{ $key }}"
                                         hx-get="/ProjectOverview/ProjectOverview/loadFilters/{{ urlencode($key) }}"
                                         hx-target="#filtersContainer" hx-swap="innerHTML">

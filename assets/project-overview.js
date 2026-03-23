@@ -228,7 +228,9 @@ function initProjectOverviewTable() {
       .val(viewId);
 
     // Hide rename controls for subscribed views
-    contextMenu.find('> form > span, > form > input[name="viewName"], .view-rename').toggle(!isSubscription);
+    contextMenu
+      .find('> form > span, > form > input[name="viewName"], .view-rename')
+      .toggle(!isSubscription);
 
     // Delay focus slightly
     if (!isSubscription) {
