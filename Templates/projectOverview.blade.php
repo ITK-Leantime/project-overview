@@ -68,8 +68,7 @@
                                     $viewSortBy = $userView['view']['sortBy'] ?? 'priority';
                                     $viewSortDir = strtolower($userView['view']['sortDirection'] ?? 'ASC');
                                 @endphp
-                                <table class="table table-striped"
-                                    data-sort-by="{{ $viewSortBy }}"
+                                <table class="table table-striped" data-sort-by="{{ $viewSortBy }}"
                                     data-sort-dir="{{ $viewSortDir }}">
                                     <thead>
                                         <tr>

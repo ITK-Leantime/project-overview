@@ -660,15 +660,15 @@ th[id^='sort_'] {
 th.sort-asc .label-and-caret-wrapper::after {
   content: ' \25B2';
   font-size: 0.7em;
-    line-height: 21px;
-    padding: 0 0 0 5px;
+  line-height: 21px;
+  padding: 0 0 0 5px;
 }
 
 th.sort-desc .label-and-caret-wrapper::after {
-    content: ' \25BC';
-    font-size: 0.7em;
-    line-height: 21px;
-    padding: 0 0 0 5px;
+  content: ' \25BC';
+  font-size: 0.7em;
+  line-height: 21px;
+  padding: 0 0 0 5px;
 }
 
 /* Ensure date options select has no rounded corners */
