@@ -52,11 +52,34 @@ readonly class ProjectOverviewHelper
         $ownerViewsCache = [];
         $removedSubscriptions = [];
 
+        // Inject transient subscription from session if present
+        $transientSub = session('project_overview.transient_subscription');
+        if ($transientSub) {
+            $ownerViews = $this->actionHandler->getUserViewsObject($transientSub['ownerUserId']);
+            if (isset($ownerViews[$transientSub['ownerViewId']])) {
+                $ownerView = UserViewDTO::fromArray($ownerViews[$transientSub['ownerViewId']]);
+                $userViewObject[$transientSub['tempViewId']] = array_merge($ownerView->toArray(), [
+                    'id' => $transientSub['tempViewId'],
+                    'title' => $ownerView->title . ' (Live)',
+                    'shareToken' => null,
+                    'order' => PHP_INT_MAX,
+                    'isTransientSubscription' => true,
+                    'subscribeToken' => $transientSub['token'],
+                    'subscribedFromName' => $transientSub['ownerName'],
+                    'isSubscription' => true,
+                ]);
+            }
+        }
+
         foreach ($userViewObject as $key => $userViewData) {
             $userView = UserViewDTO::fromArray($userViewData);
 
-            // Resolve subscriptions — use the owner's view config for data fetching
-            if ($userView->isSubscription()) {
+            // Skip subscription resolution for transient views (already resolved above)
+            $isTransient = $userViewData['isTransientSubscription'] ?? false;
+            if ($isTransient) {
+                $viewDTO = $userView->view;
+                // Preserve the extra flags already set
+            } elseif ($userView->isSubscription()) {
                 $resolvedView = $this->actionHandler->resolveSubscription($userView);
 
                 if ($resolvedView === null) {
@@ -170,7 +193,37 @@ readonly class ProjectOverviewHelper
 
         // Override with user view data if available
         $isSubscription = false;
-        if ($selectedViewId !== null) {
+        $isTransientSubscription = false;
+        $subscribeToken = null;
+
+        // Check if selected view is a transient subscription from session
+        $transientSub = session('project_overview.transient_subscription');
+        if ($selectedViewId !== null && $transientSub && $selectedViewId === $transientSub['tempViewId']) {
+            $isSubscription = true;
+            $isTransientSubscription = true;
+            $subscribeToken = $transientSub['token'];
+
+            // Resolve the owner's view
+            $ownerViews = $this->actionHandler->getUserViewsObject($transientSub['ownerUserId']);
+            if (isset($ownerViews[$transientSub['ownerViewId']])) {
+                $ownerView = UserViewDTO::fromArray($ownerViews[$transientSub['ownerViewId']]);
+                $viewDTO = $ownerView->view;
+
+                $userViewsData = array_merge($userViewsData, [
+                    'title' => $ownerView->title . ' (Live)',
+                    'users' => $viewDTO->users,
+                    'selectedColumns' => $viewDTO->columns,
+                    'dateType' => $viewDTO->dateType->value,
+                    'fromDate' => date(ProjectOverviewService::FRONTEND_DATE_FORMAT, strtotime($viewDTO->fromDate)),
+                    'toDate' => date(ProjectOverviewService::FRONTEND_DATE_FORMAT, strtotime($viewDTO->toDate)),
+                    'projectFilters' => $viewDTO->projectFilters,
+                    'priorityFilters' => $viewDTO->priorityFilters,
+                    'statusFilters' => $viewDTO->statusFilters,
+                    'customFilters' => $viewDTO->customFilters,
+                    'selectedViewId' => $selectedViewId,
+                ]);
+            }
+        } elseif ($selectedViewId !== null) {
             $userViewArray = $this->actionHandler->getUserViewsObject();
 
             if ($userViewArray) {
@@ -227,6 +280,8 @@ readonly class ProjectOverviewHelper
             selectedViewId: $userViewsData['selectedViewId'],
             dateRanges: $dateRanges,
             isSubscription: $isSubscription,
+            isTransientSubscription: $isTransientSubscription,
+            subscribeToken: $subscribeToken,
         );
     }
 }
