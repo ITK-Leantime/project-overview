@@ -177,8 +177,11 @@ function initProjectOverviewTable() {
   });
 
   // begin sorting
-  $(document).on('click', '[id^=sort_]', function () {
-    changeSortBy(this.id.replace('sort_', ''));
+  document.addEventListener('click', function (e) {
+    const th = e.target.closest('[id^=sort_]');
+    if (th) {
+      changeSortBy(th.id.replace('sort_', ''), th);
+    }
   });
 
   $(document).on('change', '[id^=due-date-]', function () {
@@ -681,22 +684,108 @@ function changeTags(event, ticketId, newTags) {
   }
 }
 
-// Change sort
-function changeSortBy(sortBy) {
-  const params = new URLSearchParams(document.location.search);
-  const url = new URL(window.location.href);
-  const currentSortOrder = params.get('sortOrder');
-  const currentSortBy = params.get('sortBy');
+// Change sort — client-side DOM sort + silent persist
+function changeSortBy(sortBy, clickedTh) {
+  const table = clickedTh.closest('table');
+  if (!table) return;
 
-  if (currentSortBy === sortBy) {
-    const newSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
-    url.searchParams.set('sortOrder', newSortOrder);
-  } else {
-    url.searchParams.set('sortOrder', 'asc');
-    url.searchParams.set('sortBy', sortBy);
+  const tbody = table.querySelector('tbody');
+  const headers = Array.from(table.querySelectorAll('thead th'));
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  if (!rows.length) return;
+
+  // Find column index from the clicked header
+  const colIndex = headers.indexOf(clickedTh);
+  if (colIndex < 0) return;
+
+  // Toggle direction
+  const currentCol = table.dataset.sortBy;
+  const currentDir = table.dataset.sortDir;
+  let direction = 'asc';
+  if (currentCol === sortBy && currentDir === 'asc') direction = 'desc';
+  table.dataset.sortBy = sortBy;
+  table.dataset.sortDir = direction;
+
+  const numericCols = [
+    'planHours',
+    'hourRemaining',
+    'sumHours',
+    'milestoneid',
+    'priority',
+    'status',
+  ];
+  const dateCols = ['dateToFinish'];
+
+  rows.sort(function (a, b) {
+    const aCell = a.cells[colIndex];
+    const bCell = b.cells[colIndex];
+    let aVal, bVal;
+
+    if (dateCols.includes(sortBy)) {
+      aVal = (aCell.querySelector('input[type=date]') || {}).value || '';
+      bVal = (bCell.querySelector('input[type=date]') || {}).value || '';
+    } else if (numericCols.includes(sortBy)) {
+      aVal = parseFloat(getCellNumericValue(aCell)) || 0;
+      bVal = parseFloat(getCellNumericValue(bCell)) || 0;
+    } else {
+      aVal = getCellTextValue(aCell).trim().toLowerCase();
+      bVal = getCellTextValue(bCell).trim().toLowerCase();
+    }
+
+    let result;
+    if (numericCols.includes(sortBy) || dateCols.includes(sortBy)) {
+      result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+    } else {
+      result = String(aVal).localeCompare(String(bVal));
+    }
+    return direction === 'desc' ? -result : result;
+  });
+
+  rows.forEach(function (row) {
+    tbody.appendChild(row);
+  });
+
+  // Update visual indicators
+  headers.forEach(function (th) {
+    th.classList.remove('sort-asc', 'sort-desc');
+  });
+  clickedTh.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+
+  // Silent save
+  const viewId = document.getElementById('selectedViewId');
+  if (viewId && viewId.value) {
+    fetch(window.location.pathname, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: new URLSearchParams({
+        action: 'saveSortOrder',
+        view: viewId.value,
+        sortBy: sortBy,
+        sortDirection: direction.toUpperCase(),
+      }),
+    });
   }
+}
 
-  window.location.assign(url);
+function getCellNumericValue(cell) {
+  const input = cell.querySelector('input[type=number]');
+  if (input) return input.value;
+  const span = cell.querySelector('.logged-hours');
+  if (span) return span.textContent;
+  const select = cell.querySelector('select');
+  if (select) return select.value;
+  return cell.textContent;
+}
+
+function getCellTextValue(cell) {
+  if (cell.dataset.selectedName) return cell.dataset.selectedName;
+  const link = cell.querySelector('a');
+  if (link) return link.textContent;
+  return cell.textContent;
 }
 
 // Save success animation

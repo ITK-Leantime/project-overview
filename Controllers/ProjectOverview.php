@@ -97,6 +97,12 @@ class ProjectOverview extends Controller
             case 'saveTabOrder':
                 $this->actionHandler->saveTabOrder($_POST);
                 break;
+            case 'saveSortOrder':
+                $viewId = $_POST[self::PARAM_VIEW] ?? '';
+                $sortBy = $_POST['sortBy'] ?? 'priority';
+                $sortDirection = $_POST['sortDirection'] ?? 'ASC';
+                $this->actionHandler->saveSortOrder($viewId, $sortBy, $sortDirection);
+                break;
             case 'pinSubscription':
                 $subscribeToken = $_POST['subscribeToken'] ?? '';
                 $lookupResult = $this->actionHandler->findViewByShareToken($subscribeToken);

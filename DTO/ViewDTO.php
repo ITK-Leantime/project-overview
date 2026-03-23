@@ -20,6 +20,8 @@ readonly class ViewDTO
      * @param array<int, mixed> $priorityFilters Selected priority filters (priority IDs)
      * @param array<int, mixed> $statusFilters   Selected status filters (status IDs)
      * @param array<string>     $customFilters   Selected custom filters (filter names)
+     * @param string|null       $sortBy          Column name to sort by
+     * @param string            $sortDirection   Sort direction (ASC or DESC)
      */
     public function __construct(
         public ?string $title,
@@ -31,7 +33,9 @@ readonly class ViewDTO
         public array $projectFilters = [],
         public array $priorityFilters = [],
         public array $statusFilters = [],
-        public array $customFilters = []
+        public array $customFilters = [],
+        public ?string $sortBy = 'priority',
+        public string $sortDirection = 'ASC',
     ) {
     }
 }

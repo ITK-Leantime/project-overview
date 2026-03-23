@@ -652,6 +652,25 @@ div.save-view > button.copy-view-button i {
   margin-right: 5px;
 }
 
+th[id^='sort_'] {
+  cursor: pointer;
+  user-select: none;
+}
+
+th.sort-asc .label-and-caret-wrapper::after {
+  content: ' \25B2';
+  font-size: 0.7em;
+    line-height: 21px;
+    padding: 0 0 0 5px;
+}
+
+th.sort-desc .label-and-caret-wrapper::after {
+    content: ' \25BC';
+    font-size: 0.7em;
+    line-height: 21px;
+    padding: 0 0 0 5px;
+}
+
 /* Ensure date options select has no rounded corners */
 .search-and-filter select#dateOptions,
 select#dateOptions {

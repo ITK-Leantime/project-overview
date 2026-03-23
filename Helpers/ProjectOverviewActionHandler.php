@@ -81,20 +81,6 @@ readonly class ProjectOverviewActionHandler
             }
         }
 
-        // Create view DTO.
-        $viewDTO = new ViewDTO(
-            title: null,
-            users: (array)$users,
-            dateType: $dateType,
-            fromDate: $fromDate,
-            toDate: $toDate,
-            columns: $columns,
-            projectFilters: $groupedFilters['projects'],
-            priorityFilters: $groupedFilters['priorities'],
-            statusFilters: $groupedFilters['statuses'],
-            customFilters: $groupedFilters['custom']
-        );
-
         $userViewsObject = $this->getUserViewsObject();
         $existingViewId = $postData['view'] ?? null;
 
@@ -108,6 +94,31 @@ readonly class ProjectOverviewActionHandler
                 $overwriteView = false;
             }
         }
+
+        // Preserve sort fields from existing view when overwriting, otherwise use defaults.
+        $sortBy = 'priority';
+        $sortDirection = 'ASC';
+        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
+            $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
+            $sortBy = $existingView->view->sortBy ?? 'priority';
+            $sortDirection = $existingView->view->sortDirection ?? 'ASC';
+        }
+
+        // Create view DTO.
+        $viewDTO = new ViewDTO(
+            title: null,
+            users: (array)$users,
+            dateType: $dateType,
+            fromDate: $fromDate,
+            toDate: $toDate,
+            columns: $columns,
+            projectFilters: $groupedFilters['projects'],
+            priorityFilters: $groupedFilters['priorities'],
+            statusFilters: $groupedFilters['statuses'],
+            customFilters: $groupedFilters['custom'],
+            sortBy: $sortBy,
+            sortDirection: $sortDirection,
+        );
 
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
@@ -485,6 +496,80 @@ readonly class ProjectOverviewActionHandler
         ];
     }
 
+
+    /**
+     * Saves the sort column and direction for a specific view.
+     *
+     * @param string $viewId        The view ID to update.
+     * @param string $sortBy        The column name to sort by.
+     * @param string $sortDirection The sort direction (ASC or DESC).
+     * @return void
+     */
+    public function saveSortOrder(string $viewId, string $sortBy, string $sortDirection): void
+    {
+        try {
+            // Validate sort column against available columns.
+            if (!in_array($sortBy, $this->getAvailableColumns(), true)) {
+                exit(json_encode([
+                    'status' => 'error',
+                    'message' => 'Invalid sort column.',
+                ]));
+            }
+
+            // Validate sort direction.
+            $sortDirection = strtoupper($sortDirection) === 'DESC' ? 'DESC' : 'ASC';
+
+            $userViewsObject = $this->getUserViewsObject();
+
+            if (!isset($userViewsObject[$viewId])) {
+                exit(json_encode([
+                    'status' => 'error',
+                    'message' => 'View not found.',
+                ]));
+            }
+
+            $existingView = UserViewDTO::fromArray($userViewsObject[$viewId]);
+
+            // Rebuild ViewDTO with updated sort fields.
+            $updatedViewDTO = new ViewDTO(
+                title: $existingView->view->title,
+                users: $existingView->view->users,
+                dateType: $existingView->view->dateType,
+                fromDate: $existingView->view->fromDate,
+                toDate: $existingView->view->toDate,
+                columns: $existingView->view->columns,
+                projectFilters: $existingView->view->projectFilters,
+                priorityFilters: $existingView->view->priorityFilters,
+                statusFilters: $existingView->view->statusFilters,
+                customFilters: $existingView->view->customFilters,
+                sortBy: $sortBy,
+                sortDirection: $sortDirection,
+            );
+
+            $userViewsObject[$viewId] = new UserViewDTO(
+                id: $existingView->id,
+                title: $existingView->title,
+                view: $updatedViewDTO,
+                shareToken: $existingView->shareToken,
+                createdAt: $existingView->createdAt,
+                order: $existingView->order,
+                subscribedToUserId: $existingView->subscribedToUserId,
+                subscribedToViewId: $existingView->subscribedToViewId,
+                subscribedFromName: $existingView->subscribedFromName,
+            );
+
+            $this->saveUserViewsObject($userViewsObject);
+
+            exit(json_encode([
+                'status' => 'success',
+            ]));
+        } catch (\Exception $e) {
+            exit(json_encode([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ]));
+        }
+    }
 
     /**
      * Saves the updated tab order based on the given post data.

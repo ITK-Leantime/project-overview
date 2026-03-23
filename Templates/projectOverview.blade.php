@@ -64,11 +64,18 @@
 
                         @foreach ($userViewsData->userViews as $key => $userView)
                             <div id="view-{{ $key }}">
-                                <table class="table table-striped">
+                                @php
+                                    $viewSortBy = $userView['view']['sortBy'] ?? 'priority';
+                                    $viewSortDir = strtolower($userView['view']['sortDirection'] ?? 'ASC');
+                                @endphp
+                                <table class="table table-striped"
+                                    data-sort-by="{{ $viewSortBy }}"
+                                    data-sort-dir="{{ $viewSortDir }}">
                                     <thead>
                                         <tr>
                                             @foreach ($userView['view']['columns'] ?? ($userView['columns'] ?? []) as $column)
-                                                <th id="sort_{{ str_replace('.', '', $column) }}" scope="col">
+                                                <th id="sort_{{ str_replace('.', '', $column) }}" scope="col"
+                                                    class="{{ $viewSortBy === $column ? 'sort-' . $viewSortDir : '' }}">
                                                     <div class="label-and-caret-wrapper">
                                                         {{ __('projectOverview.' . strtolower($column) . '_table_header') }}
                                                     </div>
