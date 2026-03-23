@@ -712,7 +712,6 @@ function changeSortBy(sortBy, clickedTh) {
     'sumHours',
     'milestoneid',
     'priority',
-    'status',
   ];
   const dateCols = ['dateToFinish'];
 
@@ -772,6 +771,7 @@ function changeSortBy(sortBy, clickedTh) {
 }
 
 function getCellNumericValue(cell) {
+  if (cell.dataset.sortValue !== undefined) return cell.dataset.sortValue;
   const input = cell.querySelector('input[type=number]');
   if (input) return input.value;
   const span = cell.querySelector('.logged-hours');
@@ -783,6 +783,8 @@ function getCellNumericValue(cell) {
 
 function getCellTextValue(cell) {
   if (cell.dataset.selectedName) return cell.dataset.selectedName;
+  const label = cell.querySelector('#status-label, #priority-label');
+  if (label) return label.textContent;
   const link = cell.querySelector('a');
   if (link) return link.textContent;
   return cell.textContent;

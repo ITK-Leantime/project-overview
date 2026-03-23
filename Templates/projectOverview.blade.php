@@ -150,7 +150,7 @@
                                                         @endif
 
                                                         @if ($column == 'priority')
-                                                            <td class="spacious">
+                                                            <td class="spacious" data-sort-value="{{ $row->priority }}">
                                                                 <div class="btn-group priority">
                                                                     <button type="button"
                                                                         id="priority-ticket-{{ $row->id }}"
