@@ -95,23 +95,29 @@
     </div>
 
     <div class="save-view">
-        @if (!empty($userViews) && !$filtersData->isSubscription)
-            <button type="submit" name="overwriteView" value="1"
-                onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
-                class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
-        @endif
-        <button type="submit"
-            class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
-        <input type="hidden" name="view" value="{{ $filtersData->selectedViewId }}" />
-        @if (!empty($userViews) && !$filtersData->isSubscription)
-            <button type="button" class="copy-view-button"
-                data-original="{{ __('projectOverview.share_view_link') }}" name="copyView">
-                {{ __('projectOverview.share_view_link') }}
-            </button>
-            <button type="button" class="copy-live-share-button"
-                data-original="{{ __('projectOverview.live_share_link') }}" name="copyLiveShare">
-                {{ __('projectOverview.live_share_link') }}
-            </button>
+        @if ($filtersData->isTransientSubscription)
+            <input type="hidden" name="subscribeToken" value="{{ $filtersData->subscribeToken }}" />
+            <button type="submit" name="action" value="pinSubscription"
+                class="btn btn-success save-as-new-btn">{{ __('projectOverview.pin_to_my_views') }}</button>
+        @else
+            @if (!empty($userViews) && !$filtersData->isSubscription)
+                <button type="submit" name="overwriteView" value="1"
+                    onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
+                    class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
+            @endif
+            <button type="submit"
+                class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
+            <input type="hidden" name="view" value="{{ $filtersData->selectedViewId }}" />
+            @if (!empty($userViews) && !$filtersData->isSubscription)
+                <button type="button" class="copy-view-button"
+                    data-original="{{ __('projectOverview.share_view_link') }}" name="copyView">
+                    {{ __('projectOverview.share_view_link') }}
+                </button>
+                <button type="button" class="copy-live-share-button"
+                    data-original="{{ __('projectOverview.live_share_link') }}" name="copyLiveShare">
+                    {{ __('projectOverview.live_share_link') }}
+                </button>
+            @endif
         @endif
     </div>
 </form>

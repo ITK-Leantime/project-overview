@@ -34,12 +34,18 @@
                     <div id="projectOverviewTabs" class="is-hidden">
                         <ul>
                             @foreach ($userViewsData->userViews as $key => $userView)
-                                <li data-target="{{ $key }}">
+                                <li data-target="{{ $key }}" {{ !empty($userView['isSubscription']) ? 'data-is-subscription=true' : '' }}>
                                     <a href="#view-{{ $key }}" class="tab-link" data-view-key="{{ $key }}"
                                         hx-get="/ProjectOverview/ProjectOverview/loadFilters/{{ urlencode($key) }}"
                                         hx-target="#filtersContainer" hx-swap="innerHTML">
                                         {{ str_replace('_', ' ', $userView['title'] ?? 'View') }}
-                                        @if (!empty($userView['isSubscription']))
+                                        @if (!empty($userView['isTransientSubscription']))
+                                            <span class="subscription-indicator"
+                                                data-tippy-content="{{ __('projectOverview.subscription_preview') }}: {{ $userView['subscribedFromName'] ?? '' }}"
+                                                data-tippy-placement="top">
+                                                <i class="fa fa-eye"></i>
+                                            </span>
+                                        @elseif (!empty($userView['isSubscription']))
                                             <span class="subscription-indicator"
                                                 data-tippy-content="{{ __('projectOverview.subscription_indicator') }}: {{ $userView['subscribedFromName'] ?? '' }}"
                                                 data-tippy-placement="top">
@@ -47,7 +53,9 @@
                                             </span>
                                         @endif
                                     </a>
-                                    <span class="tab-context-menu">...</span>
+                                    @if (empty($userView['isTransientSubscription']))
+                                        <span class="tab-context-menu">...</span>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>
