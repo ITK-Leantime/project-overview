@@ -211,7 +211,9 @@ function initProjectOverviewTable() {
   $(document).on('click', 'span.tab-context-menu', ({ target }) => {
     const currentName = $(target).siblings('.tab-link').first().text().trim();
     const rect = target.parentElement.getBoundingClientRect();
-    const viewId = $(target).parent().data('target');
+    const $tab = $(target).parent();
+    const viewId = $tab.data('target');
+    const isSubscription = $tab.data('is-subscription') === true;
     $('.settings-for-target').text(viewId);
     contextMenu
       .css({
@@ -225,10 +227,15 @@ function initProjectOverviewTable() {
       .find('input[name="view"]')
       .val(viewId);
 
+    // Hide rename controls for subscribed views
+    contextMenu.find('> form > span, > form > input[name="viewName"], .view-rename').toggle(!isSubscription);
+
     // Delay focus slightly
-    setTimeout(() => {
-      contextMenu.find('input[name="viewName"]').focus();
-    }, 100);
+    if (!isSubscription) {
+      setTimeout(() => {
+        contextMenu.find('input[name="viewName"]').focus();
+      }, 100);
+    }
   });
 
   // Close context menu when clicked outside.
