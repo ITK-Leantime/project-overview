@@ -797,6 +797,7 @@ function changeSortBy(sortBy, clickedTh) {
     'sumHours',
     'milestoneid',
     'priority',
+    'status',
   ];
   const dateCols = ['dateToFinish'];
 
@@ -817,11 +818,7 @@ function changeSortBy(sortBy, clickedTh) {
     }
 
     let result;
-    if (numericCols.includes(sortBy) || dateCols.includes(sortBy)) {
-      result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-    } else {
-      result = String(aVal).localeCompare(String(bVal));
-    }
+    result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
     return direction === 'desc' ? -result : result;
   });
 

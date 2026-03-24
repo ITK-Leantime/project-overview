@@ -296,7 +296,7 @@
     .status.btn-group,
     .priority.btn-group {
       width: 100%;
-      max-width: 175px;
+      max-width: 100%;
     }
     button[id^='status-ticket-'],
     button[id^='priority-ticket-'] {
@@ -349,7 +349,7 @@
       height: 100%;
       align-items: center;
       position: relative;
-      max-width: 150px;
+      max-width: calc(100% - 10px);
       width: 100%;
       margin: 0 auto 0 0;
       select {

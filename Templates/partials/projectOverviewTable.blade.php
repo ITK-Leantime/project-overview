@@ -53,7 +53,7 @@
 
                         @if ($column == 'status')
                             @php $projectStatuses = $statusLabels[$row->projectId] ?? []; @endphp
-                            <td class="spacious">
+                            <td class="spacious" data-sort-value="{{ $row->status }}">
                                 <div class="btn-group status">
                                     <button type="button"
                                         id="status-ticket-{{ $row->id }}"
