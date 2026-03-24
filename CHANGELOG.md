@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+* [PR-79](https://github.com/ITK-Leantime/project-overview/pull/79)
+  * Reworked views to be able to display changes in filters instantly
 * [PR-78](https://github.com/ITK-Leantime/project-overview/pull/78)
   * Fix issue regarding sorting
   * Sorting is now coupled to the view config
