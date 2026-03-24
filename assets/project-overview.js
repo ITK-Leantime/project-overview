@@ -487,7 +487,7 @@ function copyShareLink(button) {
           .writeText(shareUrl)
           .then(function () {
             button.data('original', originalText);
-            button.text('Copied!');
+            button.text('✓');
             setTimeout(function () {
               button.text(originalText);
             }, 2000);

@@ -658,6 +658,7 @@ div.save-view > button:hover {
 
 div.save-view > button.copy-live-share-button {
   margin-left: auto;
+  width: 90px;
 }
 
 th[id^='sort_'] {
