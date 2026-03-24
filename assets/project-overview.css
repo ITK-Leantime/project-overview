@@ -46,7 +46,7 @@
   background-color: white;
   display: flex;
   flex-direction: column;
-  padding: 15px;
+  padding: 15px 15px 60px;
   overflow: auto;
 
   .label-and-caret-wrapper {
@@ -163,6 +163,18 @@
     width: 100%;
     margin-bottom: 15px;
     max-height: 35px;
+    overflow: hidden;
+    transition:
+      max-height 0.25s ease,
+      margin-bottom 0.25s ease,
+      opacity 0.2s ease;
+
+    &.collapsed {
+      max-height: 0;
+      margin-bottom: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
 
     form {
       display: flex;
@@ -209,9 +221,10 @@
       }
 
       .save-view {
-        margin-left: 10px;
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
         display: flex;
-        flex: 1;
         gap: 10px;
       }
 
@@ -647,19 +660,15 @@ div.save-view > button {
   color: #fff;
   font-weight: normal;
   background-color: var(--itk-color-primary);
-  border-radius: 0 !important;
+  border-radius: 3px !important;
   border: 1px solid var(--itk-border-color);
   cursor: pointer;
   padding: var(--itk-button-padding);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 div.save-view > button:hover {
   background-color: var(--itk-color-primary-800);
-}
-
-div.save-view > button.copy-live-share-button {
-  margin-left: auto;
-  width: 90px;
 }
 
 th[id^='sort_'] {
@@ -938,10 +947,37 @@ select#dateOptions {
   background: transparent;
   border: none;
   transition: opacity 0.3s ease-in-out;
+  position: relative;
 
   &.is-hidden {
     opacity: 0;
     height: 0;
+  }
+
+  .filters-toggle {
+    all: unset;
+    cursor: pointer;
+    position: absolute;
+    top: 8px;
+    right: 0;
+    color: #555555;
+    font-size: 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .toggle-arrow {
+      transition: transform 0.2s ease;
+    }
+
+    &.collapsed .toggle-arrow {
+      transform: rotate(180deg);
+    }
+
+    &:hover {
+      color: var(--itk-color-primary);
+    }
   }
 
   .ui-widget-header {
@@ -1078,7 +1114,7 @@ select#dateOptions {
 
     div.buttons {
       display: flex;
-      justify-content: end;
+      justify-content: start;
       column-gap: 5px;
 
       button {
@@ -1103,6 +1139,110 @@ select#dateOptions {
 
   &.shown {
     display: flex !important;
+  }
+
+  button.view-share {
+    margin-left: auto !important;
+    color: var(--itk-color-black) !important;
+    background-color: transparent;
+
+    &:hover {
+      color: var(--itk-color-black) !important;
+    }
+  }
+}
+
+#share-view-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100000;
+  align-items: center;
+  justify-content: center;
+
+  &.shown {
+    display: flex;
+  }
+
+  .share-modal-content {
+    background-color: #fff;
+    border-radius: 6px;
+    padding: 20px;
+    width: 500px;
+    max-width: 90vw;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .share-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--itk-spacing-lg);
+
+    h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #555555;
+    }
+
+    .share-modal-close {
+      all: unset;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      color: var(--itk-color-gray-500);
+
+      &:hover {
+        color: var(--itk-color-black);
+      }
+    }
+  }
+
+  p {
+    margin: 0 0 var(--itk-spacing-lg);
+    font-size: 13px;
+    color: #555555;
+  }
+
+  .share-modal-input-group {
+    display: flex;
+    gap: 6px;
+
+    input {
+      all: unset;
+      flex: 1;
+      height: 35px;
+      border: 1px solid var(--itk-border-color);
+      border-radius: 3px;
+      padding: 0 10px;
+      font-size: 13px;
+      color: #555555;
+      background-color: var(--itk-color-gray-50);
+      box-sizing: border-box;
+    }
+
+    .share-modal-copy-btn {
+      all: unset;
+      cursor: pointer;
+      background-color: var(--itk-color-primary);
+      color: #fff;
+      height: 35px;
+      padding: 0 14px;
+      border-radius: 3px;
+      font-size: 13px;
+      white-space: nowrap;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+
+      &:hover {
+        background-color: var(--itk-color-primary-800);
+      }
+    }
   }
 }
 

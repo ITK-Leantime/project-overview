@@ -108,12 +108,6 @@
             <button type="submit"
                 class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
             <input type="hidden" name="view" value="{{ $filtersData->selectedViewId }}" />
-            @if (!empty($userViews) && !$filtersData->isSubscription)
-                <button type="button" class="copy-live-share-button"
-                    data-original="{{ __('projectOverview.share_view') }}" name="copyLiveShare">
-                    {{ __('projectOverview.share_view') }}
-                </button>
-            @endif
         @endif
     </div>
 </form>
