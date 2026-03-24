@@ -1,5 +1,5 @@
 @use(Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum)
-<form method="POST">
+<form method="POST" id="filtersForm" {{ $filtersData->isSubscription ? 'data-is-subscription=true' : '' }}>
     <input type="hidden" name="action" value="saveView" />
     <div>
         <select name="users[]" id="userSelect" multiple {{ $filtersData->isSubscription ? 'disabled' : '' }}>
@@ -109,13 +109,9 @@
                 class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
             <input type="hidden" name="view" value="{{ $filtersData->selectedViewId }}" />
             @if (!empty($userViews) && !$filtersData->isSubscription)
-                <button type="button" class="copy-view-button"
-                    data-original="{{ __('projectOverview.share_view_link') }}" name="copyView">
-                    {{ __('projectOverview.share_view_link') }}
-                </button>
                 <button type="button" class="copy-live-share-button"
-                    data-original="{{ __('projectOverview.live_share_link') }}" name="copyLiveShare">
-                    {{ __('projectOverview.live_share_link') }}
+                    data-original="{{ __('projectOverview.share_view') }}" name="copyLiveShare">
+                    {{ __('projectOverview.share_view') }}
                 </button>
             @endif
         @endif

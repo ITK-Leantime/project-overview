@@ -552,6 +552,18 @@ a {
   }
 }
 
+.priority-circle {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
+  border-radius: 50%;
+  padding: 0 !important;
+  flex-shrink: 0;
+  margin: auto 5px auto 0;
+}
+
 .save-success,
 .save-error {
   animation-duration: 1s;
@@ -644,12 +656,8 @@ div.save-view > button:hover {
   background-color: var(--itk-color-primary-800);
 }
 
-div.save-view > button.copy-view-button {
+div.save-view > button.copy-live-share-button {
   margin-left: auto;
-}
-
-div.save-view > button.copy-view-button i {
-  margin-right: 5px;
 }
 
 th[id^='sort_'] {
@@ -658,17 +666,50 @@ th[id^='sort_'] {
 }
 
 th.sort-asc .label-and-caret-wrapper::after {
-  content: ' \25B2';
+  content: ' \25BC';
   font-size: 0.7em;
   line-height: 21px;
   padding: 0 0 0 5px;
 }
 
 th.sort-desc .label-and-caret-wrapper::after {
-  content: ' \25BC';
+  content: ' \25B2';
   font-size: 0.7em;
   line-height: 21px;
   padding: 0 0 0 5px;
+}
+
+/* Unsaved changes indicator on tab */
+#projectOverviewTabs .ui-tabs-nav li.has-unsaved-changes a {
+  font-style: italic;
+}
+
+#projectOverviewTabs .ui-tabs-nav li.has-unsaved-changes a::after {
+  content: '\2022';
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--itk-color-warning);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: unsaved-pulse 1.5s ease-in-out 2;
+}
+
+/* Highlight save button when there are unsaved changes */
+.save-view-btn.has-unsaved-changes {
+  background-color: var(--itk-color-warning) !important;
+  border-color: var(--itk-color-warning) !important;
+  animation: unsaved-pulse 1.5s ease-in-out 2;
+}
+
+@keyframes unsaved-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Ensure date options select has no rounded corners */

@@ -20,6 +20,25 @@ $(document).ready(function () {
     e.detail.target.style.visibility = '';
     if (e.target.id === 'filtersContainer') {
       initProjectOverviewFilters();
+
+      // Restore cached unsaved form state if returning to a dirty view
+      const activeViewId = document.getElementById('selectedViewId');
+      if (
+        activeViewId &&
+        window._viewCachedFormData &&
+        window._viewCachedFormData[activeViewId.value]
+      ) {
+        restoreFormState(window._viewCachedFormData[activeViewId.value]);
+      }
+
+      // Restore save button state after HTMX replaces the filters DOM
+      const saveBtn = document.querySelector('.save-view-btn');
+      if (saveBtn && activeViewId && window._viewsWithUnsavedChanges) {
+        saveBtn.classList.toggle(
+          'has-unsaved-changes',
+          !!window._viewsWithUnsavedChanges[activeViewId.value]
+        );
+      }
     }
   });
   // end HTMX swap events
@@ -154,6 +173,54 @@ function initProjectOverviewFilters() {
   userSelect.next('.select2').attr('data-length', function () {
     return userSelect.select2('data')?.length;
   });
+
+  // --- Live filter update: refresh table on filter change ---
+  const filtersForm = document.getElementById('filtersForm');
+  if (!filtersForm || filtersForm.dataset.isSubscription === 'true') return;
+
+  const viewId = document.getElementById('selectedViewId');
+  const currentViewId = viewId ? viewId.value : null;
+
+  // Store the initial state for the current view
+  if (currentViewId) {
+    if (!window._viewInitialStates) window._viewInitialStates = {};
+    window._viewInitialStates[currentViewId] = serializeFilterForm(filtersForm);
+  }
+
+  let filterDebounceTimer = null;
+
+  function onFilterChange() {
+    const activeViewId = viewId ? viewId.value : null;
+    const initialState =
+      activeViewId && window._viewInitialStates
+        ? window._viewInitialStates[activeViewId]
+        : null;
+    const hasChanges =
+      initialState !== null &&
+      serializeFilterForm(filtersForm) !== initialState;
+    toggleUnsavedIndicator(activeViewId, hasChanges);
+
+    clearTimeout(filterDebounceTimer);
+    filterDebounceTimer = setTimeout(function () {
+      refreshViewTable(filtersForm);
+    }, 300);
+  }
+
+  $('#userSelect').on('change.select2', onFilterChange);
+  $('#filterSelect').on('change.select2', onFilterChange);
+  $('#columnSelect').on('change.select2', onFilterChange);
+  $('#dateOptions').on('change', onFilterChange);
+
+  // Extend flatpickr onChange to also trigger filter refresh
+  const fpInstance = document.getElementById('dateRange')?._flatpickr;
+  if (fpInstance) {
+    const originalOnChange = fpInstance.config.onChange;
+    fpInstance.config.onChange.push(function (selectedDates) {
+      if (selectedDates && selectedDates.length === 2) {
+        onFilterChange();
+      }
+    });
+  }
 }
 
 function initProjectOverviewTable() {
@@ -279,11 +346,35 @@ function initProjectOverviewTable() {
   // Init view tabs with sorting
   $projectOverviewTabs
     .tabs({
+      beforeActivate: function (event, ui) {
+        // Cache unsaved form state before switching away
+        const currentViewId = window.jQuery('#selectedViewId').val();
+        if (
+          currentViewId &&
+          window._viewsWithUnsavedChanges &&
+          window._viewsWithUnsavedChanges[currentViewId]
+        ) {
+          const form = document.getElementById('filtersForm');
+          if (form) {
+            if (!window._viewCachedFormData) window._viewCachedFormData = {};
+            window._viewCachedFormData[currentViewId] = captureFormState(form);
+          }
+        }
+      },
       activate: function (event, ui) {
         window.jQuery('#edit-time-log-modal').removeClass('shown');
 
         // Update URL when tab is activated
         const viewId = ui.newPanel.attr('id').replace('view-', '');
+
+        // Sync save button state with the newly active view
+        const saveBtn = document.querySelector('.save-view-btn');
+        if (saveBtn && window._viewsWithUnsavedChanges) {
+          saveBtn.classList.toggle(
+            'has-unsaved-changes',
+            !!window._viewsWithUnsavedChanges[viewId]
+          );
+        }
         const url = new URL(window.location.href);
         url.searchParams.set('view', viewId);
         window.history.pushState({ view: viewId }, '', url);
@@ -360,16 +451,10 @@ function initProjectOverviewTable() {
     }
   });
 
-  // Init copy view button click (share as copy)
-  $(document).on('click', 'button.copy-view-button', function (e) {
-    e.preventDefault();
-    copyShareLink($(this), 'share');
-  });
-
-  // Init copy live-share button click (share as subscription)
+  // Init share view button click (share as subscription)
   $(document).on('click', 'button.copy-live-share-button', function (e) {
     e.preventDefault();
-    copyShareLink($(this), 'subscribe');
+    copyShareLink($(this));
   });
 }
 
@@ -377,9 +462,8 @@ function initProjectOverviewTable() {
  * Generate a share link and copy it to clipboard.
  *
  * @param {jQuery} button The button element that was clicked.
- * @param {string} linkType The type of share link ('share' or 'subscribe').
  */
-function copyShareLink(button, linkType) {
+function copyShareLink(button) {
   const originalText = button.data('original') || button.text();
   const viewId = $('#selectedViewId').val();
 
@@ -393,12 +477,9 @@ function copyShareLink(button, linkType) {
     dataType: 'json',
     success: function (response) {
       if (response.success && response.shareToken) {
-        // Build URL with the appropriate query parameter
         const shareUrl =
           window.location.origin +
-          '/ProjectOverview/ProjectOverview?' +
-          linkType +
-          '=' +
+          '/ProjectOverview/ProjectOverview?subscribe=' +
           response.shareToken;
 
         // Copy to clipboard
@@ -534,6 +615,10 @@ function changePriority(ticketId, newPriorityId, newLabel) {
           .querySelectorAll(`#priority-ticket-${ticketId}`)
           .forEach((button) => {
             button.className = `table-button table-button-status`;
+            const circle = button.querySelector('.priority-circle');
+            if (circle) {
+              circle.className = `priority-circle priority-bg-${newPriorityId}`;
+            }
             const label = button.querySelector('#priority-label');
             if (label) {
               label.textContent = newLabel;
@@ -788,6 +873,141 @@ function getCellTextValue(cell) {
   const link = cell.querySelector('a');
   if (link) return link.textContent;
   return cell.textContent;
+}
+
+// --- Live filter helpers ---
+
+/**
+ * Capture all filter field values from the form for later restoration.
+ *
+ * @param {HTMLFormElement} form
+ * @returns {object} Field values keyed by name.
+ */
+function captureFormState(form) {
+  return {
+    users: $('#userSelect', form).val() || [],
+    filters: $('#filterSelect', form).val() || [],
+    columns: $('#columnSelect', form).val() || [],
+    dateType: $('#dateOptions', form).val(),
+    fromDate: $('#fromDate', form).val(),
+    toDate: $('#toDate', form).val(),
+    dateRangeText: $('#dateRange', form).val(),
+  };
+}
+
+/**
+ * Restore previously captured form state into the current filter form.
+ * Triggers change events so select2/flatpickr update, and the table refreshes.
+ *
+ * @param {object} state The state object from captureFormState.
+ */
+function restoreFormState(state) {
+  // Restore select2 multi-selects (set values without triggering change yet)
+  $('#userSelect').val(state.users).trigger('change.select2');
+  $('#filterSelect').val(state.filters).trigger('change.select2');
+  $('#columnSelect').val(state.columns).trigger('change.select2');
+
+  // Restore date type (triggers the dateRange toggle handler)
+  $('#dateOptions').val(state.dateType).trigger('change');
+
+  // For custom dates, restore the actual date values after the dateType handler ran
+  if (state.dateType === 'custom') {
+    $('#fromDate').val(state.fromDate);
+    $('#toDate').val(state.toDate);
+
+    const fp = document.getElementById('dateRange')?._flatpickr;
+    if (fp && state.fromDate && state.toDate) {
+      // Parse dd-mm-yyyy to Date objects
+      const parseDMY = (str) => {
+        const [d, m, y] = str.split('-').map(Number);
+        return new Date(y, m - 1, d);
+      };
+      fp.setDate([parseDMY(state.fromDate), parseDMY(state.toDate)], false);
+    }
+  }
+}
+
+function serializeFilterForm(form) {
+  const formData = new FormData(form);
+  // Exclude metadata fields that don't represent filter state
+  formData.delete('action');
+  formData.delete('overwriteView');
+  formData.delete('view');
+  formData.delete('subscribeToken');
+  return new URLSearchParams(formData).toString();
+}
+
+function refreshViewTable(form) {
+  const viewId = document.getElementById('selectedViewId');
+  if (!viewId || !viewId.value) return;
+
+  const formData = new FormData(form);
+
+  // Include current sort state from the active table
+  const activePanel = document.getElementById('view-' + viewId.value);
+  if (activePanel) {
+    const table = activePanel.querySelector('table');
+    if (table) {
+      formData.set('sortBy', table.dataset.sortBy || 'priority');
+      formData.set(
+        'sortDirection',
+        (table.dataset.sortDir || 'asc').toUpperCase()
+      );
+    }
+  }
+
+  fetch(
+    '/ProjectOverview/ProjectOverview/loadViewTable/' +
+      encodeURIComponent(viewId.value),
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: new URLSearchParams(formData),
+    }
+  )
+    .then(function (response) {
+      return response.text();
+    })
+    .then(function (html) {
+      if (activePanel) {
+        activePanel.innerHTML = html;
+        // Re-init components inside the new table
+        initTagsSelects();
+        if (typeof tippy === 'function') {
+          tippy(activePanel.querySelectorAll('[data-tippy-content]'));
+        }
+      }
+    });
+}
+
+function toggleUnsavedIndicator(targetViewId, hasChanges) {
+  if (!targetViewId) return;
+
+  // Track which views have unsaved changes
+  if (!window._viewsWithUnsavedChanges) window._viewsWithUnsavedChanges = {};
+  window._viewsWithUnsavedChanges[targetViewId] = hasChanges;
+
+  // Clear cached form data when changes are reverted
+  if (!hasChanges && window._viewCachedFormData) {
+    delete window._viewCachedFormData[targetViewId];
+  }
+
+  const tab = document.querySelector(
+    '#projectOverviewTabs > ul > li[data-target="' + targetViewId + '"]'
+  );
+  if (tab) {
+    tab.classList.toggle('has-unsaved-changes', hasChanges);
+  }
+
+  // Show save button highlight if the currently active view has unsaved changes
+  const activeViewId = document.getElementById('selectedViewId');
+  const saveBtn = document.querySelector('.save-view-btn');
+  if (saveBtn && activeViewId) {
+    const activeHasChanges =
+      !!window._viewsWithUnsavedChanges[activeViewId.value];
+    saveBtn.classList.toggle('has-unsaved-changes', activeHasChanges);
+  }
 }
 
 // Save success animation
