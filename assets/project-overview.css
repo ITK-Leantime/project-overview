@@ -14,6 +14,7 @@
   --itk-color-danger-800: hsla(0, 70%, 35%, 1);
   --itk-color-warning: hsla(38, 92%, 50%, 1);
   --itk-color-white: white;
+  --itk-color-gray-25: hsla(210, 40%, 99%, 1);
   --itk-color-gray-50: hsla(210, 40%, 98%, 1);
   --itk-color-gray-100: hsla(214, 32%, 91%, 1);
   --itk-color-gray-200: hsla(213, 27%, 84%, 1);
@@ -271,7 +272,7 @@
 }
 
 .table {
-  border: 1px solid #e9e9e9;
+  border: none;
 
   td {
     position: relative;
@@ -476,7 +477,7 @@ a {
 }
 
 .table-button-status {
-  background: white !important;
+  background: transparent !important;
   color: black !important;
 
   &:hover:not([data-toggle]) {
@@ -970,14 +971,37 @@ select#dateOptions {
 
       th {
         background-color: var(--itk-color-gray-50);
-        border: 1px solid var(--itk-border-color);
+        border: none;
+        border-top: 1px solid var(--itk-color-gray-200);
+        border-bottom: 1px solid var(--itk-color-gray-200);
         color: var(--itk-color-gray-500);
+      }
+
+      th:first-child {
+        border-left: 1px solid var(--itk-color-gray-200);
+      }
+
+      th:last-child {
+        border-right: 1px solid var(--itk-color-gray-200);
       }
 
       td {
         background-color: #fff;
         padding: 10px 10px;
-        border: 1px solid var(--itk-border-color);
+        border: none;
+        border-bottom: 1px solid var(--itk-color-gray-100);
+      }
+
+      td:first-child {
+        border-left: 1px solid var(--itk-color-gray-100);
+      }
+
+      td:last-child {
+        border-right: 1px solid var(--itk-color-gray-100);
+      }
+
+      tr:nth-child(odd) td {
+        background-color: var(--itk-color-gray-50);
       }
     }
   }
