@@ -329,6 +329,9 @@ function initProjectOverviewTable() {
         top: `${rect.top + window.scrollY - rect.height - 25}px`,
       })
       .addClass('shown')
+      .find('#contextMenuTitle')
+      .text(currentName)
+      .end()
       .find('input[name="viewName"]')
       .val(currentName)
       .end()
@@ -336,11 +339,7 @@ function initProjectOverviewTable() {
       .val(viewId);
 
     // Hide rename/share controls for subscribed views
-    contextMenu
-      .find(
-        '> form > span, > form > input[name="viewName"], .view-rename, .view-share'
-      )
-      .toggle(!isSubscription);
+    contextMenu.find('.rename-section, .view-share').toggle(!isSubscription);
 
     if (!isSubscription) {
       requestAnimationFrame(() => {

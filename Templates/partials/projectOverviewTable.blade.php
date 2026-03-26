@@ -208,11 +208,12 @@
                                     </div>
                                 @endif
                                 @if (count($row->projectMilestones) === 0)
-                                    <p class="no-project-milestones"
-                                        data-tippy-content="{{ __('projectOverview.no_project_milestones_text') }}"
-                                        data-tippy-placement="top">
-                                        {{ __('projectOverview.no_project_milestones') }}
-                                    </p>
+                                    <div class="milestone-select no-milestones">
+                                        <select disabled>
+                                            <option>{{ __('projectOverview.no_project_milestones') }}</option>
+                                        </select>
+                                        <i class="fa fa-caret-down"></i>
+                                    </div>
                                 @endif
                             </td>
                         @endif

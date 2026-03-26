@@ -85,17 +85,33 @@
         <div id="view-context-menu">
             <form method="POST">
                 <input type="hidden" name="view" />
-                <span>Edit view name:</span>
-                <input name="viewName" type="text" />
-                <div class="buttons flex-container gap-1">
-                    <button type="submit" name="action" value="renameView" class="view-rename btn">Rename
-                    </button>
-                    <button type="submit" name="action" value="deleteView" class="view-delete btn">Delete
-                    </button>
-                    <button type="button" class="view-share" title="{{ __('projectOverview.share_view') }}">
-                        <i class="fa fa-share-alt"></i>
-                    </button>
+                <div class="context-menu-header">
+                    {{ __('projectOverview.view_settings') }} <span id="contextMenuTitle"></span>
                 </div>
+                <div class="context-menu-section rename-section">
+                    <label for="viewNameInput">{{ __('projectOverview.edit_view_name') }}</label>
+                    <div class="rename-input-group">
+                        <input name="viewName" id="viewNameInput" type="text" />
+                        <button type="submit" name="action" value="renameView" class="view-rename btn btn-default">
+                            {{ __('projectOverview.save_view') }}
+                        </button>
+                    </div>
+                </div>
+                <ul class="context-menu-actions">
+                    <li>
+                        <button type="button" class="view-share">
+                            <i class="fa fa-share-alt"></i>
+                            {{ __('projectOverview.share_view') }}
+                        </button>
+                    </li>
+                    <li>
+                        <button type="submit" name="action" value="deleteView" class="view-delete"
+                            onclick="return confirm('{{ __('projectOverview.delete_view_confirm') }}')">
+                            <i class="fa fa-trash"></i>
+                            {{ __('projectOverview.delete_view') }}
+                        </button>
+                    </li>
+                </ul>
             </form>
         </div>
         <div id="share-view-modal">
