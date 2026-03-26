@@ -407,13 +407,18 @@ function initProjectOverviewTable() {
         // Update URL when tab is activated
         const viewId = ui.newPanel.attr('id').replace('view-', '');
 
-        // Sync save button state with the newly active view
+        // Sync save button and unsaved banner with the newly active view
+        const viewHasChanges = !!(
+          window._viewsWithUnsavedChanges &&
+          window._viewsWithUnsavedChanges[viewId]
+        );
         const saveBtn = document.querySelector('.save-view-btn');
-        if (saveBtn && window._viewsWithUnsavedChanges) {
-          saveBtn.classList.toggle(
-            'has-unsaved-changes',
-            !!window._viewsWithUnsavedChanges[viewId]
-          );
+        if (saveBtn) {
+          saveBtn.classList.toggle('has-unsaved-changes', viewHasChanges);
+        }
+        const banner = document.getElementById('unsavedChangesNotice');
+        if (banner) {
+          banner.style.display = viewHasChanges ? '' : 'none';
         }
         const url = new URL(window.location.href);
         url.searchParams.set('view', viewId);
@@ -1035,13 +1040,19 @@ function toggleUnsavedIndicator(targetViewId, hasChanges) {
     tab.classList.toggle('has-unsaved-changes', hasChanges);
   }
 
-  // Show save button highlight if the currently active view has unsaved changes
+  // Show save button highlight and banner if the currently active view has unsaved changes
   const activeViewId = document.getElementById('selectedViewId');
   const saveBtn = document.querySelector('.save-view-btn');
-  if (saveBtn && activeViewId) {
+  const banner = document.getElementById('unsavedChangesNotice');
+  if (activeViewId) {
     const activeHasChanges =
       !!window._viewsWithUnsavedChanges[activeViewId.value];
-    saveBtn.classList.toggle('has-unsaved-changes', activeHasChanges);
+    if (saveBtn) {
+      saveBtn.classList.toggle('has-unsaved-changes', activeHasChanges);
+    }
+    if (banner) {
+      banner.style.display = activeHasChanges ? '' : 'none';
+    }
   }
 }
 

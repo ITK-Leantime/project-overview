@@ -94,6 +94,10 @@
         </select>
     </div>
 
+    <span id="unsavedChangesNotice" class="unsaved-changes-notice" style="display: none;">
+        {{ __('projectOverview.unsaved_changes_notice') }}
+    </span>
+
     <div class="save-view">
         @if ($filtersData->isTransientSubscription)
             <input type="hidden" name="subscribeToken" value="{{ $filtersData->subscribeToken }}" />

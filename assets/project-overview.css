@@ -690,6 +690,15 @@ th.sort-desc .label-and-caret-wrapper::after {
   padding: 0 0 0 5px;
 }
 
+/* Unsaved changes notice next to filters */
+.unsaved-changes-notice {
+  font-size: 12px;
+  color: var(--itk-color-warning);
+  white-space: nowrap;
+  align-self: center;
+  margin-left: 8px;
+}
+
 /* Unsaved changes indicator on tab */
 #projectOverviewTabs .ui-tabs-nav li.has-unsaved-changes a {
   font-style: italic;
