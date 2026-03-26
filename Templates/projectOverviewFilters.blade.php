@@ -103,6 +103,8 @@
             <input type="hidden" name="subscribeToken" value="{{ $filtersData->subscribeToken }}" />
             <button type="submit" name="action" value="pinSubscription"
                 class="btn btn-success save-as-new-btn">{{ __('projectOverview.pin_to_my_views') }}</button>
+            <button type="submit" name="action" value="saveTransientAsCopy"
+                class="btn btn-default save-view-btn">{{ __('projectOverview.save_as_copy') }}</button>
         @else
             @if (!empty($userViews) && !$filtersData->isSubscription)
                 <button type="submit" name="overwriteView" value="1"

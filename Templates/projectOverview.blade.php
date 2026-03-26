@@ -19,7 +19,7 @@
             <div class="project-overview-container">
                 <input type="hidden" id="frontendDateFormat" value="{{ $frontendDateFormat }}">
                 <input type="hidden" id="selectedViewId"
-                    value="{{ $userViewsData->selectedView !== null ? urlencode($userViewsData->selectedView) : (!empty($userViewsData->userViews) ? urlencode(array_key_first($userViewsData->userViews)) : '') }}" />
+                    value="{{ $userViewsData->selectedView !== null ? urlencode($userViewsData->selectedView) : (!empty($userViewsData->userViews) ? urlencode(array_key_first($userViewsData->userViews)) : '__preview') }}" />
                 <div id="filtersContainer" class="search-and-filter"
                     hx-get="/ProjectOverview/ProjectOverview/loadFilters/{{ $userViewsData->selectedView !== null ? urlencode($userViewsData->selectedView) : (!empty($userViewsData->userViews) ? urlencode(array_key_first($userViewsData->userViews)) : '') }}"
                     hx-target="#filtersContainer" hx-trigger="load">
@@ -79,6 +79,8 @@
                             </div>
                         @endforeach
                     </div>
+                @else
+                    <div id="view-__preview"></div>
                 @endif
             </div>
         </div>

@@ -212,8 +212,19 @@ function initProjectOverviewFilters() {
     return userSelect.select2('data')?.length;
   });
 
-  // --- Live filter update: refresh table on filter change ---
+  // Re-enable disabled fields on submit so their values are included in POST data
   const filtersForm = document.getElementById('filtersForm');
+  if (filtersForm) {
+    filtersForm.addEventListener('submit', function () {
+      filtersForm
+        .querySelectorAll('select[disabled], input[disabled]')
+        .forEach(function (el) {
+          el.disabled = false;
+        });
+    });
+  }
+
+  // --- Live filter update: refresh table on filter change ---
   if (!filtersForm || filtersForm.dataset.isSubscription === 'true') return;
 
   const viewId = document.getElementById('selectedViewId');

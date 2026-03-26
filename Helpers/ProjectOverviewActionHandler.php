@@ -161,11 +161,20 @@ readonly class ProjectOverviewActionHandler
                 $maxOrder = max($maxOrder, $viewDTO_temp->order);
             }
 
+            // Determine title: copy subscription name if source is a subscription, otherwise default
+            $newTitle = 'View ' . (count($userViewsObject) + 1);
+            if (!empty($existingViewId) && isset($userViewsObject[$existingViewId])) {
+                $sourceView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
+                if ($sourceView->isSubscription()) {
+                    $newTitle = $sourceView->title . ' (' . __('projectOverview.copy_suffix') . ')';
+                }
+            }
+
             // Create a new view with unique ID
             $newViewId = uniqid('view_', true);
             $userViewsObject[$newViewId] = new UserViewDTO(
                 id: $newViewId,
-                title: 'View ' . (count($userViewsObject) + 1),
+                title: $newTitle,
                 view: $viewDTO,
                 shareToken: null,
                 createdAt: time(),
@@ -353,6 +362,42 @@ readonly class ProjectOverviewActionHandler
         );
 
         $this->saveUserViewsObject($userViewsObject);
+
+        return $newViewId;
+    }
+
+    /**
+     * Save a shared view as a static (non-subscription) copy.
+     *
+     * @param SharedViewLookupResult $lookupResult The lookup result containing the view and owner info
+     * @return string The new view ID
+     */
+    public function saveViewAsCopy(SharedViewLookupResult $lookupResult): string
+    {
+        $userViewsObject = $this->getUserViewsObject();
+
+        $maxOrder = 0;
+        foreach ($userViewsObject as $view) {
+            $viewDTO = UserViewDTO::fromArray($view);
+            $maxOrder = max($maxOrder, $viewDTO->order);
+        }
+
+        $newViewId = uniqid('view_', true);
+        $userViewsObject[$newViewId] = new UserViewDTO(
+            id: $newViewId,
+            title: $lookupResult->view->title . ' (' . __('projectOverview.copy_suffix') . ')',
+            view: $lookupResult->view->view,
+            shareToken: null,
+            createdAt: time(),
+            order: $maxOrder + 1,
+        );
+
+        $this->saveUserViewsObject($userViewsObject);
+
+        session()->flash('project_overview-flash_notification', [
+            'message' => __('projectOverview.notification.view_created'),
+            'type' => 'success',
+        ]);
 
         return $newViewId;
     }
