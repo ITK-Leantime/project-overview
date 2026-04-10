@@ -48,7 +48,9 @@ class ProjectOverview
             }
 
             // Remove any existing file or broken symlink at target path
-            @unlink($target);
+            if (file_exists($target) || is_link($target)) {
+                unlink($target);
+            }
 
             // Only create symlink if the source file exists
             if (file_exists($source)) {
