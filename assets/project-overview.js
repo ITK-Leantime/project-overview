@@ -211,9 +211,9 @@ function initProjectOverviewTable() {
   $(document).on('click', 'span.tab-context-menu', ({ target }) => {
     const currentName = $(target).siblings('.tab-link').first().text().trim();
     const rect = target.parentElement.getBoundingClientRect();
-    const $tab = $(target).parent();
-    const viewId = $tab.data('target');
-    const isSubscription = $tab.data('is-subscription') === true;
+    const tab = $(target).parent();
+    const viewId = tab.data('target');
+    const isSubscription = tab.data('is-subscription') === true;
     $('.settings-for-target').text(viewId);
     contextMenu
       .css({
