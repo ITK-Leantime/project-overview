@@ -232,11 +232,10 @@ function initProjectOverviewTable() {
       .find('> form > span, > form > input[name="viewName"], .view-rename')
       .toggle(!isSubscription);
 
-    // Delay focus slightly
     if (!isSubscription) {
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         contextMenu.find('input[name="viewName"]').focus();
-      }, 100);
+      });
     }
   });
 
