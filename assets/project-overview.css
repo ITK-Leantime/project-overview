@@ -14,6 +14,7 @@
   --itk-color-danger-800: hsla(0, 70%, 35%, 1);
   --itk-color-warning: hsla(38, 92%, 50%, 1);
   --itk-color-white: white;
+  --itk-color-gray-25: hsla(210, 40%, 99%, 1);
   --itk-color-gray-50: hsla(210, 40%, 98%, 1);
   --itk-color-gray-100: hsla(214, 32%, 91%, 1);
   --itk-color-gray-200: hsla(213, 27%, 84%, 1);
@@ -45,7 +46,7 @@
   background-color: white;
   display: flex;
   flex-direction: column;
-  padding: 15px;
+  padding: 15px 15px 60px;
   overflow: auto;
 
   .label-and-caret-wrapper {
@@ -162,6 +163,18 @@
     width: 100%;
     margin-bottom: 15px;
     max-height: 35px;
+    overflow: hidden;
+    transition:
+      max-height 0.25s ease,
+      margin-bottom 0.25s ease,
+      opacity 0.2s ease;
+
+    &.collapsed {
+      max-height: 0;
+      margin-bottom: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
 
     form {
       display: flex;
@@ -208,9 +221,10 @@
       }
 
       .save-view {
-        margin-left: 10px;
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
         display: flex;
-        flex: 1;
         gap: 10px;
       }
 
@@ -271,7 +285,7 @@
 }
 
 .table {
-  border: 1px solid #e9e9e9;
+  border: none;
 
   td {
     position: relative;
@@ -296,7 +310,7 @@
     .status.btn-group,
     .priority.btn-group {
       width: 100%;
-      max-width: 175px;
+      max-width: 100%;
     }
     button[id^='status-ticket-'],
     button[id^='priority-ticket-'] {
@@ -349,7 +363,7 @@
       height: 100%;
       align-items: center;
       position: relative;
-      max-width: 150px;
+      max-width: calc(100% - 10px);
       width: 100%;
       margin: 0 auto 0 0;
       select {
@@ -476,7 +490,7 @@ a {
 }
 
 .table-button-status {
-  background: white !important;
+  background: transparent !important;
   color: black !important;
 
   &:hover:not([data-toggle]) {
@@ -550,6 +564,18 @@ a {
   &.label-grey {
     background-color: var(--grey) !important;
   }
+}
+
+.priority-circle {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  min-height: 12px;
+  border-radius: 50%;
+  padding: 0 !important;
+  flex-shrink: 0;
+  margin: auto 5px auto 0;
 }
 
 .save-success,
@@ -634,22 +660,76 @@ div.save-view > button {
   color: #fff;
   font-weight: normal;
   background-color: var(--itk-color-primary);
-  border-radius: 0 !important;
+  border-radius: 3px !important;
   border: 1px solid var(--itk-border-color);
   cursor: pointer;
   padding: var(--itk-button-padding);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 div.save-view > button:hover {
   background-color: var(--itk-color-primary-800);
 }
 
-div.save-view > button.copy-view-button {
-  margin-left: auto;
+th[id^='sort_'] {
+  cursor: pointer;
+  user-select: none;
 }
 
-div.save-view > button.copy-view-button i {
-  margin-right: 5px;
+th.sort-asc .label-and-caret-wrapper::after {
+  content: ' \25BC';
+  font-size: 0.7em;
+  line-height: 21px;
+  padding: 0 0 0 5px;
+}
+
+th.sort-desc .label-and-caret-wrapper::after {
+  content: ' \25B2';
+  font-size: 0.7em;
+  line-height: 21px;
+  padding: 0 0 0 5px;
+}
+
+/* Unsaved changes notice next to filters */
+.unsaved-changes-notice {
+  font-size: 12px;
+  color: var(--itk-color-warning);
+  white-space: nowrap;
+  align-self: center;
+  margin-left: 8px;
+}
+
+/* Unsaved changes indicator on tab */
+#projectOverviewTabs .ui-tabs-nav li.has-unsaved-changes a {
+  font-style: italic;
+}
+
+#projectOverviewTabs .ui-tabs-nav li.has-unsaved-changes a::after {
+  content: '\2022';
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--itk-color-warning);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: unsaved-pulse 1.5s ease-in-out 2;
+}
+
+/* Highlight save button when there are unsaved changes */
+.save-view-btn.has-unsaved-changes {
+  background-color: var(--itk-color-warning) !important;
+  border-color: var(--itk-color-warning) !important;
+  animation: unsaved-pulse 1.5s ease-in-out 2;
+}
+
+@keyframes unsaved-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Ensure date options select has no rounded corners */
@@ -876,10 +956,37 @@ select#dateOptions {
   background: transparent;
   border: none;
   transition: opacity 0.3s ease-in-out;
+  position: relative;
 
   &.is-hidden {
     opacity: 0;
     height: 0;
+  }
+
+  .filters-toggle {
+    all: unset;
+    cursor: pointer;
+    position: absolute;
+    top: 8px;
+    right: 0;
+    color: #555555;
+    font-size: 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    .toggle-arrow {
+      transition: transform 0.2s ease;
+    }
+
+    &.collapsed .toggle-arrow {
+      transform: rotate(180deg);
+    }
+
+    &:hover {
+      color: var(--itk-color-primary);
+    }
   }
 
   .ui-widget-header {
@@ -909,14 +1016,37 @@ select#dateOptions {
 
       th {
         background-color: var(--itk-color-gray-50);
-        border: 1px solid var(--itk-border-color);
+        border: none;
+        border-bottom: 1px solid var(--itk-color-gray-200);
+        border-top: 1px solid var(--itk-color-gray-200);
         color: var(--itk-color-gray-500);
+      }
+
+      th:first-child {
+        border-left: 1px solid var(--itk-color-gray-200);
+      }
+
+      th:last-child {
+        border-right: 1px solid var(--itk-color-gray-200);
       }
 
       td {
         background-color: #fff;
         padding: 10px 10px;
-        border: 1px solid var(--itk-border-color);
+        border: none;
+        border-bottom: 1px solid var(--itk-color-gray-100);
+      }
+
+      td:first-child {
+        border-left: 1px solid var(--itk-color-gray-100);
+      }
+
+      td:last-child {
+        border-right: 1px solid var(--itk-color-gray-100);
+      }
+
+      tr:nth-child(odd) td {
+        background-color: var(--itk-color-gray-50);
       }
     }
   }
@@ -970,47 +1100,112 @@ select#dateOptions {
   position: absolute;
   z-index: 99999;
   display: none !important;
+  min-width: 200px;
 
   form {
     display: flex;
     flex-direction: column;
-    border: 1px solid #e9e9e9;
-    box-shadow: 1px 1px 1px #eee;
+    border: 1px solid var(--itk-color-gray-200);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     background-color: #fff;
-    padding: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
 
-    input {
-      border: 1px solid var(--itk-border-color);
-      padding-right: 0;
-      border-radius: 0;
-      margin-bottom: 8px;
+  .context-menu-header {
+    padding: 10px 12px 0;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .context-menu-section {
+    padding: 8px 12px;
+
+    label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--itk-color-gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      display: block;
     }
 
-    span {
-      font-size: 12px;
-      margin-bottom: 4px;
-    }
-
-    div.buttons {
+    .rename-input-group {
       display: flex;
-      justify-content: end;
-      column-gap: 5px;
+      gap: 4px;
+
+      input {
+        flex: 1;
+        height: 28px;
+        border: 1px solid var(--main-border-color);
+        border-radius: 0;
+        padding: 0 6px;
+        font-size: 12px;
+        margin-bottom: 0;
+      }
 
       button {
-        color: white;
-        border: 1px solid var(--itk-border-color);
-        padding: var(--itk-button-padding);
-        margin: 0;
-        font-weight: 400;
+        height: 28px;
+        color: #fff;
+        font-weight: normal;
         font-size: 12px;
+        background-color: var(--itk-color-primary);
         border-radius: 3px !important;
+        border: 1px solid var(--itk-border-color);
+        cursor: pointer;
+        padding: 0 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        margin: 0;
 
-        &.view-rename {
-          background-color: var(--itk-color-primary);
+        &:hover {
+          background-color: var(--itk-color-primary-800);
+        }
+      }
+    }
+  }
+
+  .context-menu-actions {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0 0;
+    border-top: 1px solid var(--itk-color-gray-200);
+
+    li {
+      margin: 0;
+      padding: 0;
+    }
+
+    button {
+      all: unset;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      box-sizing: border-box;
+
+      i {
+        width: 16px;
+        text-align: center;
+        color: var(--itk-color-gray-500);
+      }
+
+      &:hover {
+        background-color: var(--itk-color-gray-50);
+      }
+
+      &.view-delete {
+        color: var(--itk-color-danger);
+
+        i {
+          color: var(--itk-color-danger);
         }
 
-        &.view-delete {
-          background-color: var(--itk-color-danger);
+        &:hover {
+          background-color: #fef2f2;
         }
       }
     }
@@ -1018,6 +1213,100 @@ select#dateOptions {
 
   &.shown {
     display: flex !important;
+  }
+}
+
+#share-view-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100000;
+  align-items: center;
+  justify-content: center;
+
+  &.shown {
+    display: flex;
+  }
+
+  .share-modal-content {
+    background-color: #fff;
+    border-radius: 6px;
+    padding: 20px;
+    width: 500px;
+    max-width: 90vw;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .share-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--itk-spacing-lg);
+
+    h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #555555;
+    }
+
+    .share-modal-close {
+      all: unset;
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      color: var(--itk-color-gray-500);
+
+      &:hover {
+        color: var(--itk-color-black);
+      }
+    }
+  }
+
+  p {
+    margin: 0 0 var(--itk-spacing-lg);
+    font-size: 13px;
+    color: #555555;
+  }
+
+  .share-modal-input-group {
+    display: flex;
+    gap: 6px;
+
+    input {
+      all: unset;
+      flex: 1;
+      height: 35px;
+      border: 1px solid var(--itk-border-color);
+      border-radius: 3px;
+      padding: 0 10px;
+      font-size: 13px;
+      color: #555555;
+      background-color: var(--itk-color-gray-50);
+      box-sizing: border-box;
+    }
+
+    .share-modal-copy-btn {
+      all: unset;
+      cursor: pointer;
+      background-color: var(--itk-color-primary);
+      color: #fff;
+      height: 35px;
+      padding: 0 14px;
+      border-radius: 3px;
+      font-size: 13px;
+      white-space: nowrap;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+
+      &:hover {
+        background-color: var(--itk-color-primary-800);
+      }
+    }
   }
 }
 
@@ -1109,8 +1398,6 @@ select#dateOptions {
   }
 }
 
-.no-project-milestones {
-  font-size: 16px;
-  text-align: center;
-  cursor: help;
+div.milestone-select.no-milestones select {
+  opacity: 0.5;
 }

@@ -153,7 +153,23 @@ class ProjectOverview
                 }
             });
         }
-        $query->orderBy('ticket.priority', 'ASC');
+        $allowedSortColumns = [
+            'headline' => 'ticket.headline',
+            'project' => 'ticket.projectId',
+            'status' => 'ticket.status',
+            'priority' => 'ticket.priority',
+            'dateToFinish' => 'ticket.dateToFinish',
+            'editorLastname' => 't2.lastname',
+            'planHours' => 'ticket.planHours',
+            'hourRemaining' => 'ticket.hourRemaining',
+            'sumHours' => 'sumHours',
+            'milestoneid' => 'ticket.milestoneid',
+            'tags' => 'ticket.tags',
+        ];
+
+        $sortColumn = $allowedSortColumns[$viewDTO->sortBy] ?? 'ticket.priority';
+        $sortDirection = strtoupper($viewDTO->sortDirection) === 'DESC' ? 'DESC' : 'ASC';
+        $query->orderBy($sortColumn, $sortDirection);
 
         return $query->get()->toArray();
     }

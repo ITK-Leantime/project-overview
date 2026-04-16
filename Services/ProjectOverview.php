@@ -113,7 +113,9 @@ class ProjectOverview
             projectFilters: $viewDTO->projectFilters,
             priorityFilters: $viewDTO->priorityFilters,
             statusFilters: $viewDTO->statusFilters,
-            customFilters: $viewDTO->customFilters
+            customFilters: $viewDTO->customFilters,
+            sortBy: $viewDTO->sortBy,
+            sortDirection: $viewDTO->sortDirection,
         );
 
         return $this->projectOverviewRepository->getViewTasks($processedDTO);

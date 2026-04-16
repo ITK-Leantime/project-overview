@@ -64,6 +64,8 @@ readonly class UserViewDTO
                 'priorityFilters' => $this->view->priorityFilters,
                 'statusFilters' => $this->view->statusFilters,
                 'customFilters' => $this->view->customFilters,
+                'sortBy' => $this->view->sortBy,
+                'sortDirection' => $this->view->sortDirection,
             ],
             'shareToken' => $this->shareToken,
             'createdAt' => $this->createdAt,
@@ -106,7 +108,9 @@ readonly class UserViewDTO
                 projectFilters: $viewData['projectFilters'] ?? [],
                 priorityFilters: $viewData['priorityFilters'] ?? [],
                 statusFilters: $viewData['statusFilters'] ?? [],
-                customFilters: $viewData['customFilters'] ?? []
+                customFilters: $viewData['customFilters'] ?? [],
+                sortBy: $viewData['sortBy'] ?? 'priority',
+                sortDirection: $viewData['sortDirection'] ?? 'ASC'
             ),
             shareToken: $data['shareToken'] ?? null,
             createdAt: $data['createdAt'] ?? null,
