@@ -16,8 +16,8 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
     // https://github.com/ITK-Leantime/leantime/blob/0ff10e759a557af717e905ed5a1d324c9cf8c1d8/app/Domain/Menu/Repositories/Menu.php#L107
     $menuStructure['personal'][21] = [
         'type' => 'item',
-        'title' => '<span class="fa-solid fa-list-check"></span> ProjectOverview',
-        'icon' => 'fa-solid fa-list-check',
+        'title' => '<span class="fas fa-fw fa-th-list"></span> ' . __('projectOverview.menu_title'),
+        'icon' => 'fas fa-fw fa-th-list',
         'tooltip' => __('projectOverview.menu_tooltip'),
         'href' => '/ProjectOverview/ProjectOverview',
         'active' => ['ProjectOverview'],

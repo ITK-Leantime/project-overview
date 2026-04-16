@@ -41,10 +41,21 @@ class ProjectOverview
     public function install(): void
     {
         foreach (self::getAssets() as $source => $target) {
-            if (file_exists($target)) {
+            // Ensure the target directory exists
+            $targetDir = dirname($target);
+            if (!is_dir($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            // Remove any existing file or broken symlink at target path
+            if (file_exists($target) || is_link($target)) {
                 unlink($target);
             }
-            symlink($source, $target);
+
+            // Only create symlink if the source file exists
+            if (file_exists($source)) {
+                symlink($source, $target);
+            }
         }
     }
 
@@ -102,7 +113,9 @@ class ProjectOverview
             projectFilters: $viewDTO->projectFilters,
             priorityFilters: $viewDTO->priorityFilters,
             statusFilters: $viewDTO->statusFilters,
-            customFilters: $viewDTO->customFilters
+            customFilters: $viewDTO->customFilters,
+            sortBy: $viewDTO->sortBy,
+            sortDirection: $viewDTO->sortDirection,
         );
 
         return $this->projectOverviewRepository->getViewTasks($processedDTO);

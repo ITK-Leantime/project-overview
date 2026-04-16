@@ -9,6 +9,7 @@ import './project-overview.css';
 
 $(document).ready(function () {
   window.frontendDateFormat = $(document).find('#frontendDateFormat').val();
+  initFiltersToggle();
   initProjectOverviewFilters();
   initProjectOverviewTable();
 
@@ -20,10 +21,66 @@ $(document).ready(function () {
     e.detail.target.style.visibility = '';
     if (e.target.id === 'filtersContainer') {
       initProjectOverviewFilters();
+
+      // Restore cached unsaved form state if returning to a dirty view
+      const activeViewId = document.getElementById('selectedViewId');
+      if (
+        activeViewId &&
+        window._viewCachedFormData &&
+        window._viewCachedFormData[activeViewId.value]
+      ) {
+        restoreFormState(window._viewCachedFormData[activeViewId.value]);
+      }
+
+      // Restore save button state after HTMX replaces the filters DOM
+      const saveBtn = document.querySelector('.save-view-btn');
+      if (saveBtn && activeViewId && window._viewsWithUnsavedChanges) {
+        saveBtn.classList.toggle(
+          'has-unsaved-changes',
+          !!window._viewsWithUnsavedChanges[activeViewId.value]
+        );
+      }
     }
   });
   // end HTMX swap events
 });
+
+/**
+ * Initializes the collapsible filters toggle with localStorage persistence.
+ */
+function initFiltersToggle() {
+  const STORAGE_KEY = 'projectOverview.filtersCollapsed';
+  const toggle = document.getElementById('filtersToggle');
+  const container = document.getElementById('filtersContainer');
+  if (!toggle || !container) return;
+
+  var label = toggle.querySelector('span');
+
+  function updateLabel(collapsed) {
+    label.textContent = collapsed ? toggle.dataset.show : toggle.dataset.hide;
+  }
+
+  // Restore saved state (disable transition to prevent animation on load)
+  if (localStorage.getItem(STORAGE_KEY) === '1') {
+    container.style.transition = 'none';
+    container.classList.add('collapsed');
+    toggle.classList.add('collapsed');
+    updateLabel(true);
+    // Re-enable transition after the browser has painted
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        container.style.transition = '';
+      });
+    });
+  }
+
+  toggle.addEventListener('click', function () {
+    const isCollapsed = container.classList.toggle('collapsed');
+    toggle.classList.toggle('collapsed', isCollapsed);
+    updateLabel(isCollapsed);
+    localStorage.setItem(STORAGE_KEY, isCollapsed ? '1' : '0');
+  });
+}
 
 /**
  * Initializes the project overview filters by setting up various UI components.
@@ -154,6 +211,65 @@ function initProjectOverviewFilters() {
   userSelect.next('.select2').attr('data-length', function () {
     return userSelect.select2('data')?.length;
   });
+
+  // Re-enable disabled fields on submit so their values are included in POST data
+  const filtersForm = document.getElementById('filtersForm');
+  if (filtersForm) {
+    filtersForm.addEventListener('submit', function () {
+      filtersForm
+        .querySelectorAll('select[disabled], input[disabled]')
+        .forEach(function (el) {
+          el.disabled = false;
+        });
+    });
+  }
+
+  // --- Live filter update: refresh table on filter change ---
+  if (!filtersForm || filtersForm.dataset.isSubscription === 'true') return;
+
+  const viewId = document.getElementById('selectedViewId');
+  const currentViewId = viewId ? viewId.value : null;
+
+  // Store the initial state for the current view
+  if (currentViewId) {
+    if (!window._viewInitialStates) window._viewInitialStates = {};
+    window._viewInitialStates[currentViewId] = serializeFilterForm(filtersForm);
+  }
+
+  let filterDebounceTimer = null;
+
+  function onFilterChange() {
+    const activeViewId = viewId ? viewId.value : null;
+    const initialState =
+      activeViewId && window._viewInitialStates
+        ? window._viewInitialStates[activeViewId]
+        : null;
+    const hasChanges =
+      initialState !== null &&
+      serializeFilterForm(filtersForm) !== initialState;
+    toggleUnsavedIndicator(activeViewId, hasChanges);
+
+    clearTimeout(filterDebounceTimer);
+    filterDebounceTimer = setTimeout(function () {
+      refreshViewTable(filtersForm);
+    }, 300);
+  }
+
+  $('#userSelect').on('change.select2', onFilterChange);
+  $('#filterSelect').on('change.select2', onFilterChange);
+  $('#columnSelect').on('change.select2', onFilterChange);
+  $('#dateOptions').on('change', onFilterChange);
+
+  // Extend flatpickr onChange to also trigger filter refresh
+  const fpInstance = document.getElementById('dateRange')?._flatpickr;
+  if (fpInstance) {
+    const originalOnChange = fpInstance.config.onChange;
+    fpInstance.config.onChange.push(function (selectedDates) {
+      if (selectedDates && selectedDates.length === 2) {
+        onFilterChange();
+      }
+    });
+  }
 }
 
 function initProjectOverviewTable() {
@@ -177,8 +293,11 @@ function initProjectOverviewTable() {
   });
 
   // begin sorting
-  $(document).on('click', '[id^=sort_]', function () {
-    changeSortBy(this.id.replace('sort_', ''));
+  document.addEventListener('click', function (e) {
+    const th = e.target.closest('[id^=sort_]');
+    if (th) {
+      changeSortBy(th.id.replace('sort_', ''), th);
+    }
   });
 
   $(document).on('change', '[id^=due-date-]', function () {
@@ -211,7 +330,9 @@ function initProjectOverviewTable() {
   $(document).on('click', 'span.tab-context-menu', ({ target }) => {
     const currentName = $(target).siblings('.tab-link').first().text().trim();
     const rect = target.parentElement.getBoundingClientRect();
-    const viewId = $(target).parent().data('target');
+    const tab = $(target).parent();
+    const viewId = tab.data('target');
+    const isSubscription = tab.data('is-subscription') === true;
     $('.settings-for-target').text(viewId);
     contextMenu
       .css({
@@ -219,16 +340,23 @@ function initProjectOverviewTable() {
         top: `${rect.top + window.scrollY - rect.height - 25}px`,
       })
       .addClass('shown')
+      .find('#contextMenuTitle')
+      .text(currentName)
+      .end()
       .find('input[name="viewName"]')
       .val(currentName)
       .end()
       .find('input[name="view"]')
       .val(viewId);
 
-    // Delay focus slightly
-    setTimeout(() => {
-      contextMenu.find('input[name="viewName"]').focus();
-    }, 100);
+    // Hide rename/share controls for subscribed views
+    contextMenu.find('.rename-section, .view-share').toggle(!isSubscription);
+
+    if (!isSubscription) {
+      requestAnimationFrame(() => {
+        contextMenu.find('input[name="viewName"]').focus();
+      });
+    }
   });
 
   // Close context menu when clicked outside.
@@ -268,11 +396,40 @@ function initProjectOverviewTable() {
   // Init view tabs with sorting
   $projectOverviewTabs
     .tabs({
+      beforeActivate: function (event, ui) {
+        // Cache unsaved form state before switching away
+        const currentViewId = window.jQuery('#selectedViewId').val();
+        if (
+          currentViewId &&
+          window._viewsWithUnsavedChanges &&
+          window._viewsWithUnsavedChanges[currentViewId]
+        ) {
+          const form = document.getElementById('filtersForm');
+          if (form) {
+            if (!window._viewCachedFormData) window._viewCachedFormData = {};
+            window._viewCachedFormData[currentViewId] = captureFormState(form);
+          }
+        }
+      },
       activate: function (event, ui) {
         window.jQuery('#edit-time-log-modal').removeClass('shown');
 
         // Update URL when tab is activated
         const viewId = ui.newPanel.attr('id').replace('view-', '');
+
+        // Sync save button and unsaved banner with the newly active view
+        const viewHasChanges = !!(
+          window._viewsWithUnsavedChanges &&
+          window._viewsWithUnsavedChanges[viewId]
+        );
+        const saveBtn = document.querySelector('.save-view-btn');
+        if (saveBtn) {
+          saveBtn.classList.toggle('has-unsaved-changes', viewHasChanges);
+        }
+        const banner = document.getElementById('unsavedChangesNotice');
+        if (banner) {
+          banner.style.display = viewHasChanges ? '' : 'none';
+        }
         const url = new URL(window.location.href);
         url.searchParams.set('view', viewId);
         window.history.pushState({ view: viewId }, '', url);
@@ -349,56 +506,67 @@ function initProjectOverviewTable() {
     }
   });
 
-  // Init copy view button click
-  $(document).on('click', 'button.copy-view-button', function (e) {
-    e.preventDefault();
-    const button = $(this);
-    const originalText = button.data('original') || button.text();
-    const viewId = $('#selectedViewId').val();
+  // Open share modal from context menu
+  document.addEventListener('click', function (e) {
+    const shareBtn = e.target.closest('button.view-share');
+    if (!shareBtn) return;
 
-    // Request share link from server
-    $.ajax({
+    e.preventDefault();
+    const viewId = document.querySelector(
+      '#view-context-menu input[name="view"]'
+    ).value;
+    const modal = document.getElementById('share-view-modal');
+    const input = document.getElementById('share-link-input');
+
+    input.value = 'Loading...';
+    modal.classList.add('shown');
+    document.getElementById('view-context-menu').classList.remove('shown');
+
+    jQuery.ajax({
       type: 'POST',
       url: '/ProjectOverview/ProjectOverview/generateShareLink',
-      data: {
-        view: viewId,
-      },
+      data: { view: viewId },
       dataType: 'json',
       success: function (response) {
-        if (response.success && response.shareUrl) {
-          // Copy to clipboard
-          navigator.clipboard
-            .writeText(response.shareUrl)
-            .then(function () {
-              button.data('original', originalText);
-              button.text('Copied!');
-              setTimeout(function () {
-                button.text(originalText);
-              }, 2000);
-            })
-            .catch(function (err) {
-              console.error('Failed to copy to clipboard:', err);
-              button.text('Failed');
-              setTimeout(function () {
-                button.text(originalText);
-              }, 2000);
-            });
+        if (response.success && response.shareToken) {
+          input.value =
+            window.location.origin +
+            '/ProjectOverview/ProjectOverview?subscribe=' +
+            response.shareToken;
         } else {
-          console.error('Failed to generate share link:', response);
-          button.text('Error');
-          setTimeout(function () {
-            button.text(originalText);
-          }, 2000);
+          input.value = 'Error generating link';
         }
       },
-      error: function (xhr, status, error) {
-        console.error('AJAX error:', error);
-        button.text('Error');
-        setTimeout(function () {
-          button.text(originalText);
-        }, 2000);
+      error: function () {
+        input.value = 'Error generating link';
       },
     });
+  });
+
+  // Copy share link from modal input
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.share-modal-copy-btn')) return;
+    const input = document.getElementById('share-link-input');
+    const btn = e.target.closest('.share-modal-copy-btn');
+    const originalText = btn.textContent;
+    const copiedText = btn.dataset.copied || 'Copied';
+
+    navigator.clipboard.writeText(input.value).then(function () {
+      btn.textContent = copiedText;
+      setTimeout(function () {
+        btn.textContent = originalText;
+      }, 2000);
+    });
+  });
+
+  // Close share modal
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.share-modal-close')) {
+      document.getElementById('share-view-modal').classList.remove('shown');
+    }
+    if (e.target.id === 'share-view-modal') {
+      e.target.classList.remove('shown');
+    }
   });
 }
 
@@ -500,6 +668,10 @@ function changePriority(ticketId, newPriorityId, newLabel) {
           .querySelectorAll(`#priority-ticket-${ticketId}`)
           .forEach((button) => {
             button.className = `table-button table-button-status`;
+            const circle = button.querySelector('.priority-circle');
+            if (circle) {
+              circle.className = `priority-circle priority-bg-${newPriorityId}`;
+            }
             const label = button.querySelector('#priority-label');
             if (label) {
               label.textContent = newLabel;
@@ -650,22 +822,248 @@ function changeTags(event, ticketId, newTags) {
   }
 }
 
-// Change sort
-function changeSortBy(sortBy) {
-  const params = new URLSearchParams(document.location.search);
-  const url = new URL(window.location.href);
-  const currentSortOrder = params.get('sortOrder');
-  const currentSortBy = params.get('sortBy');
+// Change sort — client-side DOM sort + silent persist
+function changeSortBy(sortBy, clickedTh) {
+  const table = clickedTh.closest('table');
+  if (!table) return;
 
-  if (currentSortBy === sortBy) {
-    const newSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
-    url.searchParams.set('sortOrder', newSortOrder);
-  } else {
-    url.searchParams.set('sortOrder', 'asc');
-    url.searchParams.set('sortBy', sortBy);
+  const tbody = table.querySelector('tbody');
+  const headers = Array.from(table.querySelectorAll('thead th'));
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  if (!rows.length) return;
+
+  // Find column index from the clicked header
+  const colIndex = headers.indexOf(clickedTh);
+  if (colIndex < 0) return;
+
+  // Toggle direction
+  const currentCol = table.dataset.sortBy;
+  const currentDir = table.dataset.sortDir;
+  let direction = 'asc';
+  if (currentCol === sortBy && currentDir === 'asc') direction = 'desc';
+  table.dataset.sortBy = sortBy;
+  table.dataset.sortDir = direction;
+
+  const numericCols = [
+    'planHours',
+    'hourRemaining',
+    'sumHours',
+    'milestoneid',
+    'priority',
+    'status',
+  ];
+  const dateCols = ['dateToFinish'];
+
+  rows.sort(function (a, b) {
+    const aCell = a.cells[colIndex];
+    const bCell = b.cells[colIndex];
+    let aVal, bVal;
+
+    if (dateCols.includes(sortBy)) {
+      aVal = (aCell.querySelector('input[type=date]') || {}).value || '';
+      bVal = (bCell.querySelector('input[type=date]') || {}).value || '';
+    } else if (numericCols.includes(sortBy)) {
+      aVal = parseFloat(getCellNumericValue(aCell)) || 0;
+      bVal = parseFloat(getCellNumericValue(bCell)) || 0;
+    } else {
+      aVal = getCellTextValue(aCell).trim().toLowerCase();
+      bVal = getCellTextValue(bCell).trim().toLowerCase();
+    }
+
+    let result;
+    result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+    return direction === 'desc' ? -result : result;
+  });
+
+  rows.forEach(function (row) {
+    tbody.appendChild(row);
+  });
+
+  // Update visual indicators
+  headers.forEach(function (th) {
+    th.classList.remove('sort-asc', 'sort-desc');
+  });
+  clickedTh.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
+
+  // Silent save
+  const viewId = document.getElementById('selectedViewId');
+  if (viewId && viewId.value) {
+    fetch(window.location.pathname, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: new URLSearchParams({
+        action: 'saveSortOrder',
+        view: viewId.value,
+        sortBy: sortBy,
+        sortDirection: direction.toUpperCase(),
+      }),
+    });
+  }
+}
+
+function getCellNumericValue(cell) {
+  if (cell.dataset.sortValue !== undefined) return cell.dataset.sortValue;
+  const input = cell.querySelector('input[type=number]');
+  if (input) return input.value;
+  const span = cell.querySelector('.logged-hours');
+  if (span) return span.textContent;
+  const select = cell.querySelector('select');
+  if (select) return select.value;
+  return cell.textContent;
+}
+
+function getCellTextValue(cell) {
+  if (cell.dataset.selectedName) return cell.dataset.selectedName;
+  const label = cell.querySelector('#status-label, #priority-label');
+  if (label) return label.textContent;
+  const link = cell.querySelector('a');
+  if (link) return link.textContent;
+  return cell.textContent;
+}
+
+// --- Live filter helpers ---
+
+/**
+ * Capture all filter field values from the form for later restoration.
+ *
+ * @param {HTMLFormElement} form
+ * @returns {object} Field values keyed by name.
+ */
+function captureFormState(form) {
+  return {
+    users: $('#userSelect', form).val() || [],
+    filters: $('#filterSelect', form).val() || [],
+    columns: $('#columnSelect', form).val() || [],
+    dateType: $('#dateOptions', form).val(),
+    fromDate: $('#fromDate', form).val(),
+    toDate: $('#toDate', form).val(),
+    dateRangeText: $('#dateRange', form).val(),
+  };
+}
+
+/**
+ * Restore previously captured form state into the current filter form.
+ * Triggers change events so select2/flatpickr update, and the table refreshes.
+ *
+ * @param {object} state The state object from captureFormState.
+ */
+function restoreFormState(state) {
+  // Restore select2 multi-selects (set values without triggering change yet)
+  $('#userSelect').val(state.users).trigger('change.select2');
+  $('#filterSelect').val(state.filters).trigger('change.select2');
+  $('#columnSelect').val(state.columns).trigger('change.select2');
+
+  // Restore date type (triggers the dateRange toggle handler)
+  $('#dateOptions').val(state.dateType).trigger('change');
+
+  // For custom dates, restore the actual date values after the dateType handler ran
+  if (state.dateType === 'custom') {
+    $('#fromDate').val(state.fromDate);
+    $('#toDate').val(state.toDate);
+
+    const fp = document.getElementById('dateRange')?._flatpickr;
+    if (fp && state.fromDate && state.toDate) {
+      // Parse dd-mm-yyyy to Date objects
+      const parseDMY = (str) => {
+        const [d, m, y] = str.split('-').map(Number);
+        return new Date(y, m - 1, d);
+      };
+      fp.setDate([parseDMY(state.fromDate), parseDMY(state.toDate)], false);
+    }
+  }
+}
+
+function serializeFilterForm(form) {
+  const formData = new FormData(form);
+  // Exclude metadata fields that don't represent filter state
+  formData.delete('action');
+  formData.delete('overwriteView');
+  formData.delete('view');
+  formData.delete('subscribeToken');
+  return new URLSearchParams(formData).toString();
+}
+
+function refreshViewTable(form) {
+  const viewId = document.getElementById('selectedViewId');
+  if (!viewId || !viewId.value) return;
+
+  const formData = new FormData(form);
+
+  // Include current sort state from the active table
+  const activePanel = document.getElementById('view-' + viewId.value);
+  if (activePanel) {
+    const table = activePanel.querySelector('table');
+    if (table) {
+      formData.set('sortBy', table.dataset.sortBy || 'priority');
+      formData.set(
+        'sortDirection',
+        (table.dataset.sortDir || 'asc').toUpperCase()
+      );
+    }
   }
 
-  window.location.assign(url);
+  fetch(
+    '/ProjectOverview/ProjectOverview/loadViewTable/' +
+      encodeURIComponent(viewId.value),
+    {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: new URLSearchParams(formData),
+    }
+  )
+    .then(function (response) {
+      return response.text();
+    })
+    .then(function (html) {
+      if (activePanel) {
+        activePanel.innerHTML = html;
+        // Re-init components inside the new table
+        initTagsSelects();
+        if (typeof tippy === 'function') {
+          tippy(activePanel.querySelectorAll('[data-tippy-content]'));
+        }
+      }
+    });
+}
+
+function toggleUnsavedIndicator(targetViewId, hasChanges) {
+  if (!targetViewId) return;
+
+  // Track which views have unsaved changes
+  if (!window._viewsWithUnsavedChanges) window._viewsWithUnsavedChanges = {};
+  window._viewsWithUnsavedChanges[targetViewId] = hasChanges;
+
+  // Clear cached form data when changes are reverted
+  if (!hasChanges && window._viewCachedFormData) {
+    delete window._viewCachedFormData[targetViewId];
+  }
+
+  const tab = document.querySelector(
+    '#projectOverviewTabs > ul > li[data-target="' + targetViewId + '"]'
+  );
+  if (tab) {
+    tab.classList.toggle('has-unsaved-changes', hasChanges);
+  }
+
+  // Show save button highlight and banner if the currently active view has unsaved changes
+  const activeViewId = document.getElementById('selectedViewId');
+  const saveBtn = document.querySelector('.save-view-btn');
+  const banner = document.getElementById('unsavedChangesNotice');
+  if (activeViewId) {
+    const activeHasChanges =
+      !!window._viewsWithUnsavedChanges[activeViewId.value];
+    if (saveBtn) {
+      saveBtn.classList.toggle('has-unsaved-changes', activeHasChanges);
+    }
+    if (banner) {
+      banner.style.display = activeHasChanges ? '' : 'none';
+    }
+  }
 }
 
 // Save success animation

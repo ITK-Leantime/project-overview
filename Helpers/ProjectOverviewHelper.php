@@ -49,32 +49,73 @@ readonly class ProjectOverviewHelper
             'firstname' => 'unassigned',
             'lastname' => '',
         ]);
+        $ownerViewsCache = [];
+        $removedSubscriptions = [];
+
+        // Inject transient subscription from session if present
+        $transientSub = session('project_overview.transient_subscription');
+        if ($transientSub) {
+            $ownerViews = $this->actionHandler->getUserViewsObject($transientSub['ownerUserId']);
+            if (isset($ownerViews[$transientSub['ownerViewId']])) {
+                $ownerView = UserViewDTO::fromArray($ownerViews[$transientSub['ownerViewId']]);
+                $userViewObject[$transientSub['tempViewId']] = array_merge($ownerView->toArray(), [
+                    'id' => $transientSub['tempViewId'],
+                    'title' => $ownerView->title . ' (Live)',
+                    'shareToken' => null,
+                    'order' => PHP_INT_MAX,
+                    'isTransientSubscription' => true,
+                    'subscribeToken' => $transientSub['token'],
+                    'subscribedFromName' => $transientSub['ownerName'],
+                    'isSubscription' => true,
+                ]);
+            }
+        }
+
         foreach ($userViewObject as $key => $userViewData) {
             $userView = UserViewDTO::fromArray($userViewData);
-            $viewDTO = $userView->view;
+
+            // Skip subscription resolution for transient views (already resolved above)
+            $isTransient = $userViewData['isTransientSubscription'] ?? false;
+            if ($isTransient) {
+                $viewDTO = $userView->view;
+                // Preserve the extra flags already set
+            } elseif ($userView->isSubscription()) {
+                $resolvedView = $this->actionHandler->resolveSubscription($userView);
+
+                if ($resolvedView === null) {
+                    // Owner deleted the view — auto-remove the broken subscription
+                    $this->actionHandler->removeSubscription($key);
+                    $removedSubscriptions[] = $userView->title;
+                    unset($userViewObject[$key]);
+                    continue;
+                }
+
+                // Use the owner's ViewDTO for ticket fetching, keep subscriber metadata
+                $viewDTO = $resolvedView->view;
+                $userViewObject[$key]['isSubscription'] = true;
+                $userViewObject[$key]['subscribedFromName'] = $userView->subscribedFromName;
+                // Sync title from owner's view so renames propagate to subscribers
+                $userViewObject[$key]['title'] = $resolvedView->title;
+                // Update the stored view config so template columns are correct
+                $userViewObject[$key]['view'] = $resolvedView->toArray()['view'];
+            } else {
+                $viewDTO = $userView->view;
+                $userViewObject[$key]['isSubscription'] = false;
+            }
 
             $viewTickets = $this->projectOverviewService->getViewTasks($viewDTO);
-            $projectIds = array_unique(array_column($viewTickets, 'projectId'));
-            $userAndProject = [];
-            $milestonesAndProject = [];
-
-            foreach ($projectIds as $projectId) {
-                $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
-                $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
-                $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
-            }
-
-            foreach ($viewTickets as $ticket) {
-                if ($ticket->dueDate == '0000-00-00') {
-                    $ticket->dueDate = null;
-                }
-                $ticket->projectUsers = $userAndProject[$ticket->projectId];
-                $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
-                $ticket->projectName = $allProjects[$ticket->projectId]['name'];
-                $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
-            }
+            [$viewTickets, $ticketStatusLabels] = $this->enrichTickets($viewTickets, $allProjects);
+            $projectTicketStatuses = array_merge($projectTicketStatuses, $ticketStatusLabels);
             $userViewObject[$key]['tickets'] = $viewTickets;
         }
+        // Flash notification for auto-removed broken subscriptions
+        if (!empty($removedSubscriptions)) {
+            session()->flash('project_overview-flash_notification', [
+                'message' => __('projectOverview.notification.subscription_removed'),
+                'type' => 'info',
+            ]);
+        }
+
         return new ProjectOverviewDTO(
             userViews: $userViewObject,
             statusLabels: $projectTicketStatuses,
@@ -84,6 +125,67 @@ readonly class ProjectOverviewHelper
             allUsers: $allUsers,
             selectedView: $viewId,
         );
+    }
+
+    /**
+     * Fetches and enriches table data for a single view from POST filter values.
+     *
+     * @param array<string, mixed> $postData POST data containing filter values.
+     * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>}
+     */
+    public function getViewTableData(array $postData): array
+    {
+        $viewDTO = $this->actionHandler->parseFiltersFromPost($postData);
+        $allProjects = $this->projectOverviewService->getAllProjects();
+
+        $viewTickets = $this->projectOverviewService->getViewTasks($viewDTO);
+        [$viewTickets, $statusLabels] = $this->enrichTickets($viewTickets, $allProjects);
+
+        return [
+            'userView' => [
+                'view' => [
+                    'columns' => $viewDTO->columns,
+                    'sortBy' => $viewDTO->sortBy,
+                    'sortDirection' => $viewDTO->sortDirection,
+                ],
+                'tickets' => $viewTickets,
+            ],
+            'statusLabels' => $statusLabels,
+            'allPriorities' => $this->ticketService->getPriorityLabels(),
+        ];
+    }
+
+    /**
+     * Enriches tickets with project data, users, milestones, and status labels.
+     *
+     * @param array<object>                    $tickets     Raw ticket objects from the repository.
+     * @param array<int, array<string, mixed>> $allProjects All projects indexed by ID.
+     * @return array{0: array<object>, 1: array<int, mixed>} Enriched tickets and status labels.
+     */
+    private function enrichTickets(array $tickets, array $allProjects): array
+    {
+        $projectIds = array_unique(array_column($tickets, 'projectId'));
+        $statusLabels = [];
+        $userAndProject = [];
+        $milestonesAndProject = [];
+
+        foreach ($projectIds as $projectId) {
+            $statusLabels[$projectId] = $this->ticketService->getStatusLabels($projectId);
+            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
+            $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
+        }
+
+        foreach ($tickets as $ticket) {
+            if ($ticket->dueDate == '0000-00-00') {
+                $ticket->dueDate = null;
+            }
+            $ticket->projectUsers = $userAndProject[$ticket->projectId];
+            $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
+            $ticket->projectName = $allProjects[$ticket->projectId]['name'] ?? '';
+            $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
+        }
+
+        return [$tickets, $statusLabels];
     }
 
     /**
@@ -136,14 +238,57 @@ readonly class ProjectOverviewHelper
         ];
 
         // Override with user view data if available
-        if ($selectedViewId !== null) {
+        $isSubscription = false;
+        $isTransientSubscription = false;
+        $subscribeToken = null;
+
+        // Check if selected view is a transient subscription from session
+        $transientSub = session('project_overview.transient_subscription');
+        if ($selectedViewId !== null && $transientSub && $selectedViewId === $transientSub['tempViewId']) {
+            $isSubscription = true;
+            $isTransientSubscription = true;
+            $subscribeToken = $transientSub['token'];
+
+            // Resolve the owner's view
+            $ownerViews = $this->actionHandler->getUserViewsObject($transientSub['ownerUserId']);
+            if (isset($ownerViews[$transientSub['ownerViewId']])) {
+                $ownerView = UserViewDTO::fromArray($ownerViews[$transientSub['ownerViewId']]);
+                $viewDTO = $ownerView->view;
+
+                $userViewsData = array_merge($userViewsData, [
+                    'title' => $ownerView->title . ' (Live)',
+                    'users' => $viewDTO->users,
+                    'selectedColumns' => $viewDTO->columns,
+                    'dateType' => $viewDTO->dateType->value,
+                    'fromDate' => date(ProjectOverviewService::FRONTEND_DATE_FORMAT, strtotime($viewDTO->fromDate)),
+                    'toDate' => date(ProjectOverviewService::FRONTEND_DATE_FORMAT, strtotime($viewDTO->toDate)),
+                    'projectFilters' => $viewDTO->projectFilters,
+                    'priorityFilters' => $viewDTO->priorityFilters,
+                    'statusFilters' => $viewDTO->statusFilters,
+                    'customFilters' => $viewDTO->customFilters,
+                    'selectedViewId' => $selectedViewId,
+                ]);
+            }
+        } elseif ($selectedViewId !== null) {
             $userViewArray = $this->actionHandler->getUserViewsObject();
 
             if ($userViewArray) {
                 $userViewData = $userViewArray[$selectedViewId] ?? null;
                 if ($userViewData) {
                     $userView = UserViewDTO::fromArray($userViewData);
-                    $viewDTO = $userView->view;
+
+                    // If this is a subscription, resolve the owner's view config
+                    if ($userView->isSubscription()) {
+                        $isSubscription = true;
+                        $resolvedView = $this->actionHandler->resolveSubscription($userView);
+                        if ($resolvedView !== null) {
+                            $viewDTO = $resolvedView->view;
+                        } else {
+                            $viewDTO = $userView->view;
+                        }
+                    } else {
+                        $viewDTO = $userView->view;
+                    }
 
                     $userViewsData = array_merge($userViewsData, [
                         'title' => $userView->title,
@@ -180,6 +325,9 @@ readonly class ProjectOverviewHelper
             users: $userViewsData['users'],
             selectedViewId: $userViewsData['selectedViewId'],
             dateRanges: $dateRanges,
+            isSubscription: $isSubscription,
+            isTransientSubscription: $isTransientSubscription,
+            subscribeToken: $subscribeToken,
         );
     }
 }

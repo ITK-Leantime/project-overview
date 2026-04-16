@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+* [PR-80](https://github.com/ITK-Leantime/project-overview/pull/80)
+  * Decluttering interface.
+* [PR-79](https://github.com/ITK-Leantime/project-overview/pull/79)
+  * Reworked views to be able to display changes in filters instantly
+* [PR-78](https://github.com/ITK-Leantime/project-overview/pull/78)
+  * Fix issue regarding sorting
+  * Sorting is now coupled to the view config
+* [PR-77](https://github.com/ITK-Leantime/project-overview/pull/77)
+  * Add live-share views: subscribers always see the owner's latest view config
+  * Fix install() to handle missing directories and broken symlinks
+
 ## [4.0.2] - 2026-03-04
 
 * [PR-73](https://github.com/ITK-Leantime/project-overview/pull/73)

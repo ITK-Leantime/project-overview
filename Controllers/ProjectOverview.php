@@ -97,9 +97,56 @@ class ProjectOverview extends Controller
             case 'saveTabOrder':
                 $this->actionHandler->saveTabOrder($_POST);
                 break;
+            case 'saveSortOrder':
+                $viewId = $_POST[self::PARAM_VIEW] ?? '';
+                $sortBy = $_POST['sortBy'] ?? 'priority';
+                $sortDirection = $_POST['sortDirection'] ?? 'ASC';
+                $this->actionHandler->saveSortOrder($viewId, $sortBy, $sortDirection);
+                break;
+            case 'pinSubscription':
+                $subscribeToken = $_POST['subscribeToken'] ?? '';
+                $lookupResult = $this->actionHandler->findViewByShareToken($subscribeToken);
+                if ($lookupResult) {
+                    $newViewId = $this->actionHandler->subscribeToView($lookupResult);
+                    session()->forget('project_overview.transient_subscription');
+                    session()->flash('project_overview-flash_notification', [
+                        'message' => __('projectOverview.notification.view_subscribed'),
+                        'type' => 'success',
+                    ]);
+                    $redirectUrl .= '?' . http_build_query([self::PARAM_VIEW => $newViewId]);
+                }
+                break;
+            case 'saveTransientAsCopy':
+                $subscribeToken = $_POST['subscribeToken'] ?? '';
+                $lookupResult = $this->actionHandler->findViewByShareToken($subscribeToken);
+                if ($lookupResult) {
+                    $newViewId = $this->actionHandler->saveViewAsCopy($lookupResult);
+                    session()->forget('project_overview.transient_subscription');
+                    $redirectUrl .= '?' . http_build_query([self::PARAM_VIEW => $newViewId]);
+                }
+                break;
         }
 
         return Frontcontroller::redirect($redirectUrl);
+    }
+
+    /**
+     * HTMX endpoint: returns the table HTML for a single view using filter params from POST.
+     *
+     * @param array<string, string> $data Route params.
+     * @return Response|null
+     *
+     * @noinspection PhpUnused Called via fetch from JS.
+     */
+    public function loadViewTable(array $data): ?Response
+    {
+        $tableData = $this->projectOverviewHelper->getViewTableData($_POST);
+
+        $this->tpl->assign('userView', $tableData['userView']);
+        $this->tpl->assign('statusLabels', $tableData['statusLabels']);
+        $this->tpl->assign('allPriorities', $tableData['allPriorities']);
+
+        return $this->tpl->displayPartial('projectoverview::partials.projectOverviewTable');
     }
 
     /**
@@ -111,17 +158,31 @@ class ProjectOverview extends Controller
      */
     public function get(): Response
     {
-        // Handle shared view import
-        if (!empty($_GET['share'])) {
-            $shareToken = $_GET['share'];
-            $sharedView = $this->actionHandler->findViewByShareToken($shareToken);
+        // Handle live-share subscription preview (store in session, show as transient tab)
+        if (!empty($_GET['subscribe'])) {
+            $lookupResult = $this->actionHandler->findViewByShareToken($_GET['subscribe']);
 
-            if ($sharedView) {
-                $newViewId = $this->actionHandler->importSharedView($sharedView);
-                $this->tpl->setNotification(__('projectOverview.notification.view_imported'), 'success');
-                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query([self::PARAM_VIEW => $newViewId]));
+            if ($lookupResult) {
+                $tempViewId = 'transient_' . md5($_GET['subscribe']);
+                session()->put('project_overview.transient_subscription', [
+                    'token' => $_GET['subscribe'],
+                    'ownerUserId' => $lookupResult->ownerUserId,
+                    'ownerName' => $lookupResult->ownerName,
+                    'ownerViewId' => $lookupResult->view->id,
+                    'tempViewId' => $tempViewId,
+                ]);
+                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query([self::PARAM_VIEW => $tempViewId]));
             } else {
                 $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
+            }
+        }
+
+        // Clean up transient subscription if user navigated away from it
+        $transientSub = session('project_overview.transient_subscription');
+        if ($transientSub) {
+            $currentViewId = $_GET[self::PARAM_VIEW] ?? null;
+            if ($currentViewId !== $transientSub['tempViewId']) {
+                session()->forget('project_overview.transient_subscription');
             }
         }
 

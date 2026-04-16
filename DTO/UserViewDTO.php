@@ -10,12 +10,15 @@ use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 readonly class UserViewDTO
 {
     /**
-     * @param string      $id         Unique identifier for the view
-     * @param string      $title      User-friendly title of the view
-     * @param ViewDTO     $view       The view configuration
-     * @param string|null $shareToken Token for sharing this view (optional)
-     * @param int|null    $createdAt  Unix timestamp when view was created
-     * @param int         $order      Display order of the view (lower numbers appear first)
+     * @param string      $id                 Unique identifier for the view
+     * @param string      $title              User-friendly title of the view
+     * @param ViewDTO     $view               The view configuration
+     * @param string|null $shareToken         Token for sharing this view (optional)
+     * @param int|null    $createdAt          Unix timestamp when view was created
+     * @param int         $order              Display order of the view (lower numbers appear first)
+     * @param string|null $subscribedToUserId The view owner's user ID (for live-share subscriptions)
+     * @param string|null $subscribedToViewId The owner's view ID (for live-share subscriptions)
+     * @param string|null $subscribedFromName Owner's display name (avoids extra lookups for tab rendering)
      */
     public function __construct(
         public string $id,
@@ -23,8 +26,21 @@ readonly class UserViewDTO
         public ViewDTO $view,
         public ?string $shareToken = null,
         public ?int $createdAt = null,
-        public int $order = 0
+        public int $order = 0,
+        public ?string $subscribedToUserId = null,
+        public ?string $subscribedToViewId = null,
+        public ?string $subscribedFromName = null,
     ) {
+    }
+
+    /**
+     * Check if this view is a live-share subscription.
+     *
+     * @return bool
+     */
+    public function isSubscription(): bool
+    {
+        return $this->subscribedToUserId !== null;
     }
 
     /**
@@ -48,10 +64,15 @@ readonly class UserViewDTO
                 'priorityFilters' => $this->view->priorityFilters,
                 'statusFilters' => $this->view->statusFilters,
                 'customFilters' => $this->view->customFilters,
+                'sortBy' => $this->view->sortBy,
+                'sortDirection' => $this->view->sortDirection,
             ],
             'shareToken' => $this->shareToken,
             'createdAt' => $this->createdAt,
             'order' => $this->order,
+            'subscribedToUserId' => $this->subscribedToUserId,
+            'subscribedToViewId' => $this->subscribedToViewId,
+            'subscribedFromName' => $this->subscribedFromName,
         ];
     }
 
@@ -87,11 +108,16 @@ readonly class UserViewDTO
                 projectFilters: $viewData['projectFilters'] ?? [],
                 priorityFilters: $viewData['priorityFilters'] ?? [],
                 statusFilters: $viewData['statusFilters'] ?? [],
-                customFilters: $viewData['customFilters'] ?? []
+                customFilters: $viewData['customFilters'] ?? [],
+                sortBy: $viewData['sortBy'] ?? 'priority',
+                sortDirection: $viewData['sortDirection'] ?? 'ASC'
             ),
             shareToken: $data['shareToken'] ?? null,
             createdAt: $data['createdAt'] ?? null,
-            order: $data['order'] ?? 0
+            order: $data['order'] ?? 0,
+            subscribedToUserId: $data['subscribedToUserId'] ?? null,
+            subscribedToViewId: $data['subscribedToViewId'] ?? null,
+            subscribedFromName: $data['subscribedFromName'] ?? null,
         );
     }
 }
