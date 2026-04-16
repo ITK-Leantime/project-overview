@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-04-16
+
 * [PR-80](https://github.com/ITK-Leantime/project-overview/pull/80)
   * Decluttering interface.
 * [PR-79](https://github.com/ITK-Leantime/project-overview/pull/79)
@@ -227,7 +229,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.0.2...HEAD
+[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.1.0...HEAD
+[4.1.0]: https://github.com/ITK-Leantime/project-overview/compare/4.0.2...4.1.0
 [4.0.2]: https://github.com/ITK-Leantime/project-overview/compare/4.0.1...4.0.2
 [4.0.1]: https://github.com/ITK-Leantime/project-overview/compare/4.0.0...4.0.1
 [4.0.0]: https://github.com/ITK-Leantime/project-overview/compare/3.3.3...4.0.0

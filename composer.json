@@ -3,7 +3,7 @@
   "description": "A project overview for leantime",
   "license": "MIT",
   "type": "leantime-plugin",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "authors": [
     {
       "name": "Sine Jespersen",
