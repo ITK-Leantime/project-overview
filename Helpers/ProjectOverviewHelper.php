@@ -94,6 +94,8 @@ readonly class ProjectOverviewHelper
                 $viewDTO = $resolvedView->view;
                 $userViewObject[$key]['isSubscription'] = true;
                 $userViewObject[$key]['subscribedFromName'] = $userView->subscribedFromName;
+                // Sync title from owner's view so renames propagate to subscribers
+                $userViewObject[$key]['title'] = $resolvedView->title;
                 // Update the stored view config so template columns are correct
                 $userViewObject[$key]['view'] = $resolvedView->toArray()['view'];
             } else {

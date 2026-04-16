@@ -9,6 +9,7 @@ import './project-overview.css';
 
 $(document).ready(function () {
   window.frontendDateFormat = $(document).find('#frontendDateFormat').val();
+  initFiltersToggle();
   initProjectOverviewFilters();
   initProjectOverviewTable();
 
@@ -43,6 +44,43 @@ $(document).ready(function () {
   });
   // end HTMX swap events
 });
+
+/**
+ * Initializes the collapsible filters toggle with localStorage persistence.
+ */
+function initFiltersToggle() {
+  const STORAGE_KEY = 'projectOverview.filtersCollapsed';
+  const toggle = document.getElementById('filtersToggle');
+  const container = document.getElementById('filtersContainer');
+  if (!toggle || !container) return;
+
+  var label = toggle.querySelector('span');
+
+  function updateLabel(collapsed) {
+    label.textContent = collapsed ? toggle.dataset.show : toggle.dataset.hide;
+  }
+
+  // Restore saved state (disable transition to prevent animation on load)
+  if (localStorage.getItem(STORAGE_KEY) === '1') {
+    container.style.transition = 'none';
+    container.classList.add('collapsed');
+    toggle.classList.add('collapsed');
+    updateLabel(true);
+    // Re-enable transition after the browser has painted
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        container.style.transition = '';
+      });
+    });
+  }
+
+  toggle.addEventListener('click', function () {
+    const isCollapsed = container.classList.toggle('collapsed');
+    toggle.classList.toggle('collapsed', isCollapsed);
+    updateLabel(isCollapsed);
+    localStorage.setItem(STORAGE_KEY, isCollapsed ? '1' : '0');
+  });
+}
 
 /**
  * Initializes the project overview filters by setting up various UI components.
@@ -174,8 +212,19 @@ function initProjectOverviewFilters() {
     return userSelect.select2('data')?.length;
   });
 
-  // --- Live filter update: refresh table on filter change ---
+  // Re-enable disabled fields on submit so their values are included in POST data
   const filtersForm = document.getElementById('filtersForm');
+  if (filtersForm) {
+    filtersForm.addEventListener('submit', function () {
+      filtersForm
+        .querySelectorAll('select[disabled], input[disabled]')
+        .forEach(function (el) {
+          el.disabled = false;
+        });
+    });
+  }
+
+  // --- Live filter update: refresh table on filter change ---
   if (!filtersForm || filtersForm.dataset.isSubscription === 'true') return;
 
   const viewId = document.getElementById('selectedViewId');
@@ -291,16 +340,17 @@ function initProjectOverviewTable() {
         top: `${rect.top + window.scrollY - rect.height - 25}px`,
       })
       .addClass('shown')
+      .find('#contextMenuTitle')
+      .text(currentName)
+      .end()
       .find('input[name="viewName"]')
       .val(currentName)
       .end()
       .find('input[name="view"]')
       .val(viewId);
 
-    // Hide rename controls for subscribed views
-    contextMenu
-      .find('> form > span, > form > input[name="viewName"], .view-rename')
-      .toggle(!isSubscription);
+    // Hide rename/share controls for subscribed views
+    contextMenu.find('.rename-section, .view-share').toggle(!isSubscription);
 
     if (!isSubscription) {
       requestAnimationFrame(() => {
@@ -367,13 +417,18 @@ function initProjectOverviewTable() {
         // Update URL when tab is activated
         const viewId = ui.newPanel.attr('id').replace('view-', '');
 
-        // Sync save button state with the newly active view
+        // Sync save button and unsaved banner with the newly active view
+        const viewHasChanges = !!(
+          window._viewsWithUnsavedChanges &&
+          window._viewsWithUnsavedChanges[viewId]
+        );
         const saveBtn = document.querySelector('.save-view-btn');
-        if (saveBtn && window._viewsWithUnsavedChanges) {
-          saveBtn.classList.toggle(
-            'has-unsaved-changes',
-            !!window._viewsWithUnsavedChanges[viewId]
-          );
+        if (saveBtn) {
+          saveBtn.classList.toggle('has-unsaved-changes', viewHasChanges);
+        }
+        const banner = document.getElementById('unsavedChangesNotice');
+        if (banner) {
+          banner.style.display = viewHasChanges ? '' : 'none';
         }
         const url = new URL(window.location.href);
         url.searchParams.set('view', viewId);
@@ -451,69 +506,67 @@ function initProjectOverviewTable() {
     }
   });
 
-  // Init share view button click (share as subscription)
-  $(document).on('click', 'button.copy-live-share-button', function (e) {
+  // Open share modal from context menu
+  document.addEventListener('click', function (e) {
+    const shareBtn = e.target.closest('button.view-share');
+    if (!shareBtn) return;
+
     e.preventDefault();
-    copyShareLink($(this));
+    const viewId = document.querySelector(
+      '#view-context-menu input[name="view"]'
+    ).value;
+    const modal = document.getElementById('share-view-modal');
+    const input = document.getElementById('share-link-input');
+
+    input.value = 'Loading...';
+    modal.classList.add('shown');
+    document.getElementById('view-context-menu').classList.remove('shown');
+
+    jQuery.ajax({
+      type: 'POST',
+      url: '/ProjectOverview/ProjectOverview/generateShareLink',
+      data: { view: viewId },
+      dataType: 'json',
+      success: function (response) {
+        if (response.success && response.shareToken) {
+          input.value =
+            window.location.origin +
+            '/ProjectOverview/ProjectOverview?subscribe=' +
+            response.shareToken;
+        } else {
+          input.value = 'Error generating link';
+        }
+      },
+      error: function () {
+        input.value = 'Error generating link';
+      },
+    });
   });
-}
 
-/**
- * Generate a share link and copy it to clipboard.
- *
- * @param {jQuery} button The button element that was clicked.
- */
-function copyShareLink(button) {
-  const originalText = button.data('original') || button.text();
-  const viewId = $('#selectedViewId').val();
+  // Copy share link from modal input
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.share-modal-copy-btn')) return;
+    const input = document.getElementById('share-link-input');
+    const btn = e.target.closest('.share-modal-copy-btn');
+    const originalText = btn.textContent;
+    const copiedText = btn.dataset.copied || 'Copied';
 
-  // Request share link from server
-  $.ajax({
-    type: 'POST',
-    url: '/ProjectOverview/ProjectOverview/generateShareLink',
-    data: {
-      view: viewId,
-    },
-    dataType: 'json',
-    success: function (response) {
-      if (response.success && response.shareToken) {
-        const shareUrl =
-          window.location.origin +
-          '/ProjectOverview/ProjectOverview?subscribe=' +
-          response.shareToken;
-
-        // Copy to clipboard
-        navigator.clipboard
-          .writeText(shareUrl)
-          .then(function () {
-            button.data('original', originalText);
-            button.text('✓');
-            setTimeout(function () {
-              button.text(originalText);
-            }, 2000);
-          })
-          .catch(function (err) {
-            console.error('Failed to copy to clipboard:', err);
-            button.text('Failed');
-            setTimeout(function () {
-              button.text(originalText);
-            }, 2000);
-          });
-      } else {
-        console.error('Failed to generate share link:', response);
-        button.text('Error');
-        setTimeout(function () {
-          button.text(originalText);
-        }, 2000);
-      }
-    },
-    error: function (xhr, status, error) {
-      console.error('AJAX error:', error);
-      button.text('Error');
+    navigator.clipboard.writeText(input.value).then(function () {
+      btn.textContent = copiedText;
       setTimeout(function () {
-        button.text(originalText);
+        btn.textContent = originalText;
       }, 2000);
-    },
+    });
+  });
+
+  // Close share modal
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('.share-modal-close')) {
+      document.getElementById('share-view-modal').classList.remove('shown');
+    }
+    if (e.target.id === 'share-view-modal') {
+      e.target.classList.remove('shown');
+    }
   });
 }
 
@@ -997,13 +1050,19 @@ function toggleUnsavedIndicator(targetViewId, hasChanges) {
     tab.classList.toggle('has-unsaved-changes', hasChanges);
   }
 
-  // Show save button highlight if the currently active view has unsaved changes
+  // Show save button highlight and banner if the currently active view has unsaved changes
   const activeViewId = document.getElementById('selectedViewId');
   const saveBtn = document.querySelector('.save-view-btn');
-  if (saveBtn && activeViewId) {
+  const banner = document.getElementById('unsavedChangesNotice');
+  if (activeViewId) {
     const activeHasChanges =
       !!window._viewsWithUnsavedChanges[activeViewId.value];
-    saveBtn.classList.toggle('has-unsaved-changes', activeHasChanges);
+    if (saveBtn) {
+      saveBtn.classList.toggle('has-unsaved-changes', activeHasChanges);
+    }
+    if (banner) {
+      banner.style.display = activeHasChanges ? '' : 'none';
+    }
   }
 }
 

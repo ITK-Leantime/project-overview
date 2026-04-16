@@ -116,6 +116,15 @@ class ProjectOverview extends Controller
                     $redirectUrl .= '?' . http_build_query([self::PARAM_VIEW => $newViewId]);
                 }
                 break;
+            case 'saveTransientAsCopy':
+                $subscribeToken = $_POST['subscribeToken'] ?? '';
+                $lookupResult = $this->actionHandler->findViewByShareToken($subscribeToken);
+                if ($lookupResult) {
+                    $newViewId = $this->actionHandler->saveViewAsCopy($lookupResult);
+                    session()->forget('project_overview.transient_subscription');
+                    $redirectUrl .= '?' . http_build_query([self::PARAM_VIEW => $newViewId]);
+                }
+                break;
         }
 
         return Frontcontroller::redirect($redirectUrl);
