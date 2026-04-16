@@ -38,17 +38,23 @@ readonly class ProjectOverviewActionHandler
      * @return string The updated redirect URL after the view has been saved or updated.
      * @throws BindingResolutionException
      */
-    public function saveView(array $postData, string $redirectUrl): string
+    /**
+     * Parses filter values from POST data and constructs a ViewDTO.
+     *
+     * @param array<string, mixed> $postData      POST data containing filter values.
+     * @param string|null          $sortBy        Optional sort column override.
+     * @param string|null          $sortDirection Optional sort direction override.
+     * @return ViewDTO
+     */
+    public function parseFiltersFromPost(array $postData, ?string $sortBy = null, ?string $sortDirection = null): ViewDTO
     {
-        $overwriteView = (bool)($postData['overwriteView'] ?? false);
         $users = $postData['users'] ?? [];
-        $dateType = DateTypeEnum::tryFrom($postData['dateType']);
+        $dateType = DateTypeEnum::tryFrom($postData['dateType'] ?? '');
         $fromDate = null;
         $toDate = null;
         if ($dateType === null) {
             $dateType = DateTypeEnum::NEXT_TWO_WEEKS;
         }
-        // If the dateType is custom, use the fromDate and toDate values from the daterange select.
         if ($dateType === DateTypeEnum::CUSTOM) {
             $fromDate = $postData['fromDate'] ?? null;
             $toDate = $postData['toDate'] ?? null;
@@ -63,11 +69,9 @@ readonly class ProjectOverviewActionHandler
             'custom' => [],
         ];
 
-        // Destruct combined filter post object.
         foreach ($filters as $filter) {
             if (preg_match('/^([^_]+)_(.+)/', $filter, $matches)) {
                 [, $group, $value] = $matches;
-                // Map the filter prefix to the grouped filter key.
                 $filterMap = [
                     rtrim(self::FILTER_PREFIX_PROJECT, '_') => 'projects',
                     rtrim(self::FILTER_PREFIX_PRIORITY, '_') => 'priorities',
@@ -81,12 +85,38 @@ readonly class ProjectOverviewActionHandler
             }
         }
 
+        return new ViewDTO(
+            title: null,
+            users: (array)$users,
+            dateType: $dateType,
+            fromDate: $fromDate,
+            toDate: $toDate,
+            columns: $columns,
+            projectFilters: $groupedFilters['projects'],
+            priorityFilters: $groupedFilters['priorities'],
+            statusFilters: $groupedFilters['statuses'],
+            customFilters: $groupedFilters['custom'],
+            sortBy: $sortBy ?? $postData['sortBy'] ?? 'priority',
+            sortDirection: $sortDirection ?? $postData['sortDirection'] ?? 'ASC',
+        );
+    }
+
+    /**
+     * Save the user's view.
+     *
+     * @param array<string, mixed> $postData    POST data containing view configuration.
+     * @param string               $redirectUrl Base redirect URL.
+     * @return string Redirect URL with view parameter.
+     */
+    public function saveView(array $postData, string $redirectUrl): string
+    {
+        $overwriteView = (bool)($postData['overwriteView'] ?? false);
+
         $userViewsObject = $this->getUserViewsObject();
         $existingViewId = $postData['view'] ?? null;
 
         // Check if view already exists and overwrite if requested.
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
-            // Update the existing view, preserve share token and order
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
 
             // Prevent overwriting a subscription — force "save as new" instead
@@ -104,21 +134,7 @@ readonly class ProjectOverviewActionHandler
             $sortDirection = $existingView->view->sortDirection ?? 'ASC';
         }
 
-        // Create view DTO.
-        $viewDTO = new ViewDTO(
-            title: null,
-            users: (array)$users,
-            dateType: $dateType,
-            fromDate: $fromDate,
-            toDate: $toDate,
-            columns: $columns,
-            projectFilters: $groupedFilters['projects'],
-            priorityFilters: $groupedFilters['priorities'],
-            statusFilters: $groupedFilters['statuses'],
-            customFilters: $groupedFilters['custom'],
-            sortBy: $sortBy,
-            sortDirection: $sortDirection,
-        );
+        $viewDTO = $this->parseFiltersFromPost($postData, $sortBy, $sortDirection);
 
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
@@ -145,11 +161,20 @@ readonly class ProjectOverviewActionHandler
                 $maxOrder = max($maxOrder, $viewDTO_temp->order);
             }
 
+            // Determine title: copy subscription name if source is a subscription, otherwise default
+            $newTitle = 'View ' . (count($userViewsObject) + 1);
+            if (!empty($existingViewId) && isset($userViewsObject[$existingViewId])) {
+                $sourceView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
+                if ($sourceView->isSubscription()) {
+                    $newTitle = $sourceView->title . ' (' . __('projectOverview.copy_suffix') . ')';
+                }
+            }
+
             // Create a new view with unique ID
             $newViewId = uniqid('view_', true);
             $userViewsObject[$newViewId] = new UserViewDTO(
                 id: $newViewId,
-                title: 'View ' . (count($userViewsObject) + 1),
+                title: $newTitle,
                 view: $viewDTO,
                 shareToken: null,
                 createdAt: time(),
@@ -306,39 +331,6 @@ readonly class ProjectOverviewActionHandler
     }
 
     /**
-     * Import a shared view into the current user's views (creates a copy).
-     *
-     * @param SharedViewLookupResult $lookupResult The lookup result containing the shared view and owner info
-     * @return string The new view ID
-     */
-    public function importSharedView(SharedViewLookupResult $lookupResult): string
-    {
-        $userViewsObject = $this->getUserViewsObject();
-
-        // Calculate the next order value (max order + 1)
-        $maxOrder = 0;
-        foreach ($userViewsObject as $view) {
-            $viewDTO = UserViewDTO::fromArray($view);
-            $maxOrder = max($maxOrder, $viewDTO->order);
-        }
-
-        // Create a new view with a unique ID (no share token for the copy)
-        $newViewId = uniqid('view_', true);
-        $userViewsObject[$newViewId] = new UserViewDTO(
-            id: $newViewId,
-            title: $lookupResult->view->title . ' (Shared)',
-            view: $lookupResult->view->view,
-            shareToken: null,
-            createdAt: time(),
-            order: $maxOrder + 1
-        );
-
-        $this->saveUserViewsObject($userViewsObject);
-
-        return $newViewId;
-    }
-
-    /**
      * Subscribe to a shared view (live-share). Creates a subscription reference in the subscriber's views.
      *
      * @param SharedViewLookupResult $lookupResult The lookup result containing the view and owner info
@@ -370,6 +362,42 @@ readonly class ProjectOverviewActionHandler
         );
 
         $this->saveUserViewsObject($userViewsObject);
+
+        return $newViewId;
+    }
+
+    /**
+     * Save a shared view as a static (non-subscription) copy.
+     *
+     * @param SharedViewLookupResult $lookupResult The lookup result containing the view and owner info
+     * @return string The new view ID
+     */
+    public function saveViewAsCopy(SharedViewLookupResult $lookupResult): string
+    {
+        $userViewsObject = $this->getUserViewsObject();
+
+        $maxOrder = 0;
+        foreach ($userViewsObject as $view) {
+            $viewDTO = UserViewDTO::fromArray($view);
+            $maxOrder = max($maxOrder, $viewDTO->order);
+        }
+
+        $newViewId = uniqid('view_', true);
+        $userViewsObject[$newViewId] = new UserViewDTO(
+            id: $newViewId,
+            title: $lookupResult->view->title . ' (' . __('projectOverview.copy_suffix') . ')',
+            view: $lookupResult->view->view,
+            shareToken: null,
+            createdAt: time(),
+            order: $maxOrder + 1,
+        );
+
+        $this->saveUserViewsObject($userViewsObject);
+
+        session()->flash('project_overview-flash_notification', [
+            'message' => __('projectOverview.notification.view_created'),
+            'type' => 'success',
+        ]);
 
         return $newViewId;
     }

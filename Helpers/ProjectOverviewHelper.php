@@ -94,6 +94,8 @@ readonly class ProjectOverviewHelper
                 $viewDTO = $resolvedView->view;
                 $userViewObject[$key]['isSubscription'] = true;
                 $userViewObject[$key]['subscribedFromName'] = $userView->subscribedFromName;
+                // Sync title from owner's view so renames propagate to subscribers
+                $userViewObject[$key]['title'] = $resolvedView->title;
                 // Update the stored view config so template columns are correct
                 $userViewObject[$key]['view'] = $resolvedView->toArray()['view'];
             } else {
@@ -102,25 +104,8 @@ readonly class ProjectOverviewHelper
             }
 
             $viewTickets = $this->projectOverviewService->getViewTasks($viewDTO);
-            $projectIds = array_unique(array_column($viewTickets, 'projectId'));
-            $userAndProject = [];
-            $milestonesAndProject = [];
-
-            foreach ($projectIds as $projectId) {
-                $projectTicketStatuses[$projectId] = $this->ticketService->getStatusLabels($projectId);
-                $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
-                $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
-            }
-
-            foreach ($viewTickets as $ticket) {
-                if ($ticket->dueDate == '0000-00-00') {
-                    $ticket->dueDate = null;
-                }
-                $ticket->projectUsers = $userAndProject[$ticket->projectId];
-                $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
-                $ticket->projectName = $allProjects[$ticket->projectId]['name'];
-                $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
-            }
+            [$viewTickets, $ticketStatusLabels] = $this->enrichTickets($viewTickets, $allProjects);
+            $projectTicketStatuses = array_merge($projectTicketStatuses, $ticketStatusLabels);
             $userViewObject[$key]['tickets'] = $viewTickets;
         }
         // Flash notification for auto-removed broken subscriptions
@@ -140,6 +125,67 @@ readonly class ProjectOverviewHelper
             allUsers: $allUsers,
             selectedView: $viewId,
         );
+    }
+
+    /**
+     * Fetches and enriches table data for a single view from POST filter values.
+     *
+     * @param array<string, mixed> $postData POST data containing filter values.
+     * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>}
+     */
+    public function getViewTableData(array $postData): array
+    {
+        $viewDTO = $this->actionHandler->parseFiltersFromPost($postData);
+        $allProjects = $this->projectOverviewService->getAllProjects();
+
+        $viewTickets = $this->projectOverviewService->getViewTasks($viewDTO);
+        [$viewTickets, $statusLabels] = $this->enrichTickets($viewTickets, $allProjects);
+
+        return [
+            'userView' => [
+                'view' => [
+                    'columns' => $viewDTO->columns,
+                    'sortBy' => $viewDTO->sortBy,
+                    'sortDirection' => $viewDTO->sortDirection,
+                ],
+                'tickets' => $viewTickets,
+            ],
+            'statusLabels' => $statusLabels,
+            'allPriorities' => $this->ticketService->getPriorityLabels(),
+        ];
+    }
+
+    /**
+     * Enriches tickets with project data, users, milestones, and status labels.
+     *
+     * @param array<object>                    $tickets     Raw ticket objects from the repository.
+     * @param array<int, array<string, mixed>> $allProjects All projects indexed by ID.
+     * @return array{0: array<object>, 1: array<int, mixed>} Enriched tickets and status labels.
+     */
+    private function enrichTickets(array $tickets, array $allProjects): array
+    {
+        $projectIds = array_unique(array_column($tickets, 'projectId'));
+        $statusLabels = [];
+        $userAndProject = [];
+        $milestonesAndProject = [];
+
+        foreach ($projectIds as $projectId) {
+            $statusLabels[$projectId] = $this->ticketService->getStatusLabels($projectId);
+            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
+            $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
+        }
+
+        foreach ($tickets as $ticket) {
+            if ($ticket->dueDate == '0000-00-00') {
+                $ticket->dueDate = null;
+            }
+            $ticket->projectUsers = $userAndProject[$ticket->projectId];
+            $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
+            $ticket->projectName = $allProjects[$ticket->projectId]['name'] ?? '';
+            $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
+        }
+
+        return [$tickets, $statusLabels];
     }
 
     /**
