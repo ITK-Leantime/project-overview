@@ -690,13 +690,113 @@ th.sort-desc .label-and-caret-wrapper::after {
   padding: 0 0 0 5px;
 }
 
-/* Unsaved changes notice next to filters */
+/* Unsaved changes notice next to filters — clickable, scrolls to save button */
 .unsaved-changes-notice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: var(--itk-color-warning);
   white-space: nowrap;
   align-self: center;
   margin-left: 8px;
+  /* Visible affordance so users see this is interactive */
+  background: rgba(217, 119, 6, 0.08);
+  border: 1px dashed rgba(217, 119, 6, 0.5);
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 999px;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.unsaved-changes-notice:hover,
+.unsaved-changes-notice:focus-visible {
+  background: rgba(217, 119, 6, 0.18);
+  border-color: rgba(217, 119, 6, 0.75);
+  outline: none;
+}
+
+.unsaved-changes-notice:active {
+  transform: scale(0.97);
+}
+
+.unsaved-changes-notice-icon {
+  font-size: 0.95em;
+  /* Soft up-down hint so the down-arrow reads as "scroll there" */
+  animation: unsaved-arrow-bob 1.6s ease-in-out infinite;
+}
+
+@keyframes unsaved-arrow-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+/* Floating scroll-to-top button */
+.scroll-to-top-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--itk-color-primary, #1d72b8);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    background 0.15s ease;
+}
+
+.scroll-to-top-btn[hidden] {
+  display: none !important;
+}
+
+.scroll-to-top-btn.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-to-top-btn:hover,
+.scroll-to-top-btn:focus-visible {
+  background: var(--itk-color-primary-800, #155a8e);
+  outline: none;
+}
+
+/* Brief attention pulse fired when the unsaved-changes notice is clicked */
+.save-btn-pulse {
+  animation: save-btn-pulse-anim 1.2s ease-out 1;
+}
+
+@keyframes save-btn-pulse-anim {
+  0% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.6);
+  }
+  60% {
+    box-shadow: 0 0 0 10px rgba(217, 119, 6, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
+  }
 }
 
 /* Unsaved changes indicator on tab */
@@ -1333,6 +1433,139 @@ select#dateOptions {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Initial loader shown for views that haven't been fetched yet */
+.view-lazy-load {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 240px;
+  color: #888;
+  font-size: 0.95em;
+}
+
+.view-lazy-load-spinner {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #d8d8d8;
+  border-top-color: #1d72b8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex: none;
+}
+
+/* Lazy-load sentinel and end-of-list marker (infinite-scroll footer rows) */
+.lazy-row-sentinel,
+.lazy-row-end-marker {
+  background: transparent !important;
+}
+
+.lazy-row-sentinel > td,
+.lazy-row-end-marker > td {
+  border-top: none;
+  padding: 18px 12px;
+  background: transparent;
+}
+
+.lazy-row-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #888;
+  font-size: 0.95em;
+  min-height: 28px;
+}
+
+.lazy-row-status[hidden] {
+  display: none !important;
+}
+
+.lazy-row-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d8d8d8;
+  border-top-color: #1d72b8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex: none;
+}
+
+.lazy-row-error {
+  color: #b94a48;
+}
+
+.lazy-row-status-icon {
+  font-size: 1.1em;
+}
+
+.lazy-row-retry {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 2px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.lazy-row-retry:hover {
+  background: rgba(185, 74, 72, 0.08);
+}
+
+.lazy-row-load-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #d0d7de;
+  color: #1d72b8;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.lazy-row-load-more:hover,
+.lazy-row-load-more:focus-visible {
+  background: var(--itk-color-primary, #1d72b8);
+  border-color: var(--itk-color-primary, #1d72b8);
+  color: #fff;
+  outline: none;
+}
+
+.lazy-row-load-more i {
+  font-size: 0.9em;
+}
+
+.lazy-row-end {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #aaa;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lazy-row-end-line {
+  flex: 0 0 60px;
+  height: 1px;
+  background: #ddd;
+}
+
+.lazy-row-end-text {
+  white-space: nowrap;
 }
 
 .error-message {

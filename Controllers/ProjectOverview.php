@@ -6,13 +6,13 @@ use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Leantime\Core\Controller\Controller;
 use Leantime\Core\Controller\Frontcontroller;
+use Leantime\Core\UI\Template;
 use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Auth\Services\Auth as AuthService;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewActionHandler;
 use Leantime\Plugins\ProjectOverview\Helpers\ProjectOverviewHelper;
-use Symfony\Component\HttpFoundation\Response;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
-use Leantime\Core\UI\Template;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class ProjectOverview
@@ -20,19 +20,15 @@ use Leantime\Core\UI\Template;
 class ProjectOverview extends Controller
 {
     private ProjectOverviewActionHandler $actionHandler;
+
     private ProjectOverviewHelper $projectOverviewHelper;
 
     private ProjectOverviewService $projectOverviewService;
+
     private ProjectOverviewActionHandler $projectOverviewActionHandler;
 
     public const PARAM_VIEW = 'view';
 
-    /**
-     * @param Template                     $tpl
-     * @param ProjectOverviewActionHandler $actionHandler
-     * @param ProjectOverviewHelper        $projectOverviewHelper
-     * @return void
-     */
     public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, ProjectOverviewService $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
     {
         $this->tpl = $tpl;
@@ -45,10 +41,9 @@ class ProjectOverview extends Controller
     /**
      * Loads filters data and serves it back to the template.
      *
-     * @param array<string, string> $data
+     * @param  array<string, string>  $data
      *
      * @throws Exception
-     * @return Response|null
      *
      * @noinspection PhpUnused Called via HTMX
      */
@@ -69,15 +64,14 @@ class ProjectOverview extends Controller
     }
 
     /**
-     * @return Response
      * @throws Exception
      */
     public function post(): Response
     {
-        if (!AuthService::userIsAtLeast(Roles::$editor)) {
+        if (! AuthService::userIsAtLeast(Roles::$editor)) {
             return $this->tpl->displayJson(['Error' => 'Not Authorized'], 403);
         }
-        $redirectUrl = BASE_URL . '/ProjectOverview/ProjectOverview';
+        $redirectUrl = BASE_URL.'/ProjectOverview/ProjectOverview';
 
         $action = $_POST['action'] ?? null;
 
@@ -113,7 +107,7 @@ class ProjectOverview extends Controller
                         'message' => __('projectOverview.notification.view_subscribed'),
                         'type' => 'success',
                     ]);
-                    $redirectUrl .= '?' . http_build_query([self::PARAM_VIEW => $newViewId]);
+                    $redirectUrl .= '?'.http_build_query([self::PARAM_VIEW => $newViewId]);
                 }
                 break;
             case 'saveTransientAsCopy':
@@ -122,7 +116,7 @@ class ProjectOverview extends Controller
                 if ($lookupResult) {
                     $newViewId = $this->actionHandler->saveViewAsCopy($lookupResult);
                     session()->forget('project_overview.transient_subscription');
-                    $redirectUrl .= '?' . http_build_query([self::PARAM_VIEW => $newViewId]);
+                    $redirectUrl .= '?'.http_build_query([self::PARAM_VIEW => $newViewId]);
                 }
                 break;
         }
@@ -131,16 +125,17 @@ class ProjectOverview extends Controller
     }
 
     /**
-     * HTMX endpoint: returns the table HTML for a single view using filter params from POST.
+     * HTMX endpoint: returns the full table HTML (page 1) for a single view using filter
+     * params from POST. Triggered by filter changes, sort changes, and the lazy-load fallback.
      *
-     * @param array<string, string> $data Route params.
-     * @return Response|null
+     * @param  array<string, string>  $data  Route params (`id` = view id).
      *
      * @noinspection PhpUnused Called via fetch from JS.
      */
     public function loadViewTable(array $data): ?Response
     {
-        $tableData = $this->projectOverviewHelper->getViewTableData($_POST);
+        $viewId = $data['id'] ?? null;
+        $tableData = $this->projectOverviewHelper->getViewTableData($_POST, $viewId);
 
         $this->tpl->assign('userView', $tableData['userView']);
         $this->tpl->assign('statusLabels', $tableData['statusLabels']);
@@ -150,20 +145,50 @@ class ProjectOverview extends Controller
     }
 
     /**
+     * Endpoint: returns the next batch of <tr> rows + a new sentinel (or no sentinel
+     * when last page). Triggered by the "Load more" / Retry button click in the
+     * sentinel rendered by {@see projectOverviewTableRows.blade.php}; the JS handler
+     * POSTs the current filter form together with `page` and `pageSize`.
+     *
+     * @param  array<string, string>  $data  Route params (`id` = view id).
+     *
+     * @noinspection PhpUnused Called via fetch from JS.
+     */
+    public function loadViewTableRows(array $data): ?Response
+    {
+        $viewId = $data['id'] ?? '';
+        $rowData = $this->projectOverviewHelper->getViewTableRows($_POST);
+
+        $nextPageUrl = $rowData['hasMore'] && $rowData['nextPage'] !== null && $viewId !== ''
+            ? '/ProjectOverview/ProjectOverview/loadViewTableRows/'.urlencode($viewId)
+            : null;
+
+        $this->tpl->assign('rows', $rowData['rows']);
+        $this->tpl->assign('columns', $rowData['columns']);
+        $this->tpl->assign('statusLabels', $rowData['statusLabels']);
+        $this->tpl->assign('allPriorities', $rowData['allPriorities']);
+        $this->tpl->assign('columnCount', max(1, count($rowData['columns'])));
+        $this->tpl->assign('nextPageUrl', $nextPageUrl);
+        $this->tpl->assign('nextPage', $rowData['nextPage']);
+        $this->tpl->assign('isContinuation', true);
+
+        return $this->tpl->displayPartial('projectoverview::partials.projectOverviewTableRows');
+    }
+
+    /**
      * Gathers users view data and feeds it to the template.
      *
-     * @return Response
      * @throws BindingResolutionException
      * @throws Exception
      */
     public function get(): Response
     {
         // Handle live-share subscription preview (store in session, show as transient tab)
-        if (!empty($_GET['subscribe'])) {
+        if (! empty($_GET['subscribe'])) {
             $lookupResult = $this->actionHandler->findViewByShareToken($_GET['subscribe']);
 
             if ($lookupResult) {
-                $tempViewId = 'transient_' . md5($_GET['subscribe']);
+                $tempViewId = 'transient_'.md5($_GET['subscribe']);
                 session()->put('project_overview.transient_subscription', [
                     'token' => $_GET['subscribe'],
                     'ownerUserId' => $lookupResult->ownerUserId,
@@ -171,7 +196,8 @@ class ProjectOverview extends Controller
                     'ownerViewId' => $lookupResult->view->id,
                     'tempViewId' => $tempViewId,
                 ]);
-                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query([self::PARAM_VIEW => $tempViewId]));
+
+                return Frontcontroller::redirect(BASE_URL.'/ProjectOverview/ProjectOverview?'.http_build_query([self::PARAM_VIEW => $tempViewId]));
             } else {
                 $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
             }
@@ -210,13 +236,12 @@ class ProjectOverview extends Controller
     /**
      * Generate a share token for a view
      *
-     * @return Response
      *
      * @noinspection PhpUnused Called via AJAX.
      */
     public function generateShareLink(): Response
     {
-        if (!AuthService::userIsAtLeast(Roles::$editor)) {
+        if (! AuthService::userIsAtLeast(Roles::$editor)) {
             return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
         }
 
@@ -233,7 +258,7 @@ class ProjectOverview extends Controller
             return $this->tpl->displayJson(['error' => 'View not found'], 404);
         }
 
-        $shareUrl = BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query(['share' => $shareToken]);
+        $shareUrl = BASE_URL.'/ProjectOverview/ProjectOverview?'.http_build_query(['share' => $shareToken]);
 
         return $this->tpl->displayJson([
             'success' => true,

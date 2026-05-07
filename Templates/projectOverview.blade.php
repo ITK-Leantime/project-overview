@@ -2,6 +2,11 @@
 @section('content')
     <script>
         window.allTags = @json($allTags ?? []);
+        window.projectOverviewI18n = {
+            couldNotLoadView: @json(__('projectOverview.could_not_load_view')),
+            couldNotLoadMoreRows: @json(__('projectOverview.could_not_load_more_rows')),
+            failedToInsertRows: @json(__('projectOverview.failed_to_insert_rows')),
+        };
     </script>
     <?php if (isset($tpl)) {
         echo $tpl->displayNotification();
@@ -71,11 +76,18 @@
 
                         @foreach ($userViewsData->userViews as $key => $userView)
                             <div id="view-{{ $key }}">
-                                @include('projectoverview::partials.projectOverviewTable', [
-                                'userView' => $userView,
-                                'statusLabels' => $userViewsData->statusLabels,
-                                'allPriorities' => $userViewsData->allPriorities,
-                                ])
+                                @if ($userView['tickets'] !== null)
+                                    @include('projectoverview::partials.projectOverviewTable', [
+                                    'userView' => $userView,
+                                    'statusLabels' => $userViewsData->statusLabels,
+                                    'allPriorities' => $userViewsData->allPriorities,
+                                    ])
+                                @else
+                                    <div class="view-lazy-load" data-view-key="{{ $key }}">
+                                        <span class="view-lazy-load-spinner" aria-hidden="true"></span>
+                                        <span class="view-lazy-load-text">{{ __('projectOverview.loading_view') }}</span>
+                                    </div>
+                                @endif
                             </div>
                         @endforeach
                     </div>
@@ -130,4 +142,8 @@
                 </div>
             </div>
         </div>
+        <button type="button" id="scrollToTopBtn" class="scroll-to-top-btn"
+            aria-label="{{ __('projectOverview.scroll_to_top') }}" hidden>
+            <i class="fa fa-chevron-up" aria-hidden="true"></i>
+        </button>
     @endsection

@@ -12,6 +12,8 @@ $(document).ready(function () {
   initFiltersToggle();
   initProjectOverviewFilters();
   initProjectOverviewTable();
+  initScrollToTopButton();
+  initUnsavedNoticeScrollLink();
 
   // begin HTMX swap events
   document.body.addEventListener('htmx:beforeSettle', (e) => {
@@ -40,10 +42,93 @@ $(document).ready(function () {
           !!window._viewsWithUnsavedChanges[activeViewId.value]
         );
       }
+
+      // Lazy-load: if the active view panel has a placeholder, trigger a table refresh
+      if (activeViewId && activeViewId.value) {
+        const activePanel = document.getElementById('view-' + activeViewId.value);
+        if (activePanel && activePanel.querySelector('.view-lazy-load')) {
+          const form = document.getElementById('filtersForm');
+          if (form) {
+            refreshViewTable(form);
+          }
+        }
+      }
     }
   });
   // end HTMX swap events
 });
+
+/**
+ * Show the floating "scroll to top" button after the user scrolls down enough,
+ * and smoothly return them to the top on click.
+ */
+function initScrollToTopButton() {
+  const btn = document.getElementById('scrollToTopBtn');
+  if (!btn) return;
+
+  const SHOW_AFTER_PX = 320;
+  let raf = 0;
+
+  function update() {
+    raf = 0;
+    const shouldShow = window.scrollY > SHOW_AFTER_PX;
+    if (shouldShow && btn.hasAttribute('hidden')) {
+      btn.removeAttribute('hidden');
+      // Force a paint so the transition runs from opacity:0 to 1
+      requestAnimationFrame(() => btn.classList.add('is-visible'));
+    } else if (!shouldShow && !btn.hasAttribute('hidden')) {
+      btn.classList.remove('is-visible');
+      // Wait for the fade-out before removing from layout
+      setTimeout(() => {
+        if (window.scrollY <= SHOW_AFTER_PX) btn.setAttribute('hidden', '');
+      }, 200);
+    }
+  }
+
+  window.addEventListener(
+    'scroll',
+    () => {
+      if (raf) return;
+      raf = requestAnimationFrame(update);
+    },
+    { passive: true }
+  );
+
+  btn.addEventListener('click', () => {
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
+
+  update();
+}
+
+/**
+ * Make the "unsaved changes" notice clickable: clicking it scrolls the
+ * save button into view so the user can find it without hunting.
+ */
+function initUnsavedNoticeScrollLink() {
+  // Delegated so it survives htmx swaps of #filtersContainer.
+  document.addEventListener('click', function (e) {
+    const notice = e.target.closest('#unsavedChangesNotice');
+    if (!notice) return;
+    const saveBtn =
+      document.querySelector('.save-view-btn') ||
+      document.querySelector('.save-as-new-btn');
+    if (!saveBtn) return;
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+    saveBtn.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'center',
+    });
+    // Quick highlight pulse so the user's eye lands on it
+    saveBtn.classList.add('save-btn-pulse');
+    setTimeout(() => saveBtn.classList.remove('save-btn-pulse'), 1200);
+  });
+}
 
 /**
  * Initializes the collapsible filters toggle with localStorage persistence.
@@ -88,6 +173,15 @@ function initFiltersToggle() {
  * @return {void} This function does not return a value.
  */
 function initProjectOverviewFilters() {
+  // Tooltip on the unsaved-changes notice — init defensively even if Leantime
+  // core already runs a global tippy pass.
+  if (typeof tippy === 'function') {
+    const notice = document.getElementById('unsavedChangesNotice');
+    if (notice && !notice._tippy) {
+      tippy(notice);
+    }
+  }
+
   // Init date range select
   const dateRange = flatpickr('#dateRange', {
     mode: 'range',
@@ -275,6 +369,16 @@ function initProjectOverviewFilters() {
 function initProjectOverviewTable() {
   // Init tags select for each row.
   initTagsSelects();
+
+  // Wire the lazy-load buttons on the initially-rendered active panel.
+  // (Inactive tabs hold a placeholder until activated, then refreshViewTable
+  // re-attaches the buttons for them.)
+  document.querySelectorAll('[id^="view-"]').forEach(function (panel) {
+    if (panel.querySelector('.lazy-row-sentinel')) {
+      attachLazyLoad(panel);
+    }
+  });
+
   const contextMenu = $('#view-context-menu');
 
   // Start sorting
@@ -570,17 +674,13 @@ function initProjectOverviewTable() {
   });
 }
 
-function initTagsSelects() {
+function initSingleTagSelect(selectElement) {
+  if (!selectElement || selectElement.tomselect) return;
+
   const allTags = window.allTags || [];
+  const ticketId = selectElement.dataset.ticketId;
 
-  // Loop tags select and init Tomselect
-  document.querySelectorAll('.ticket-tags-select').forEach((selectElement) => {
-    if (selectElement.tomselect) {
-      return;
-    }
-
-    const ticketId = selectElement.dataset.ticketId;
-
+  try {
     new TomSelect(selectElement, {
       plugins: ['remove_button'],
       maxItems: null,
@@ -594,7 +694,6 @@ function initTagsSelects() {
           return callback();
         }
 
-        // Use allTags array bound to window in template
         const filtered = allTags
           .filter((tag) => tag.toLowerCase().includes(query.toLowerCase()))
           .slice(0, 50)
@@ -607,7 +706,17 @@ function initTagsSelects() {
         changeTags({ target: selectElement }, ticketId, tagsString);
       },
     });
-  });
+  } catch (err) {
+    console.error(
+      '[ProjectOverview] TomSelect init failed for',
+      selectElement,
+      err
+    );
+  }
+}
+
+function initTagsSelects() {
+  document.querySelectorAll('.ticket-tags-select').forEach(initSingleTagSelect);
 }
 
 function changeStatus(ticketId, newStatusId, newClass, newLabel) {
@@ -827,14 +936,7 @@ function changeSortBy(sortBy, clickedTh) {
   const table = clickedTh.closest('table');
   if (!table) return;
 
-  const tbody = table.querySelector('tbody');
   const headers = Array.from(table.querySelectorAll('thead th'));
-  const rows = Array.from(tbody.querySelectorAll('tr'));
-  if (!rows.length) return;
-
-  // Find column index from the clicked header
-  const colIndex = headers.indexOf(clickedTh);
-  if (colIndex < 0) return;
 
   // Toggle direction
   const currentCol = table.dataset.sortBy;
@@ -844,48 +946,13 @@ function changeSortBy(sortBy, clickedTh) {
   table.dataset.sortBy = sortBy;
   table.dataset.sortDir = direction;
 
-  const numericCols = [
-    'planHours',
-    'hourRemaining',
-    'sumHours',
-    'milestoneid',
-    'priority',
-    'status',
-  ];
-  const dateCols = ['dateToFinish'];
-
-  rows.sort(function (a, b) {
-    const aCell = a.cells[colIndex];
-    const bCell = b.cells[colIndex];
-    let aVal, bVal;
-
-    if (dateCols.includes(sortBy)) {
-      aVal = (aCell.querySelector('input[type=date]') || {}).value || '';
-      bVal = (bCell.querySelector('input[type=date]') || {}).value || '';
-    } else if (numericCols.includes(sortBy)) {
-      aVal = parseFloat(getCellNumericValue(aCell)) || 0;
-      bVal = parseFloat(getCellNumericValue(bCell)) || 0;
-    } else {
-      aVal = getCellTextValue(aCell).trim().toLowerCase();
-      bVal = getCellTextValue(bCell).trim().toLowerCase();
-    }
-
-    let result;
-    result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-    return direction === 'desc' ? -result : result;
-  });
-
-  rows.forEach(function (row) {
-    tbody.appendChild(row);
-  });
-
-  // Update visual indicators
+  // Update visual indicators immediately
   headers.forEach(function (th) {
     th.classList.remove('sort-asc', 'sort-desc');
   });
   clickedTh.classList.add(direction === 'asc' ? 'sort-asc' : 'sort-desc');
 
-  // Silent save
+  // Persist sort preference (silent — server is the source of truth on next render)
   const viewId = document.getElementById('selectedViewId');
   if (viewId && viewId.value) {
     fetch(window.location.pathname, {
@@ -903,26 +970,14 @@ function changeSortBy(sortBy, clickedTh) {
       }),
     });
   }
-}
 
-function getCellNumericValue(cell) {
-  if (cell.dataset.sortValue !== undefined) return cell.dataset.sortValue;
-  const input = cell.querySelector('input[type=number]');
-  if (input) return input.value;
-  const span = cell.querySelector('.logged-hours');
-  if (span) return span.textContent;
-  const select = cell.querySelector('select');
-  if (select) return select.value;
-  return cell.textContent;
-}
-
-function getCellTextValue(cell) {
-  if (cell.dataset.selectedName) return cell.dataset.selectedName;
-  const label = cell.querySelector('#status-label, #priority-label');
-  if (label) return label.textContent;
-  const link = cell.querySelector('a');
-  if (link) return link.textContent;
-  return cell.textContent;
+  // Re-fetch from server with the new sort. With pagination, client-side sort
+  // would only reorder the visible page; the server sorts the full dataset and
+  // resets pagination to page 1.
+  const form = document.getElementById('filtersForm');
+  if (form) {
+    refreshViewTable(form);
+  }
 }
 
 // --- Live filter helpers ---
@@ -1006,6 +1061,21 @@ function refreshViewTable(form) {
     }
   }
 
+  // Always start at page 1 — refreshViewTable is called for filter, sort, and
+  // lazy-load events, all of which should reset pagination.
+  formData.set('page', '1');
+
+  // Cancel any in-flight refresh or lazy-load on this panel so a slow
+  // earlier response can't overwrite fresh data.
+  if (activePanel) {
+    teardownLazyLoad(activePanel);
+    if (activePanel._refreshController) {
+      activePanel._refreshController.abort();
+    }
+  }
+  const controller = new AbortController();
+  if (activePanel) activePanel._refreshController = controller;
+
   fetch(
     '/ProjectOverview/ProjectOverview/loadViewTable/' +
       encodeURIComponent(viewId.value),
@@ -1014,21 +1084,266 @@ function refreshViewTable(form) {
       credentials: 'include',
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
       body: new URLSearchParams(formData),
+      signal: controller.signal,
     }
   )
     .then(function (response) {
+      if (!response.ok) {
+        return response.text().then(function (body) {
+          const err = new Error('HTTP ' + response.status);
+          err.responseBody = body;
+          throw err;
+        });
+      }
       return response.text();
     })
     .then(function (html) {
+      if (controller.signal.aborted) return;
+      if (!activePanel) return;
+      activePanel.innerHTML = html;
+      // Re-init components inside the new table
+      initTagsSelects();
+      if (typeof tippy === 'function') {
+        tippy(activePanel.querySelectorAll('[data-tippy-content]'));
+      }
+      attachLazyLoad(activePanel);
+    })
+    .catch(function (err) {
+      if (err.name === 'AbortError') return;
+      console.error(
+        '[ProjectOverview] View load failed:',
+        err,
+        err.responseBody || ''
+      );
       if (activePanel) {
-        activePanel.innerHTML = html;
-        // Re-init components inside the new table
-        initTagsSelects();
-        if (typeof tippy === 'function') {
-          tippy(activePanel.querySelectorAll('[data-tippy-content]'));
-        }
+        const msg =
+          (window.projectOverviewI18n && window.projectOverviewI18n.couldNotLoadView) ||
+          '[i18n missing] could_not_load_view';
+        const errEl = document.createElement('div');
+        errEl.className = 'lazy-row-status lazy-row-error';
+        errEl.style.padding = '24px';
+
+        const icon = document.createElement('span');
+        icon.className = 'lazy-row-status-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = '⚠';
+
+        const text = document.createElement('span');
+        text.className = 'lazy-row-status-text';
+        text.textContent = msg;
+
+        errEl.append(icon, text);
+        activePanel.replaceChildren(errEl);
+      }
+    })
+    .finally(function () {
+      if (activePanel && activePanel._refreshController === controller) {
+        activePanel._refreshController = null;
       }
     });
+}
+
+/**
+ * Wire the manual "Load more" + Retry buttons inside the sentinel for `panel`.
+ * Idempotent — clones the buttons before re-binding so we never stack
+ * listeners across repeated calls (e.g., after a splice).
+ *
+ * @param {HTMLElement} panel
+ */
+function attachLazyLoad(panel) {
+  if (!panel) return;
+  teardownLazyLoad(panel);
+
+  const sentinel = panel.querySelector('.lazy-row-sentinel');
+  if (!sentinel) return;
+
+  bindSentinelButtons(panel, sentinel);
+}
+
+/**
+ * Cancel any in-flight lazy-load fetch on `panel`. Safe to call before or
+ * after the panel's DOM has been replaced.
+ *
+ * @param {HTMLElement} panel
+ */
+function teardownLazyLoad(panel) {
+  if (!panel) return;
+  if (panel._lazyController) {
+    panel._lazyController.abort();
+    panel._lazyController = null;
+  }
+}
+
+function bindSentinelButtons(panel, sentinel) {
+  const loadBtn = sentinel.querySelector('.lazy-row-load-more');
+  if (loadBtn) {
+    loadBtn.addEventListener('click', function () {
+      loadNextLazyPage(panel, sentinel);
+    });
+  }
+  const retryBtn = sentinel.querySelector('.lazy-row-retry');
+  if (retryBtn) {
+    retryBtn.addEventListener('click', function () {
+      loadNextLazyPage(panel, sentinel);
+    });
+  }
+}
+
+/**
+ * Fetch the next page for `panel`'s sentinel and splice the response in.
+ *
+ * @param {HTMLElement} panel
+ * @param {HTMLTableRowElement} sentinel
+ */
+function loadNextLazyPage(panel, sentinel) {
+  if (sentinel.dataset.state === 'loading') return;
+  const url = sentinel.dataset.nextUrl;
+  const page = sentinel.dataset.nextPage;
+  if (!url || !page) return;
+
+  sentinel.dataset.state = 'loading';
+  showLazyLoading(sentinel);
+
+  const form = document.getElementById('filtersForm');
+  const formData = form ? new FormData(form) : new FormData();
+
+  const table = panel.querySelector('table');
+  if (table) {
+    formData.set('sortBy', table.dataset.sortBy || 'priority');
+    formData.set(
+      'sortDirection',
+      (table.dataset.sortDir || 'asc').toUpperCase()
+    );
+  }
+  formData.set('page', page);
+
+  // Cancel any in-flight lazy-load fetch on this panel before issuing a new one.
+  if (panel._lazyController) {
+    panel._lazyController.abort();
+  }
+  const controller = new AbortController();
+  panel._lazyController = controller;
+
+  fetch(url, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    body: new URLSearchParams(formData),
+    signal: controller.signal,
+  })
+    .then(function (response) {
+      if (!response.ok) {
+        // Read the body so the message isn't a useless "HTTP 500"
+        return response.text().then(function (body) {
+          const err = new Error('HTTP ' + response.status);
+          err.responseBody = body;
+          throw err;
+        });
+      }
+      return response.text();
+    })
+    .then(function (html) {
+      if (controller.signal.aborted) return;
+      if (!sentinel.isConnected) return;
+
+      // Use DOMParser for robust fragment parsing — handles whitespace,
+      // partial markup, and edge cases more reliably than innerHTML on tbody.
+      const doc = new DOMParser().parseFromString(
+        '<table><tbody>' + (html || '') + '</tbody></table>',
+        'text/html'
+      );
+      const parsedTbody = doc.querySelector('tbody');
+      const newRows = parsedTbody ? Array.from(parsedTbody.children) : [];
+
+      const parent = sentinel.parentNode;
+      if (!parent) return;
+
+      try {
+        // Splice in the new rows, then drop the spent sentinel.
+        for (const row of newRows) {
+          parent.insertBefore(row, sentinel);
+        }
+        sentinel.remove();
+
+        // Initialize TomSelect on any tag-selects we just added. We do this
+        // explicitly per-row in addition to the global initTagsSelects() call
+        // so newly-inserted selects get wired even if the global pass misses
+        // them for any reason.
+        for (const row of newRows) {
+          if (row.querySelectorAll) {
+            row.querySelectorAll('.ticket-tags-select').forEach(function (sel) {
+              if (!sel.tomselect) initSingleTagSelect(sel);
+            });
+          }
+        }
+        // And cover any holdouts via the global pass.
+        initTagsSelects();
+
+        if (typeof tippy === 'function') {
+          tippy(
+            panel.querySelectorAll('[data-tippy-content]:not([data-tippy-instance])')
+          );
+        }
+
+        // Re-attach to the new sentinel (no-op when this was the last page).
+        attachLazyLoad(panel);
+      } catch (spliceErr) {
+        console.error('[ProjectOverview] Lazy-load splice failed:', spliceErr);
+        const live = panel.querySelector('.lazy-row-sentinel');
+        const target = live && live.isConnected ? live : sentinel;
+        if (target && target.isConnected) {
+          target.dataset.state = 'error';
+          showLazyError(
+            target,
+            (window.projectOverviewI18n && window.projectOverviewI18n.failedToInsertRows) ||
+              '[i18n missing] failed_to_insert_rows'
+          );
+        }
+      }
+    })
+    .catch(function (err) {
+      if (err.name === 'AbortError') return;
+      console.error('[ProjectOverview] Lazy-load failed:', err, err.responseBody || '');
+      // Make sure the sentinel is in a clickable error state, even if
+      // something downstream blew up before we got there.
+      const live = panel.querySelector('.lazy-row-sentinel');
+      const target = live || sentinel;
+      if (target && target.isConnected) {
+        target.dataset.state = 'error';
+        showLazyError(
+          target,
+          (window.projectOverviewI18n && window.projectOverviewI18n.couldNotLoadMoreRows) ||
+            '[i18n missing] could_not_load_more_rows'
+        );
+      }
+    })
+    .finally(function () {
+      if (panel._lazyController === controller) {
+        panel._lazyController = null;
+      }
+    });
+}
+
+function setSentinelState(sentinel, visible) {
+  ['ready', 'loading', 'error'].forEach(function (key) {
+    const node = sentinel.querySelector('.lazy-row-' + key);
+    if (!node) return;
+    if (key === visible) node.removeAttribute('hidden');
+    else node.setAttribute('hidden', '');
+  });
+}
+
+function showLazyLoading(sentinel) {
+  setSentinelState(sentinel, 'loading');
+}
+
+function showLazyError(sentinel, message) {
+  setSentinelState(sentinel, 'error');
+  const error = sentinel.querySelector('.lazy-row-error');
+  const text = error ? error.querySelector('.lazy-row-status-text') : null;
+  if (text && message) text.textContent = message;
+  // After error, allow another click to retry.
+  sentinel.dataset.state = 'ready';
 }
 
 function toggleUnsavedIndicator(targetViewId, hasChanges) {

@@ -94,9 +94,13 @@
         </select>
     </div>
 
-    <span id="unsavedChangesNotice" class="unsaved-changes-notice" style="display: none;">
-        {{ __('projectOverview.unsaved_changes_notice') }}
-    </span>
+    <button type="button" id="unsavedChangesNotice" class="unsaved-changes-notice"
+        style="display: none;"
+        data-tippy-content="{{ __('projectOverview.unsaved_changes_notice_tooltip') }}"
+        data-tippy-placement="bottom">
+        <span class="unsaved-changes-notice-text">{{ __('projectOverview.unsaved_changes_notice') }}</span>
+        <i class="fa fa-arrow-down unsaved-changes-notice-icon" aria-hidden="true"></i>
+    </button>
 
     <div class="save-view">
         @if ($filtersData->isTransientSubscription)
