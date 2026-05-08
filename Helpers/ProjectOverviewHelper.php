@@ -10,6 +10,7 @@ use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewFiltersDataDTO;
 use Leantime\Plugins\ProjectOverview\DTO\UserViewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
+use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 
@@ -544,6 +545,12 @@ readonly class ProjectOverviewHelper
         $isSubscription = false;
         $isTransientSubscription = false;
         $subscribeToken = null;
+
+        // The synthetic "new" tab uses defaults only — no persistence, no lookup.
+        if ($selectedViewId === '__new') {
+            $userViewsData['dateType'] = DateTypeEnum::THIS_WEEK->value;
+            $userViewsData['selectedViewId'] = '__new';
+        }
 
         // Check if selected view is a transient subscription from session
         $transientSub = session('project_overview.transient_subscription');

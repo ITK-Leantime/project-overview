@@ -94,29 +94,9 @@
         </select>
     </div>
 
-    <button type="button" id="unsavedChangesNotice" class="unsaved-changes-notice" style="display: none;"
-        data-tippy-content="{{ __('projectOverview.unsaved_changes_notice_tooltip') }}"
-        data-tippy-placement="bottom">
-        <span class="unsaved-changes-notice-text">{{ __('projectOverview.unsaved_changes_notice') }}</span>
-        <i class="fa fa-arrow-down unsaved-changes-notice-icon" aria-hidden="true"></i>
-    </button>
-
-    <div class="save-view">
-        @if ($filtersData->isTransientSubscription)
-            <input type="hidden" name="subscribeToken" value="{{ $filtersData->subscribeToken }}" />
-            <button type="submit" name="action" value="pinSubscription"
-                class="btn btn-success save-as-new-btn">{{ __('projectOverview.pin_to_my_views') }}</button>
-            <button type="submit" name="action" value="saveTransientAsCopy"
-                class="btn btn-default save-view-btn">{{ __('projectOverview.save_as_copy') }}</button>
-        @else
-            @if (!empty($userViews) && !$filtersData->isSubscription)
-                <button type="submit" name="overwriteView" value="1"
-                    onclick="return confirm('{{ __('projectOverview.save_view_confirm') }}')"
-                    class="btn btn-default save-view-btn">{{ __('projectOverview.save_view') }}</button>
-            @endif
-            <button type="submit"
-                class="btn btn-success save-as-new-btn">{{ __('projectOverview.save_as_new_view') }}</button>
-            <input type="hidden" name="view" value="{{ $filtersData->selectedViewId }}" />
-        @endif
-    </div>
+    <input type="hidden" name="view" value="{{ $filtersData->selectedViewId }}" />
+    <input type="hidden" name="viewName" id="newViewName" value="" />
+    <button type="submit" id="saveChangesBtn" name="overwriteView" value="1"
+        class="btn btn-success save-changes-btn"
+        style="display: none;">{{ __('projectOverview.save_changes') }}</button>
 </form>
