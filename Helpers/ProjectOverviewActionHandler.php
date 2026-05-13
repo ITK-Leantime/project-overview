@@ -528,17 +528,14 @@ readonly class ProjectOverviewActionHandler
      * @param  string $viewId        The view ID to update.
      * @param  string $sortBy        The column name to sort by.
      * @param  string $sortDirection The sort direction (ASC or DESC).
-     * @return void
+     * @return array{status: string, message?: string, httpStatus?: int}
      */
-    public function saveSortOrder(string $viewId, string $sortBy, string $sortDirection): void
+    public function saveSortOrder(string $viewId, string $sortBy, string $sortDirection): array
     {
         try {
             // Validate sort column against available columns.
             if (! in_array($sortBy, $this->getAvailableColumns(), true)) {
-                exit(json_encode([
-                    'status' => 'error',
-                    'message' => 'Invalid sort column.',
-                ]));
+                return ['status' => 'error', 'message' => 'Invalid sort column.', 'httpStatus' => 400];
             }
 
             // Validate sort direction.
@@ -547,10 +544,7 @@ readonly class ProjectOverviewActionHandler
             $userViewsObject = $this->getUserViewsObject();
 
             if (! isset($userViewsObject[$viewId])) {
-                exit(json_encode([
-                    'status' => 'error',
-                    'message' => 'View not found.',
-                ]));
+                return ['status' => 'error', 'message' => 'View not found.', 'httpStatus' => 404];
             }
 
             $existingView = UserViewDTO::fromArray($userViewsObject[$viewId]);
@@ -585,14 +579,9 @@ readonly class ProjectOverviewActionHandler
 
             $this->saveUserViewsObject($userViewsObject);
 
-            exit(json_encode([
-                'status' => 'success',
-            ]));
+            return ['status' => 'success'];
         } catch (\Exception $e) {
-            exit(json_encode([
-                'status' => 'error',
-                'message' => $e->getMessage(),
-            ]));
+            return ['status' => 'error', 'message' => $e->getMessage(), 'httpStatus' => 500];
         }
     }
 
@@ -600,9 +589,9 @@ readonly class ProjectOverviewActionHandler
      * Saves the updated tab order based on the given post data.
      *
      * @param  array<string, mixed> $postData An associative array containing the new tab order data.
-     * @return void
+     * @return array{status: string, message?: string, debug?: string, httpStatus?: int}
      */
-    public function saveTabOrder(array $postData): void
+    public function saveTabOrder(array $postData): array
     {
         try {
             // Get user views object.
@@ -610,17 +599,19 @@ readonly class ProjectOverviewActionHandler
             $newOrder = $postData['order'] ?? [];
 
             if (empty($newOrder)) {
-                exit(json_encode([
+                return [
                     'status' => 'error',
                     'message' => __('projectOverview.notification.tab_order_empty_order'),
-                ]));
+                    'httpStatus' => 400,
+                ];
             }
 
             if (empty($userViewsObject)) {
-                exit(json_encode([
+                return [
                     'status' => 'error',
                     'message' => __('projectOverview.notification.tab_order_no_views'),
-                ]));
+                    'httpStatus' => 400,
+                ];
             }
 
             // Update the order attribute for each view based on its position in the newOrder array
@@ -643,16 +634,17 @@ readonly class ProjectOverviewActionHandler
             // Save updated views object
             $this->saveUserViewsObject($userViewsObject);
 
-            exit(json_encode([
+            return [
                 'status' => 'success',
                 'message' => __('projectOverview.notification.tab_order_saved'),
-            ]));
+            ];
         } catch (\Exception $e) {
-            exit(json_encode([
+            return [
                 'status' => 'error',
                 'message' => __('projectOverview.notification.tab_order_error'),
                 'debug' => $e->getMessage(),
-            ]));
+                'httpStatus' => 500,
+            ];
         }
     }
 }

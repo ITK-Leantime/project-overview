@@ -240,11 +240,33 @@ class ProjectOverview
      * the result is limited to that page. Otherwise all matching rows are returned.
      * `hasMore` is detected by fetching `pageSize + 1` rows and trimming the sentinel.
      *
-     * @param  ViewDTO $viewDTO The data transfer object containing filter criteria.
+     * Access control: $accessibleProjectIds is REQUIRED. The list is the set of
+     * projects the current user may see (see {@see ProjectOverviewHelper::computeAccessibleProjectIds()}).
+     * It is intersected with $viewDTO->projectFilters and enforced as a SQL
+     * `whereIn` so callers cannot accidentally bypass project-access checks.
+     * Pass an empty array to return no rows.
+     *
+     * @param  ViewDTO          $viewDTO             The data transfer object containing filter criteria.
+     * @param  array<int, int>  $accessibleProjectIds Project ids the current user can access.
      * @return array{rows: array<int, mixed>, hasMore: bool}
      */
-    public function getViewTasks(ViewDTO $viewDTO): array
+    public function getViewTasks(ViewDTO $viewDTO, array $accessibleProjectIds): array
     {
+        if (empty($accessibleProjectIds)) {
+            return ['rows' => [], 'hasMore' => false];
+        }
+
+        $effectiveProjectIds = ! empty($viewDTO->projectFilters)
+            ? array_values(array_intersect(
+                array_map('intval', $viewDTO->projectFilters),
+                $accessibleProjectIds
+            ))
+            : $accessibleProjectIds;
+
+        if (empty($effectiveProjectIds)) {
+            return ['rows' => [], 'hasMore' => false];
+        }
+
         $fromDate = $viewDTO->fromDate ?? null;
         $toDate = $viewDTO->toDate ?? null;
 
@@ -310,9 +332,10 @@ class ProjectOverview
             });
         }
 
-        if (! empty($viewDTO->projectFilters)) {
-            $query->whereIn('ticket.projectId', $viewDTO->projectFilters);
-        }
+        // Always restrict to the intersection of (user-requested filters,
+        // user-accessible projects) computed above — this enforces access at
+        // the SQL layer instead of trusting the caller.
+        $query->whereIn('ticket.projectId', $effectiveProjectIds);
 
         if (! empty($viewDTO->priorityFilters) || ! empty($viewDTO->statusFilters)) {
             $query->where(function ($q) use ($viewDTO) {
@@ -343,9 +366,9 @@ class ProjectOverview
 
         // sumHours is composed in PHP from per-user logged-hours (see helper), not
         // selected here. Only when the user explicitly sorts by Logged do we add
-        // the timesheet aggregation join. To keep the inner aggregate from
-        // touching the full timesheets table, we scope it to the same project
-        // set the outer query is restricted to.
+        // the timesheet aggregation join. The inner aggregate is always scoped
+        // to the same project set the outer query is restricted to, so it never
+        // touches the full timesheets table.
         if ($viewDTO->sortBy === 'sumHours') {
             $tsAgg = $this->query()
                 ->from('zp_timesheets AS ts')
@@ -353,12 +376,9 @@ class ProjectOverview
                     'ts.ticketId',
                     app('db')->connection()->raw('ROUND(SUM(ts.hours), 2) AS sumHours'),
                 ])
+                ->join('zp_tickets AS t_scope', 't_scope.id', '=', 'ts.ticketId')
+                ->whereIn('t_scope.projectId', $effectiveProjectIds)
                 ->groupBy('ts.ticketId');
-
-            if (! empty($viewDTO->projectFilters)) {
-                $tsAgg->join('zp_tickets AS t_scope', 't_scope.id', '=', 'ts.ticketId')
-                    ->whereIn('t_scope.projectId', $viewDTO->projectFilters);
-            }
 
             $query->leftJoinSub($tsAgg, 'ts_agg', 'ts_agg.ticketId', '=', 'ticket.id');
         }

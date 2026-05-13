@@ -6,6 +6,7 @@
             couldNotLoadView: @json(__('projectOverview.could_not_load_view')),
             couldNotLoadMoreRows: @json(__('projectOverview.could_not_load_more_rows')),
             failedToInsertRows: @json(__('projectOverview.failed_to_insert_rows')),
+            sessionExpired: @json(__('projectOverview.session_expired')),
         };
     </script>
     <?php if (isset($tpl)) {

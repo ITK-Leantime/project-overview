@@ -25,8 +25,6 @@ class ProjectOverview extends Controller
 
     private ProjectOverviewService $projectOverviewService;
 
-    private ProjectOverviewActionHandler $projectOverviewActionHandler;
-
     public const PARAM_VIEW = 'view';
 
     /**
@@ -34,13 +32,12 @@ class ProjectOverview extends Controller
      *
      * @return void
      */
-    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, ProjectOverviewService $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
+    public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, ProjectOverviewService $projectOverviewService): void
     {
         $this->tpl = $tpl;
         $this->actionHandler = $actionHandler;
         $this->projectOverviewHelper = $projectOverviewHelper;
         $this->projectOverviewService = $projectOverviewService;
-        $this->projectOverviewActionHandler = $projectOverviewActionHandler;
     }
 
     /**
@@ -59,7 +56,7 @@ class ProjectOverview extends Controller
         $filtersData = $this->projectOverviewHelper->getProjectOverviewFiltersData($data);
 
         // Get user views data.
-        $userViews = $this->projectOverviewActionHandler->getUserViewsObject();
+        $userViews = $this->actionHandler->getUserViewsObject();
 
         // Assign data to template.
         $this->tpl->assign('filtersData', $filtersData);
@@ -97,14 +94,20 @@ class ProjectOverview extends Controller
                 $redirectUrl = $this->actionHandler->renameView($viewId, $viewName, $redirectUrl);
                 break;
             case 'saveTabOrder':
-                $this->actionHandler->saveTabOrder($_POST);
-                break;
+                $result = $this->actionHandler->saveTabOrder($_POST);
+                $status = $result['httpStatus'] ?? 200;
+                unset($result['httpStatus']);
+
+                return $this->tpl->displayJson($result, $status);
             case 'saveSortOrder':
                 $viewId = $_POST[self::PARAM_VIEW] ?? '';
                 $sortBy = $_POST['sortBy'] ?? 'priority';
                 $sortDirection = $_POST['sortDirection'] ?? 'ASC';
-                $this->actionHandler->saveSortOrder($viewId, $sortBy, $sortDirection);
-                break;
+                $result = $this->actionHandler->saveSortOrder($viewId, $sortBy, $sortDirection);
+                $status = $result['httpStatus'] ?? 200;
+                unset($result['httpStatus']);
+
+                return $this->tpl->displayJson($result, $status);
             case 'pinSubscription':
                 $subscribeToken = $_POST['subscribeToken'] ?? '';
                 $lookupResult = $this->actionHandler->findViewByShareToken($subscribeToken);
@@ -143,6 +146,10 @@ class ProjectOverview extends Controller
      */
     public function loadViewTable(array $data): ?Response
     {
+        if (! AuthService::userIsAtLeast(Roles::$readonly)) {
+            return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
+        }
+
         $viewId = $data['id'] ?? null;
         $tableData = $this->projectOverviewHelper->getViewTableData($_POST, $viewId);
 
@@ -166,6 +173,10 @@ class ProjectOverview extends Controller
      */
     public function loadViewTableRows(array $data): ?Response
     {
+        if (! AuthService::userIsAtLeast(Roles::$readonly)) {
+            return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
+        }
+
         $viewId = $data['id'] ?? '';
         $rowData = $this->projectOverviewHelper->getViewTableRows($_POST);
 

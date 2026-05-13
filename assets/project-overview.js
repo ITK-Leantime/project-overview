@@ -1093,6 +1093,7 @@ function refreshViewTable(form) {
       if (!response.ok) {
         return response.text().then(function (body) {
           const err = new Error('HTTP ' + response.status);
+          err.status = response.status;
           err.responseBody = body;
           throw err;
         });
@@ -1118,10 +1119,14 @@ function refreshViewTable(form) {
         err.responseBody || ''
       );
       if (activePanel) {
-        const msg =
-          (window.projectOverviewI18n &&
-            window.projectOverviewI18n.couldNotLoadView) ||
-          '[i18n missing] could_not_load_view';
+        const isAuthError = err.status === 401 || err.status === 403;
+        const msg = isAuthError
+          ? (window.projectOverviewI18n &&
+              window.projectOverviewI18n.sessionExpired) ||
+            '[i18n missing] session_expired'
+          : (window.projectOverviewI18n &&
+              window.projectOverviewI18n.couldNotLoadView) ||
+            '[i18n missing] could_not_load_view';
         const errEl = document.createElement('div');
         errEl.className = 'lazy-row-status lazy-row-error';
         errEl.style.padding = '24px';
@@ -1239,6 +1244,7 @@ function loadNextLazyPage(panel, sentinel) {
         // Read the body so the message isn't a useless "HTTP 500"
         return response.text().then(function (body) {
           const err = new Error('HTTP ' + response.status);
+          err.status = response.status;
           err.responseBody = body;
           throw err;
         });
@@ -1320,12 +1326,15 @@ function loadNextLazyPage(panel, sentinel) {
       const target = live || sentinel;
       if (target && target.isConnected) {
         target.dataset.state = 'error';
-        showLazyError(
-          target,
-          (window.projectOverviewI18n &&
-            window.projectOverviewI18n.couldNotLoadMoreRows) ||
-            '[i18n missing] could_not_load_more_rows'
-        );
+        const isAuthError = err.status === 401 || err.status === 403;
+        const msg = isAuthError
+          ? (window.projectOverviewI18n &&
+              window.projectOverviewI18n.sessionExpired) ||
+            '[i18n missing] session_expired'
+          : (window.projectOverviewI18n &&
+              window.projectOverviewI18n.couldNotLoadMoreRows) ||
+            '[i18n missing] could_not_load_more_rows';
+        showLazyError(target, msg);
       }
     })
     .finally(function () {

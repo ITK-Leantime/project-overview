@@ -89,9 +89,13 @@ class ProjectOverview
     /**
      * Get tasks for a view, optionally paginated.
      *
+     * @param  ViewDTO         $viewDTO
+     * @param  array<int, int> $accessibleProjectIds Project ids the current user may see.
+     *                                               Forwarded to the repository, which enforces
+     *                                               project-access at the SQL layer.
      * @return array{rows: array<int, mixed>, hasMore: bool}
      */
-    public function getViewTasks(ViewDTO $viewDTO): array
+    public function getViewTasks(ViewDTO $viewDTO, array $accessibleProjectIds): array
     {
         $newFromDate = $viewDTO->fromDate;
         $newToDate = $viewDTO->toDate;
@@ -124,7 +128,7 @@ class ProjectOverview
             search: $viewDTO->search,
         );
 
-        return $this->projectOverviewRepository->getViewTasks($processedDTO);
+        return $this->projectOverviewRepository->getViewTasks($processedDTO, $accessibleProjectIds);
     }
 
     /**
@@ -199,6 +203,14 @@ class ProjectOverview
      * via Leantime events, so we can't invalidate precisely. A short window keeps
      * the overview fast while ensuring mutations reach the page within a minute.
      * Call {@see flushAllProjectsCache()} from any caller that mutates projects.
+     *
+     * Staleness window applies to *all* project columns used downstream — most
+     * importantly `psettings` and `clientId`, which feed access-decision logic in
+     * {@see ProjectOverviewHelper::computeAccessibleProjectIds()}. A privacy
+     * change (e.g. switching a project from 'all' to relation-only) is therefore
+     * not enforced until the cache expires. Cache key is global (not per-user),
+     * which is safe because the payload is identical for every caller — but it
+     * also means flushing affects everyone simultaneously.
      *
      * @return array<int, mixed> An array containing all projects.
      */

@@ -123,22 +123,18 @@ readonly class ProjectOverviewHelper
             // Only load tickets for the selected view; other tabs lazy-load on activation
             if ((string) $key === (string) $selectedViewKey) {
                 $paginatedDTO = $this->applyDefaultPagination($viewDTO, page: 1);
-                $restricted = $this->restrictProjectFiltersToAccessible($paginatedDTO, $allProjects);
-                if ($restricted === null) {
-                    $userViewObject[$key]['tickets'] = [];
-                    $userViewObject[$key]['hasMore'] = false;
-                    $userViewObject[$key]['nextPage'] = null;
-                    $userViewObject[$key]['pageSize'] = $paginatedDTO->pageSize;
-
-                    continue;
-                }
-                $page = $this->projectOverviewService->getViewTasks($restricted);
+                $accessibleIds = $this->computeAccessibleProjectIds(
+                    (int) session('userdata.id'),
+                    array_keys($allProjects),
+                    $allProjects
+                );
+                $page = $this->projectOverviewService->getViewTasks($paginatedDTO, $accessibleIds);
                 [$viewTickets, $ticketStatusLabels] = $this->enrichTickets($page['rows'], $allProjects);
                 $projectTicketStatuses = array_merge($projectTicketStatuses, $ticketStatusLabels);
                 $userViewObject[$key]['tickets'] = $viewTickets;
                 $userViewObject[$key]['hasMore'] = $page['hasMore'];
                 $userViewObject[$key]['nextPage'] = $page['hasMore'] ? 2 : null;
-                $userViewObject[$key]['pageSize'] = $restricted->pageSize;
+                $userViewObject[$key]['pageSize'] = $paginatedDTO->pageSize;
             } else {
                 $userViewObject[$key]['tickets'] = null;
                 $userViewObject[$key]['hasMore'] = false;
@@ -185,13 +181,13 @@ readonly class ProjectOverviewHelper
         );
         $allProjects = $this->projectOverviewService->getAllProjects();
 
-        $restricted = $this->restrictProjectFiltersToAccessible($viewDTO, $allProjects);
-        if ($restricted === null) {
-            return $this->emptyViewTableData($viewDTO, $viewId);
-        }
-        $viewDTO = $restricted;
+        $accessibleIds = $this->computeAccessibleProjectIds(
+            (int) session('userdata.id'),
+            array_keys($allProjects),
+            $allProjects
+        );
 
-        $page = $this->projectOverviewService->getViewTasks($viewDTO);
+        $page = $this->projectOverviewService->getViewTasks($viewDTO, $accessibleIds);
         [$viewTickets, $statusLabels] = $this->enrichTickets($page['rows'], $allProjects);
 
         return [
@@ -216,35 +212,6 @@ readonly class ProjectOverviewHelper
     }
 
     /**
-     * Empty-result shape used when project-access restrictions leave no rows
-     * to fetch; matches {@see getViewTableData()}'s return shape.
-     *
-     * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
-     */
-    private function emptyViewTableData(ViewDTO $viewDTO, ?string $viewId): array
-    {
-        return [
-            'userView' => [
-                'id' => $viewId ?? '',
-                'view' => [
-                    'columns' => $viewDTO->columns,
-                    'sortBy' => $viewDTO->sortBy,
-                    'sortDirection' => $viewDTO->sortDirection,
-                ],
-                'tickets' => [],
-                'hasMore' => false,
-                'nextPage' => null,
-                'pageSize' => $viewDTO->pageSize,
-            ],
-            'statusLabels' => [],
-            'allPriorities' => $this->ticketService->getPriorityLabels(),
-            'hasMore' => false,
-            'nextPage' => null,
-            'pageSize' => $viewDTO->pageSize,
-        ];
-    }
-
-    /**
      * Fetches one paginated chunk of rows for a view (used by the infinite-scroll sentinel).
      * Page and pageSize come from POST (`page`, `pageSize`); both default if absent.
      *
@@ -261,21 +228,13 @@ readonly class ProjectOverviewHelper
         );
         $allProjects = $this->projectOverviewService->getAllProjects();
 
-        $restricted = $this->restrictProjectFiltersToAccessible($viewDTO, $allProjects);
-        if ($restricted === null) {
-            return [
-                'rows' => [],
-                'columns' => $viewDTO->columns,
-                'statusLabels' => [],
-                'allPriorities' => $this->ticketService->getPriorityLabels(),
-                'hasMore' => false,
-                'nextPage' => null,
-                'pageSize' => $viewDTO->pageSize,
-            ];
-        }
-        $viewDTO = $restricted;
+        $accessibleIds = $this->computeAccessibleProjectIds(
+            (int) session('userdata.id'),
+            array_keys($allProjects),
+            $allProjects
+        );
 
-        $result = $this->projectOverviewService->getViewTasks($viewDTO);
+        $result = $this->projectOverviewService->getViewTasks($viewDTO, $accessibleIds);
         [$rows, $statusLabels] = $this->enrichTickets($result['rows'], $allProjects);
 
         return [
@@ -511,59 +470,6 @@ readonly class ProjectOverviewHelper
         }
 
         return array_values(array_unique(array_map('intval', $accessibleProjectIds)));
-    }
-
-    /**
-     * Returns a copy of $dto with projectFilters restricted to projects the
-     * current user can access. Returns null when the user has no overlap
-     * with the requested filters (or no accessible projects at all) — callers
-     * should short-circuit and return an empty result without hitting the DB.
-     *
-     * @param  ViewDTO                          $dto
-     * @param  array<int, array<string, mixed>> $allProjects
-     * @return ViewDTO|null
-     */
-    private function restrictProjectFiltersToAccessible(ViewDTO $dto, array $allProjects): ?ViewDTO
-    {
-        $accessibleIds = $this->computeAccessibleProjectIds(
-            (int) session('userdata.id'),
-            array_keys($allProjects),
-            $allProjects
-        );
-
-        if (empty($accessibleIds)) {
-            return null;
-        }
-
-        if (empty($dto->projectFilters)) {
-            $effective = $accessibleIds;
-        } else {
-            $effective = array_values(array_intersect(
-                array_map('intval', $dto->projectFilters),
-                $accessibleIds
-            ));
-            if (empty($effective)) {
-                return null;
-            }
-        }
-
-        return new ViewDTO(
-            title: $dto->title,
-            users: $dto->users,
-            dateType: $dto->dateType,
-            fromDate: $dto->fromDate,
-            toDate: $dto->toDate,
-            columns: $dto->columns,
-            projectFilters: $effective,
-            priorityFilters: $dto->priorityFilters,
-            statusFilters: $dto->statusFilters,
-            customFilters: $dto->customFilters,
-            sortBy: $dto->sortBy,
-            sortDirection: $dto->sortDirection,
-            page: $dto->page,
-            pageSize: $dto->pageSize,
-            search: $dto->search,
-        );
     }
 
     /**
