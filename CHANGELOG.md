@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-82](https://github.com/ITK-Leantime/project-overview/pull/82)
+  * Performance optimizations
+
 ## [4.1.0] - 2026-04-16
 
 * [PR-80](https://github.com/ITK-Leantime/project-overview/pull/80)
