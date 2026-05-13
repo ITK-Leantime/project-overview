@@ -192,6 +192,7 @@ class ProjectOverview
     /**
      * Returns the subset of $projectIds that the given user has a direct relation row for.
      *
+     * @param  int                    $userId
      * @param  array<int, int|string> $projectIds
      * @return array<int, int>
      */

@@ -29,6 +29,11 @@ class ProjectOverview extends Controller
 
     public const PARAM_VIEW = 'view';
 
+    /**
+     * Initialize dependencies.
+     *
+     * @return void
+     */
     public function init(Template $tpl, ProjectOverviewActionHandler $actionHandler, ProjectOverviewHelper $projectOverviewHelper, ProjectOverviewService $projectOverviewService, ProjectOverviewActionHandler $projectOverviewActionHandler): void
     {
         $this->tpl = $tpl;
@@ -42,6 +47,7 @@ class ProjectOverview extends Controller
      * Loads filters data and serves it back to the template.
      *
      * @param  array<string, string> $data
+     * @return Response|null
      *
      * @throws Exception
      *
@@ -64,6 +70,8 @@ class ProjectOverview extends Controller
     }
 
     /**
+     * @return Response
+     *
      * @throws Exception
      */
     public function post(): Response
@@ -129,6 +137,7 @@ class ProjectOverview extends Controller
      * params from POST. Triggered by filter changes, sort changes, and the lazy-load fallback.
      *
      * @param  array<string, string> $data Route params (`id` = view id).
+     * @return Response|null
      *
      * @noinspection PhpUnused Called via fetch from JS.
      */
@@ -151,6 +160,7 @@ class ProjectOverview extends Controller
      * POSTs the current filter form together with `page` and `pageSize`.
      *
      * @param  array<string, string> $data Route params (`id` = view id).
+     * @return Response|null
      *
      * @noinspection PhpUnused Called via fetch from JS.
      */
@@ -177,6 +187,8 @@ class ProjectOverview extends Controller
 
     /**
      * Gathers users view data and feeds it to the template.
+     *
+     * @return Response
      *
      * @throws BindingResolutionException
      * @throws Exception
@@ -236,6 +248,7 @@ class ProjectOverview extends Controller
     /**
      * Generate a share token for a view
      *
+     * @return Response
      *
      * @noinspection PhpUnused Called via AJAX.
      */

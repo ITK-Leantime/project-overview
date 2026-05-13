@@ -293,6 +293,11 @@ readonly class ProjectOverviewHelper
      * Returns a copy of the DTO with page/pageSize filled in (defaults applied
      * only where the original is null). Use page=1 to force a reset to the first
      * page regardless of what the caller provided.
+     *
+     * @param  ViewDTO  $dto
+     * @param  int|null $page
+     * @param  int|null $pageSize
+     * @return ViewDTO
      */
     private function applyDefaultPagination(ViewDTO $dto, ?int $page = null, ?int $pageSize = null): ViewDTO
     {
@@ -380,8 +385,9 @@ readonly class ProjectOverviewHelper
      *   - 1 query for client users (when any project has psettings='clients')
      *   - 1 call to UserService::getAll() (when any project has psettings='all')
      *
+     * @param  int                              $currentUserId
      * @param  array<int, int|string>           $projectIds
-     * @param  array<int, array<string, mixed>> $allProjects All projects indexed by ID (must include psettings, clientId).
+     * @param  array<int, array<string, mixed>> $allProjects   All projects indexed by ID (must include psettings, clientId).
      * @return array<int, array<int, array<string, mixed>>> projectId => list of users
      */
     private function loadProjectUsers(int $currentUserId, array $projectIds, array $allProjects): array
@@ -460,6 +466,7 @@ readonly class ProjectOverviewHelper
      * Mirrors Leantime's psettings logic (admin/owner = all; 'all' = all logged-in;
      * 'clients' = same clientId; otherwise relation row required).
      *
+     * @param  int                              $currentUserId
      * @param  array<int, int|string>           $candidateProjectIds
      * @param  array<int, array<string, mixed>> $allProjects         Indexed by id (must include psettings, clientId).
      * @return array<int, int>
@@ -512,7 +519,9 @@ readonly class ProjectOverviewHelper
      * with the requested filters (or no accessible projects at all) — callers
      * should short-circuit and return an empty result without hitting the DB.
      *
+     * @param  ViewDTO                          $dto
      * @param  array<int, array<string, mixed>> $allProjects
+     * @return ViewDTO|null
      */
     private function restrictProjectFiltersToAccessible(ViewDTO $dto, array $allProjects): ?ViewDTO
     {
@@ -561,6 +570,7 @@ readonly class ProjectOverviewHelper
      * Builds the tooltip string shown over the sumHours cell.
      *
      * @param  array<int, array{firstname: string, lastname: string, hours: float}> $rows
+     * @return string
      */
     private function formatUserHoursTooltip(array $rows): string
     {

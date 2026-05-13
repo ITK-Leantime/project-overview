@@ -38,6 +38,8 @@ class ProjectOverview
 
     /**
      * Install plugin.
+     *
+     * @return void
      */
     public function install(): void
     {
@@ -62,6 +64,8 @@ class ProjectOverview
 
     /**
      * Uninstall plugin.
+     *
+     * @return void
      */
     public function uninstall(): void
     {
@@ -207,6 +211,8 @@ class ProjectOverview
 
     /**
      * Drop the all-projects cache. Call after mutating any project from this plugin.
+     *
+     * @return void
      */
     public function flushAllProjectsCache(): void
     {

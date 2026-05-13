@@ -33,20 +33,12 @@ readonly class ProjectOverviewActionHandler
     }
 
     /**
-     * Saves a view.
-     *
-     * @param  array<string, mixed>  $postData  An associative array containing view data.
-     * @param  string  $redirectUrl  The URL to redirect to after saving the view.
-     * @return string The updated redirect URL after the view has been saved or updated.
-     *
-     * @throws BindingResolutionException
-     */
-    /**
      * Parses filter values from POST data and constructs a ViewDTO.
      *
      * @param  array<string, mixed> $postData      POST data containing filter values.
      * @param  string|null          $sortBy        Optional sort column override.
      * @param  string|null          $sortDirection Optional sort direction override.
+     * @return ViewDTO
      */
     public function parseFiltersFromPost(array $postData, ?string $sortBy = null, ?string $sortDirection = null): ViewDTO
     {
@@ -200,6 +192,7 @@ readonly class ProjectOverviewActionHandler
      * Deletes a view.
      *
      * @param  string $viewId The id of the view to be deleted.
+     * @return void
      *
      * @throws BindingResolutionException
      */
@@ -431,6 +424,7 @@ readonly class ProjectOverviewActionHandler
      * Remove a subscription view from the current user's views.
      *
      * @param  string $viewId The ID of the subscription view to remove
+     * @return void
      */
     public function removeSubscription(string $viewId): void
     {
@@ -534,6 +528,7 @@ readonly class ProjectOverviewActionHandler
      * @param  string $viewId        The view ID to update.
      * @param  string $sortBy        The column name to sort by.
      * @param  string $sortDirection The sort direction (ASC or DESC).
+     * @return void
      */
     public function saveSortOrder(string $viewId, string $sortBy, string $sortDirection): void
     {
@@ -605,6 +600,7 @@ readonly class ProjectOverviewActionHandler
      * Saves the updated tab order based on the given post data.
      *
      * @param  array<string, mixed> $postData An associative array containing the new tab order data.
+     * @return void
      */
     public function saveTabOrder(array $postData): void
     {
