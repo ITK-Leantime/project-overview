@@ -29,7 +29,8 @@ readonly class ProjectOverviewHelper
         private Tickets $ticketService,
         private UserService $userService,
         private ProjectOverviewRepository $projectOverviewRepository,
-    ) {}
+    ) {
+    }
 
     /**
      * Retrieves and processes project overview data.
@@ -48,7 +49,7 @@ readonly class ProjectOverviewHelper
         $viewId = request()->query('view');
         $allUsers = $this->userService->getAll();
 
-        usort($allUsers, fn ($a, $b) => strcmp($a['firstname'].$a['lastname'], $b['firstname'].$b['lastname']));
+        usort($allUsers, fn ($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'unassigned',
@@ -65,7 +66,7 @@ readonly class ProjectOverviewHelper
                 $ownerView = UserViewDTO::fromArray($ownerViews[$transientSub['ownerViewId']]);
                 $userViewObject[$transientSub['tempViewId']] = array_merge($ownerView->toArray(), [
                     'id' => $transientSub['tempViewId'],
-                    'title' => $ownerView->title.' (Live)',
+                    'title' => $ownerView->title . ' (Live)',
                     'shareToken' => null,
                     'order' => PHP_INT_MAX,
                     'isTransientSubscription' => true,
@@ -170,8 +171,8 @@ readonly class ProjectOverviewHelper
      * Page defaults to 1 unless POST contains `page`. Page size defaults to
      * {@see ViewDTO::DEFAULT_PAGE_SIZE} unless POST contains `pageSize`.
      *
-     * @param  array<string, mixed>  $postData  POST data containing filter values.
-     * @param  string|null  $viewId  Route-supplied view id; embedded into the response so the template can build the next-page sentinel URL.
+     * @param  array<string, mixed> $postData POST data containing filter values.
+     * @param  string|null          $viewId   Route-supplied view id; embedded into the response so the template can build the next-page sentinel URL.
      * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
      */
     public function getViewTableData(array $postData, ?string $viewId = null): array
@@ -247,7 +248,7 @@ readonly class ProjectOverviewHelper
      * Fetches one paginated chunk of rows for a view (used by the infinite-scroll sentinel).
      * Page and pageSize come from POST (`page`, `pageSize`); both default if absent.
      *
-     * @param  array<string, mixed>  $postData
+     * @param  array<string, mixed> $postData
      * @return array{rows: array<int, mixed>, columns: array<int, string>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
      */
     public function getViewTableRows(array $postData): array
@@ -324,8 +325,8 @@ readonly class ProjectOverviewHelper
      *     psettings='all'; the latter typically resolves from cache)
      *  - per-user logged hours per ticket: 1 query for all ticketIds
      *
-     * @param  array<object>  $tickets  Raw ticket objects from the repository.
-     * @param  array<int, array<string, mixed>>  $allProjects  All projects indexed by ID.
+     * @param  array<object>                    $tickets     Raw ticket objects from the repository.
+     * @param  array<int, array<string, mixed>> $allProjects All projects indexed by ID.
      * @return array{0: array<object>, 1: array<int, mixed>} Enriched tickets and status labels.
      */
     private function enrichTickets(array $tickets, array $allProjects): array
@@ -356,7 +357,7 @@ readonly class ProjectOverviewHelper
             $ticket->projectUsers = $usersByProject[$ticket->projectId] ?? [];
             $ticket->projectMilestones = $milestonesByProject[$ticket->projectId] ?? [];
             $ticket->projectName = $allProjects[$ticket->projectId]['name'] ?? '';
-            $ticket->projectLink = '/projects/changeCurrentProject/'.$ticket->projectId;
+            $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
 
             $userRows = $userHoursByTicket[(int) $ticket->id] ?? [];
             $ticket->userHours = $this->formatUserHoursTooltip($userRows);
@@ -379,8 +380,8 @@ readonly class ProjectOverviewHelper
      *   - 1 query for client users (when any project has psettings='clients')
      *   - 1 call to UserService::getAll() (when any project has psettings='all')
      *
-     * @param  array<int, int|string>  $projectIds
-     * @param  array<int, array<string, mixed>>  $allProjects  All projects indexed by ID (must include psettings, clientId).
+     * @param  array<int, int|string>           $projectIds
+     * @param  array<int, array<string, mixed>> $allProjects All projects indexed by ID (must include psettings, clientId).
      * @return array<int, array<int, array<string, mixed>>> projectId => list of users
      */
     private function loadProjectUsers(int $currentUserId, array $projectIds, array $allProjects): array
@@ -459,8 +460,8 @@ readonly class ProjectOverviewHelper
      * Mirrors Leantime's psettings logic (admin/owner = all; 'all' = all logged-in;
      * 'clients' = same clientId; otherwise relation row required).
      *
-     * @param  array<int, int|string>  $candidateProjectIds
-     * @param  array<int, array<string, mixed>>  $allProjects  Indexed by id (must include psettings, clientId).
+     * @param  array<int, int|string>           $candidateProjectIds
+     * @param  array<int, array<string, mixed>> $allProjects         Indexed by id (must include psettings, clientId).
      * @return array<int, int>
      */
     private function computeAccessibleProjectIds(int $currentUserId, array $candidateProjectIds, array $allProjects): array
@@ -511,7 +512,7 @@ readonly class ProjectOverviewHelper
      * with the requested filters (or no accessible projects at all) — callers
      * should short-circuit and return an empty result without hitting the DB.
      *
-     * @param  array<int, array<string, mixed>>  $allProjects
+     * @param  array<int, array<string, mixed>> $allProjects
      */
     private function restrictProjectFiltersToAccessible(ViewDTO $dto, array $allProjects): ?ViewDTO
     {
@@ -559,7 +560,7 @@ readonly class ProjectOverviewHelper
     /**
      * Builds the tooltip string shown over the sumHours cell.
      *
-     * @param  array<int, array{firstname: string, lastname: string, hours: float}>  $rows
+     * @param  array<int, array{firstname: string, lastname: string, hours: float}> $rows
      */
     private function formatUserHoursTooltip(array $rows): string
     {
@@ -569,7 +570,7 @@ readonly class ProjectOverviewHelper
 
         $lines = [];
         foreach ($rows as $row) {
-            $lines[] = trim($row['firstname'].' '.$row['lastname']).': '.number_format($row['hours'], 2, '.', '');
+            $lines[] = trim($row['firstname'] . ' ' . $row['lastname']) . ': ' . number_format($row['hours'], 2, '.', '');
         }
 
         return implode("\n", $lines);
@@ -578,7 +579,7 @@ readonly class ProjectOverviewHelper
     /**
      * Retrieves and prepares filter data for the project overview.
      *
-     * @param  array<string, string>  $data  An associative array containing input parameters.
+     * @param  array<string, string> $data An associative array containing input parameters.
      * @return ProjectOverviewFiltersDataDTO A data transfer object containing all necessary data for populating the project overview filters.
      */
     public function getProjectOverviewFiltersData(array $data): ProjectOverviewFiltersDataDTO
@@ -642,7 +643,7 @@ readonly class ProjectOverviewHelper
                 $viewDTO = $ownerView->view;
 
                 $userViewsData = array_merge($userViewsData, [
-                    'title' => $ownerView->title.' (Live)',
+                    'title' => $ownerView->title . ' (Live)',
                     'users' => $viewDTO->users,
                     'selectedColumns' => $viewDTO->columns,
                     'dateType' => $viewDTO->dateType->value,

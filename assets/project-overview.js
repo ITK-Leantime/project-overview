@@ -45,7 +45,9 @@ $(document).ready(function () {
 
       // Lazy-load: if the active view panel has a placeholder, trigger a table refresh
       if (activeViewId && activeViewId.value) {
-        const activePanel = document.getElementById('view-' + activeViewId.value);
+        const activePanel = document.getElementById(
+          'view-' + activeViewId.value
+        );
         if (activePanel && activePanel.querySelector('.view-lazy-load')) {
           const form = document.getElementById('filtersForm');
           if (form) {
@@ -1117,7 +1119,8 @@ function refreshViewTable(form) {
       );
       if (activePanel) {
         const msg =
-          (window.projectOverviewI18n && window.projectOverviewI18n.couldNotLoadView) ||
+          (window.projectOverviewI18n &&
+            window.projectOverviewI18n.couldNotLoadView) ||
           '[i18n missing] could_not_load_view';
         const errEl = document.createElement('div');
         errEl.className = 'lazy-row-status lazy-row-error';
@@ -1281,7 +1284,9 @@ function loadNextLazyPage(panel, sentinel) {
 
         if (typeof tippy === 'function') {
           tippy(
-            panel.querySelectorAll('[data-tippy-content]:not([data-tippy-instance])')
+            panel.querySelectorAll(
+              '[data-tippy-content]:not([data-tippy-instance])'
+            )
           );
         }
 
@@ -1295,7 +1300,8 @@ function loadNextLazyPage(panel, sentinel) {
           target.dataset.state = 'error';
           showLazyError(
             target,
-            (window.projectOverviewI18n && window.projectOverviewI18n.failedToInsertRows) ||
+            (window.projectOverviewI18n &&
+              window.projectOverviewI18n.failedToInsertRows) ||
               '[i18n missing] failed_to_insert_rows'
           );
         }
@@ -1303,7 +1309,11 @@ function loadNextLazyPage(panel, sentinel) {
     })
     .catch(function (err) {
       if (err.name === 'AbortError') return;
-      console.error('[ProjectOverview] Lazy-load failed:', err, err.responseBody || '');
+      console.error(
+        '[ProjectOverview] Lazy-load failed:',
+        err,
+        err.responseBody || ''
+      );
       // Make sure the sentinel is in a clickable error state, even if
       // something downstream blew up before we got there.
       const live = panel.querySelector('.lazy-row-sentinel');
@@ -1312,7 +1322,8 @@ function loadNextLazyPage(panel, sentinel) {
         target.dataset.state = 'error';
         showLazyError(
           target,
-          (window.projectOverviewI18n && window.projectOverviewI18n.couldNotLoadMoreRows) ||
+          (window.projectOverviewI18n &&
+            window.projectOverviewI18n.couldNotLoadMoreRows) ||
             '[i18n missing] could_not_load_more_rows'
         );
       }

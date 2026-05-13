@@ -18,8 +18,8 @@ class ProjectOverview
      */
     private static array $assets = [
         // source => target
-        __DIR__.'/../dist/css/project-overview.css' => APP_ROOT.'/public/dist/css/project-overview.css',
-        __DIR__.'/../dist/js/project-overview.js' => APP_ROOT.'/public/dist/js/project-overview.js',
+        __DIR__ . '/../dist/css/project-overview.css' => APP_ROOT . '/public/dist/css/project-overview.css',
+        __DIR__ . '/../dist/js/project-overview.js' => APP_ROOT . '/public/dist/js/project-overview.js',
     ];
 
     public const FRONTEND_DATE_FORMAT = 'd-m-Y';
@@ -30,9 +30,11 @@ class ProjectOverview
 
     /** Constructor method for the class.
      *
-     * @param  ProjectOverviewRepository  $projectOverviewRepository  The ticket repository instance.
+     * @param  ProjectOverviewRepository $projectOverviewRepository The ticket repository instance.
      */
-    public function __construct(private ProjectOverviewRepository $projectOverviewRepository) {}
+    public function __construct(private ProjectOverviewRepository $projectOverviewRepository)
+    {
+    }
 
     /**
      * Install plugin.
@@ -124,7 +126,7 @@ class ProjectOverview
     /**
      * Calculate date range for a given date type.
      *
-     * @param  DateTypeEnum  $dateType  The date type to calculate range for
+     * @param  DateTypeEnum $dateType The date type to calculate range for
      * @return array<string, string> Array with 'start' and 'end' keys in Y-m-d format
      *
      * @api

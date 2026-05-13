@@ -25,7 +25,7 @@ class ProjectOverview
     /**
      * Get milestones for multiple projects in a single query.
      *
-     * @param  array<int, int|string>  $projectIds  The project IDs to fetch milestones for.
+     * @param  array<int, int|string> $projectIds The project IDs to fetch milestones for.
      * @return array<int, array<int, mixed>> Milestones grouped by projectId.
      */
     public function getMilestonesByProjectIds(array $projectIds): array
@@ -60,7 +60,7 @@ class ProjectOverview
      * Caller composes the userHours display string in PHP, which sidesteps GROUP_CONCAT
      * truncation and keeps the timesheet aggregation scoped to the rendered tickets.
      *
-     * @param  array<int, int|string>  $ticketIds
+     * @param  array<int, int|string> $ticketIds
      * @return array<int, array<int, array{firstname: string, lastname: string, hours: float}>>
      */
     public function getUserHoursByTicketIds(array $ticketIds): array
@@ -102,7 +102,7 @@ class ProjectOverview
      * duplicates) and re-indexed with array_values, so callers iterate a 0-indexed
      * list, not a user-id keyed map.
      *
-     * @param  array<int, int|string>  $projectIds
+     * @param  array<int, int|string> $projectIds
      * @return array<int, array<int, array<string, mixed>>>
      */
     public function getProjectAssignedUsersByProjectIds(array $projectIds, bool $includeApiUsers = false): array
@@ -152,7 +152,7 @@ class ProjectOverview
     /**
      * Returns users belonging to each given client, grouped by clientId.
      *
-     * @param  array<int, int|string>  $clientIds
+     * @param  array<int, int|string> $clientIds
      * @return array<int, array<int, array<string, mixed>>>
      */
     public function getUsersByClientIds(array $clientIds): array
@@ -192,7 +192,7 @@ class ProjectOverview
     /**
      * Returns the subset of $projectIds that the given user has a direct relation row for.
      *
-     * @param  array<int, int|string>  $projectIds
+     * @param  array<int, int|string> $projectIds
      * @return array<int, int>
      */
     public function getUserAssignedProjectIds(int $userId, array $projectIds): array
@@ -239,7 +239,7 @@ class ProjectOverview
      * the result is limited to that page. Otherwise all matching rows are returned.
      * `hasMore` is detected by fetching `pageSize + 1` rows and trimming the sentinel.
      *
-     * @param  ViewDTO  $viewDTO  The data transfer object containing filter criteria.
+     * @param  ViewDTO $viewDTO The data transfer object containing filter criteria.
      * @return array{rows: array<int, mixed>, hasMore: bool}
      */
     public function getViewTasks(ViewDTO $viewDTO): array
