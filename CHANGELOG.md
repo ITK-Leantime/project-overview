@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+* [PR-83](https://github.com/ITK-Leantime/project-overview/pull/83)
+  * Redesign view management.
 * [PR-82](https://github.com/ITK-Leantime/project-overview/pull/82)
   * Performance optimizations (batched queries replacing N+1 + correlated subqueries, paginated infinite scroll)
   * Enforce project-access scoping in the repository SQL layer instead of trusting callers
