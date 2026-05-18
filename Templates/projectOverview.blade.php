@@ -52,8 +52,7 @@
                                 {{ !empty($userView['isSubscription']) ? 'data-is-subscription=true' : '' }}
                                 {{ !empty($userView['isTransientSubscription']) ? 'data-is-transient-subscription=true' : '' }}
                                 @if (!empty($userView['subscribeToken'])) data-subscribe-token="{{ $userView['subscribeToken'] }}" @endif>
-                                <a href="#view-{{ $key }}" class="tab-link"
-                                    data-view-key="{{ $key }}"
+                                <a href="#view-{{ $key }}" class="tab-link" data-view-key="{{ $key }}"
                                     hx-get="/ProjectOverview/ProjectOverview/loadFilters/{{ urlencode($key) }}"
                                     hx-target="#filtersContainer" hx-swap="innerHTML">
                                     {{ str_replace('_', ' ', $userView['title'] ?? 'View') }}
@@ -76,10 +75,9 @@
                         @endforeach
                         <li data-target="__new"
                             class="new-view-tab{{ empty($userViewsData->userViews) ? ' is-only-tab' : '' }}">
-                            <a href="#view-__new" class="tab-link"
-                                data-view-key="__new"
-                                hx-get="/ProjectOverview/ProjectOverview/loadFilters/__new"
-                                hx-target="#filtersContainer" hx-swap="innerHTML">
+                            <a href="#view-__new" class="tab-link" data-view-key="__new"
+                                hx-get="/ProjectOverview/ProjectOverview/loadFilters/__new" hx-target="#filtersContainer"
+                                hx-swap="innerHTML">
                                 {{ __('projectOverview.new_view_tab') }}
                             </a>
                         </li>
