@@ -9,11 +9,14 @@ use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
  */
 readonly class ViewDTO
 {
-    public const DEFAULT_PAGE_SIZE = 50;
+    // Default page size.
+    public const int DEFAULT_PAGE_SIZE = 50;
 
-    public const MAX_PAGE_SIZE = 200;
+    // Max page size.
+    public const int MAX_PAGE_SIZE = 200;
 
-    public const MAX_PAGE = 10000;
+    // Maximum allowed page number.
+    public const int MAX_PAGE = 10000;
 
     /**
      * @param  string|null       $title           Title of the view
