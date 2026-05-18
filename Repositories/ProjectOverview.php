@@ -246,8 +246,8 @@ class ProjectOverview
      * `whereIn` so callers cannot accidentally bypass project-access checks.
      * Pass an empty array to return no rows.
      *
-     * @param  ViewDTO          $viewDTO             The data transfer object containing filter criteria.
-     * @param  array<int, int>  $accessibleProjectIds Project ids the current user can access.
+     * @param  ViewDTO         $viewDTO              The data transfer object containing filter criteria.
+     * @param  array<int, int> $accessibleProjectIds Project ids the current user can access.
      * @return array{rows: array<int, mixed>, hasMore: bool}
      */
     public function getViewTasks(ViewDTO $viewDTO, array $accessibleProjectIds): array
