@@ -374,7 +374,7 @@ readonly class ProjectOverviewHelper
             if ($psettings === 'all') {
                 $allUsersProjectIds[] = $pid;
             } elseif ($psettings === 'clients') {
-                $clientProjectsByClientId[(int) ($project['clientId'] ?? 0)][] = $pid;
+                $clientProjectsByClientId[(int) ($project['clientId'] ?? -1)][] = $pid;
             } else {
                 $relationOnlyProjectIds[] = $pid;
             }
@@ -437,7 +437,7 @@ readonly class ProjectOverviewHelper
         }
 
         $role = (string) session('userdata.role');
-        $userClientId = (int) (session('userdata.clientId') ?? 0);
+        $userClientId = (int) (session('userdata.clientId') ?? -1);
         $isPrivileged = in_array($role, [Roles::$admin, Roles::$owner], true);
 
         $needsRelationCheck = [];
@@ -455,7 +455,7 @@ readonly class ProjectOverviewHelper
                 continue;
             }
 
-            if ($psettings === 'clients' && (int) ($project['clientId'] ?? 0) === $userClientId) {
+            if ($psettings === 'clients' && (int) ($project['clientId'] ?? -1) === $userClientId) {
                 $accessibleProjectIds[] = (int) $pid;
 
                 continue;
