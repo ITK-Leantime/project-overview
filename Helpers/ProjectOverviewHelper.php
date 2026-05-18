@@ -80,7 +80,7 @@ readonly class ProjectOverviewHelper
         // Determine which view to eagerly load (first view if none selected)
         $viewKeys = array_keys($userViewObject);
         $selectedViewKey = $viewId;
-        if ($selectedViewKey === null && ! empty($viewKeys)) {
+        if ($selectedViewKey === null && !empty($viewKeys)) {
             $selectedViewKey = (string) $viewKeys[0];
         }
 
@@ -143,7 +143,7 @@ readonly class ProjectOverviewHelper
             }
         }
         // Flash notification for auto-removed broken subscriptions
-        if (! empty($removedSubscriptions)) {
+        if (!empty($removedSubscriptions)) {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.subscription_removed'),
                 'type' => 'info',
@@ -382,15 +382,15 @@ readonly class ProjectOverviewHelper
 
         // Step 3: batch-fetch the data (at most three queries: relation users, client users, all users).
         $relationUsersNeeded = array_merge($relationOnlyProjectIds, ...array_values($clientProjectsByClientId));
-        $relationUsersByProject = ! empty($relationUsersNeeded)
+        $relationUsersByProject = !empty($relationUsersNeeded)
             ? $this->projectOverviewRepository->getProjectAssignedUsersByProjectIds($relationUsersNeeded)
             : [];
 
-        $clientUsersByClient = ! empty($clientProjectsByClientId)
+        $clientUsersByClient = !empty($clientProjectsByClientId)
             ? $this->projectOverviewRepository->getUsersByClientIds(array_keys($clientProjectsByClientId))
             : [];
 
-        $allUsersList = ! empty($allUsersProjectIds)
+        $allUsersList = !empty($allUsersProjectIds)
             ? $this->userService->getAll()
             : [];
 
@@ -405,7 +405,7 @@ readonly class ProjectOverviewHelper
                 $merged = $clientUsers;
                 $seenIds = array_column($merged, 'id');
                 foreach ($relationUsersByProject[$pid] ?? [] as $u) {
-                    if (! in_array($u['id'], $seenIds, true)) {
+                    if (!in_array($u['id'], $seenIds, true)) {
                         $merged[] = $u;
                         $seenIds[] = $u['id'];
                     }
@@ -464,7 +464,7 @@ readonly class ProjectOverviewHelper
             $needsRelationCheck[] = (int) $pid;
         }
 
-        if (! empty($needsRelationCheck)) {
+        if (!empty($needsRelationCheck)) {
             $assigned = $this->projectOverviewRepository->getUserAssignedProjectIds($currentUserId, $needsRelationCheck);
             $accessibleProjectIds = array_merge($accessibleProjectIds, $assigned);
         }

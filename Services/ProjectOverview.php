@@ -46,7 +46,7 @@ class ProjectOverview
         foreach (self::getAssets() as $source => $target) {
             // Ensure the target directory exists
             $targetDir = dirname($target);
-            if (! is_dir($targetDir)) {
+            if (!is_dir($targetDir)) {
                 mkdir($targetDir, 0755, true);
             }
 

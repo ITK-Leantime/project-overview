@@ -73,7 +73,7 @@ class ProjectOverview extends Controller
      */
     public function post(): Response
     {
-        if (! AuthService::userIsAtLeast(Roles::$editor)) {
+        if (!AuthService::userIsAtLeast(Roles::$editor)) {
             return $this->tpl->displayJson(['Error' => 'Not Authorized'], 403);
         }
         $redirectUrl = BASE_URL . '/ProjectOverview/ProjectOverview';
@@ -146,7 +146,7 @@ class ProjectOverview extends Controller
      */
     public function loadViewTable(array $data): ?Response
     {
-        if (! AuthService::userIsAtLeast(Roles::$readonly)) {
+        if (!AuthService::userIsAtLeast(Roles::$readonly)) {
             return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
         }
 
@@ -173,7 +173,7 @@ class ProjectOverview extends Controller
      */
     public function loadViewTableRows(array $data): ?Response
     {
-        if (! AuthService::userIsAtLeast(Roles::$readonly)) {
+        if (!AuthService::userIsAtLeast(Roles::$readonly)) {
             return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
         }
 
@@ -207,7 +207,7 @@ class ProjectOverview extends Controller
     public function get(): Response
     {
         // Handle live-share subscription preview (store in session, show as transient tab)
-        if (! empty($_GET['subscribe'])) {
+        if (!empty($_GET['subscribe'])) {
             $lookupResult = $this->actionHandler->findViewByShareToken($_GET['subscribe']);
 
             if ($lookupResult) {
@@ -265,7 +265,7 @@ class ProjectOverview extends Controller
      */
     public function generateShareLink(): Response
     {
-        if (! AuthService::userIsAtLeast(Roles::$editor)) {
+        if (!AuthService::userIsAtLeast(Roles::$editor)) {
             return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
         }
 
