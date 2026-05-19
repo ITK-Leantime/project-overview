@@ -719,28 +719,12 @@ th.sort-desc .label-and-caret-wrapper::after {
   outline: none;
 }
 
-/* `.filters-row` is just a wrapper for the filters pane; the toggle is
-   absolutely positioned out of flow (against `.project-overview-container`,
-   which is already `position: relative`) and pinned to the container's inner
-   top-right corner. This way the toggle always sits at the same screen
-   position regardless of whether filters are visible: open → next to filters,
-   collapsed → next to the tabs (which reflows up under the now-zero-height
-   filters row). */
 .filters-row {
   display: block;
-  /* The toggle sits at top:15 height:35 absolutely-positioned inside
-     .project-overview-container. When filters collapse, .search-and-filter's
-     max-height drops to 0 — and with the old horizontal tab strip gone, the
-     table content used to reflow all the way up under the toggle, overlapping
-     it visually. The min-height pins a buffer below the toggle so the table
-     starts below it regardless of filter state. */
   min-height: 50px;
 }
 
 .filters-row > .search-and-filter {
-  /* Inherits margin-bottom: 15px (open) / 0 (collapsed) from the base
-     .search-and-filter rule above; do not override here. */
-  /* Reserve space on the right so filter inputs never run under the toggle. */
   padding-right: 130px;
 }
 
@@ -1701,25 +1685,10 @@ div.milestone-select.no-milestones select {
   opacity: 0.5;
 }
 
-/* -----------------------------------------------------------------------------
-   Sidebar view list — Leantime renders <li><a ...>title</a></li> for each item
-   via `Domain/Menu/Templates/partials/leftnav/item.blade.php`. We layer scoped
-   styles on the plugin-owned classes inside that markup. The horizontal tab
-   <ul> is hidden so jQuery UI tabs() can remain initialised as the panel-
-   switching state engine without taking visual space.
-   -------------------------------------------------------------------------- */
-
-/* Hide the horizontal tabs <ul> (the wrapping #projectOverviewTabs <div> stays
-   in the DOM as parent to the per-view content panels). */
 #projectOverviewTabs > ul {
   display: none !important;
 }
 
-/* Section header above the view items. The underline runs full-width across
-   the menu (border on the <li>), and the label text sits at the same left
-   edge as the view names below (padding on the <a> matching the view items'
-   padding-left). Targets the <li class="title"> rendered by Leantime's header
-   partial via the unique class we inject inside the title HTML. */
 li.title:has(.projectoverview-views-header-text) {
   margin-top: 6px;
   border-bottom: 1px solid var(--itk-color-gray-200, #cbd2da);
@@ -1729,7 +1698,7 @@ li.title:has(.projectoverview-views-header-text) a {
   display: block;
   padding-top: 6px !important;
   padding-bottom: 6px !important;
-  padding-left: 15px !important; /* match the view items' core padding-left */
+  padding-left: 15px !important;
   pointer-events: none;
   cursor: default;
 }
@@ -1743,32 +1712,21 @@ li.title:has(.projectoverview-views-header-text) a {
   color: #fff;
 }
 
-/* The 3-dot context-menu trigger is positioned absolutely so a wide view name
-   doesn't push it past the right edge. Hidden by default; shown on hover of
-   the parent <li> and when the view is the active one. Items are also slightly
-   smaller and less padded than the parent menu entries to read as subpoints. */
 a.projectoverview-view-item {
   position: relative;
-  /* Flex layout so the label can flex to the available width and clip at
-     its OWN right edge, instead of relying on the parent's overflow:hidden
-     (which clips at the padding-box edge — so text was still spilling into
-     the padding-right gutter where the trigger sits). */
   display: flex !important;
   align-items: center;
   gap: 0;
   padding-top: 4px !important;
   padding-bottom: 4px !important;
-  padding-left: 15px !important; /* core sidebar default; pinned with !important so the header CSS above can match it reliably */
-  padding-right: 32px !important; /* reserved gutter for the absolutely-positioned trigger */
+  padding-left: 15px !important;
+  padding-right: 32px !important;
   font-size: 0.92em;
 }
 
 a.projectoverview-view-item .view-label {
-  /* Truncate long titles with a horizontal ellipsis. Safe to do this now
-     that the context trigger uses vertical dots — the two no longer read as
-     the same control. */
   flex: 1 1 auto;
-  min-width: 0; /* allow shrinking below content width inside the flex parent */
+  min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -1782,8 +1740,6 @@ a.projectoverview-view-item .view-context-menu-trigger {
   transform: translateY(-50%);
   font-size: 1em;
   line-height: 1;
-  /* Bigger hit area than the glyph alone, so the hover background reads as a
-     button. Cursor flip reinforces that it's clickable. */
   width: 22px;
   height: 22px;
   padding: 0;
@@ -1795,7 +1751,7 @@ a.projectoverview-view-item .view-context-menu-trigger {
 }
 
 a.projectoverview-view-item .view-context-menu-trigger .fa-ellipsis-v {
-  line-height: 22px; /* vertical-centers the glyph in the square hit area */
+  line-height: 22px;
 }
 
 a.projectoverview-view-item:hover .view-context-menu-trigger,
@@ -1805,21 +1761,14 @@ li.projectoverview-view-active
   display: inline-block;
 }
 
-/* Visible hover state for the trigger. Light overlay because the sidebar
-   background is dark; rgba(0,0,0,…) was previously invisible. */
 a.projectoverview-view-item .view-context-menu-trigger:hover {
   background: rgba(255, 255, 255, 0.18);
 }
 
-/* Active state — applied client-side from #selectedViewId. Uses the same
-   left-border treatment Leantime's own active items use, so it reads as
-   native. */
 li.projectoverview-view-active > a.projectoverview-view-item {
   font-weight: 600;
 }
 
-/* Unsaved-changes indicator on sidebar items — mirrors the tab styling
-   (italic label + yellow dot suffix). */
 li.has-unsaved-changes > a.projectoverview-view-item .view-label {
   font-style: italic;
 }
@@ -1839,16 +1788,12 @@ li.has-unsaved-changes > a.projectoverview-view-item .view-dirty-dot {
   animation: unsaved-pulse 1.5s ease-in-out 2;
 }
 
-/* Subscription-indicator icon next to the view label. Re-uses the same class
-   as the tab markup so styling is shared. */
 a.projectoverview-view-item .subscription-indicator {
   margin-left: 4px;
   opacity: 0.7;
   font-size: 0.85em;
 }
 
-/* The "+ New view" item — subtle distinct styling so it reads as an action
-   rather than a saved view. */
 a.projectoverview-new-view-item .view-new-icon {
   font-weight: bold;
   margin-right: 4px;
@@ -1862,18 +1807,11 @@ a.projectoverview-new-view-item:hover {
   opacity: 1;
 }
 
-/* While the sidebar <ul> is being dragged, suppress text selection on the
-   draggable items so the cursor change isn't disrupted. */
 li.ui-sortable-helper a.projectoverview-view-item,
 li.ui-sortable-helper a.projectoverview-view-item * {
   user-select: none;
 }
 
-/* Scroll container for the saved-view items. The list lives inside its own
-   <ul> nested in a wrapper <li>, so the sidebar's outer <ul> can't grow
-   unbounded when the user has many views. The "+ New view" item stays
-   outside this container (pinned to the bottom of the parent <ul>) so it's
-   always visible. Scrollbar only appears when content exceeds max-height. */
 li.projectoverview-views-scroller {
   list-style: none;
   padding: 0;
@@ -1881,17 +1819,12 @@ li.projectoverview-views-scroller {
 }
 
 ul.projectoverview-views-inner-list {
-  /* Core CSS hides every <ul> inside `.dropdown` via
-     `.leftmenu .nav-tabs.nav-stacked > li.dropdown ul { display: none; }`.
-     The outer sidebar <ul> escapes that with an inline `style="display:block"`;
-     we have to force it ourselves on this nested one. */
   display: block !important;
   list-style: none;
   padding: 0;
   margin: 0;
   max-height: min(360px, 60vh);
   overflow-y: auto;
-  /* Thin scrollbar so it's not visually heavy in the sidebar. */
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
@@ -1909,10 +1842,6 @@ ul.projectoverview-views-inner-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Sortable placeholder — Sortable swaps in an empty <li> while dragging. With
-   forcePlaceholderSize:true in the JS config, this height matches the dragged
-   item; the dashed border + tint reads as "drop target here" rather than as a
-   gap. */
 li.projectoverview-view-placeholder {
   list-style: none;
   visibility: visible !important;
