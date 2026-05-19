@@ -41,7 +41,7 @@ function buildProjectOverviewViewMenuTitle(array $userView): string
     // tippy the row already has.
     $trigger = '<span class="view-context-menu-trigger"'
         . ' data-context-trigger="true"'
-        . ' aria-label="' . htmlspecialchars(__('projectOverview.view_context_menu_tooltip'), ENT_QUOTES) . '"'
+        . ' aria-label="' . htmlspecialchars(__('projectOverview.view_context_menu_aria'), ENT_QUOTES) . '"'
         . '><i class="fas fa-ellipsis-v" aria-hidden="true"></i></span>';
 
     return $dot . '<span class="view-label">' . $title . ' ' . $indicator . '</span>' . $trigger;
