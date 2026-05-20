@@ -112,6 +112,12 @@ readonly class ProjectOverviewActionHandler
         $userViewsObject = $this->getUserViewsObject();
         $existingViewId = $postData['view'] ?? null;
 
+        // The synthetic "new" tab is not a real view; always create.
+        if ($existingViewId === '__new') {
+            $existingViewId = null;
+            $overwriteView = false;
+        }
+
         // Check if view already exists and overwrite if requested.
         if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
@@ -157,9 +163,13 @@ readonly class ProjectOverviewActionHandler
                 $maxOrder = max($maxOrder, $viewDTO_temp->order);
             }
 
-            // Determine title: copy subscription name if source is a subscription, otherwise default
+            // Determine title: explicit viewName from POST wins; otherwise subscription
+            // copy-name; otherwise default.
             $newTitle = 'View ' . (count($userViewsObject) + 1);
-            if (!empty($existingViewId) && isset($userViewsObject[$existingViewId])) {
+            $explicitName = trim((string) ($postData['viewName'] ?? ''));
+            if ($explicitName !== '') {
+                $newTitle = $explicitName;
+            } elseif (!empty($existingViewId) && isset($userViewsObject[$existingViewId])) {
                 $sourceView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
                 if ($sourceView->isSubscription()) {
                     $newTitle = $sourceView->title . ' (' . __('projectOverview.copy_suffix') . ')';
@@ -384,6 +394,49 @@ readonly class ProjectOverviewActionHandler
             id: $newViewId,
             title: $lookupResult->view->title . ' (' . __('projectOverview.copy_suffix') . ')',
             view: $lookupResult->view->view,
+            shareToken: null,
+            createdAt: time(),
+            order: $maxOrder + 1,
+        );
+
+        $this->saveUserViewsObject($userViewsObject);
+
+        session()->flash('project_overview-flash_notification', [
+            'message' => __('projectOverview.notification.view_created'),
+            'type' => 'success',
+        ]);
+
+        return $newViewId;
+    }
+
+    /**
+     * Duplicate an owned view: copies the source view's filters/columns/sort under
+     * a new id, with title "<original> (copy)". Returns the new view id, or null if
+     * the source view doesn't exist.
+     *
+     * @return string|null The new view id, or null when the source doesn't exist.
+     */
+    public function duplicateOwnedView(string $sourceViewId): ?string
+    {
+        $userViewsObject = $this->getUserViewsObject();
+
+        if (!isset($userViewsObject[$sourceViewId])) {
+            return null;
+        }
+
+        $source = UserViewDTO::fromArray($userViewsObject[$sourceViewId]);
+
+        $maxOrder = 0;
+        foreach ($userViewsObject as $view) {
+            $viewDTO = UserViewDTO::fromArray($view);
+            $maxOrder = max($maxOrder, $viewDTO->order);
+        }
+
+        $newViewId = uniqid('view_', true);
+        $userViewsObject[$newViewId] = new UserViewDTO(
+            id: $newViewId,
+            title: $source->title . ' (' . __('projectOverview.copy_suffix') . ')',
+            view: $source->view,
             shareToken: null,
             createdAt: time(),
             order: $maxOrder + 1,

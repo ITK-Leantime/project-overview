@@ -13,7 +13,7 @@ $(document).ready(function () {
   initProjectOverviewFilters();
   initProjectOverviewTable();
   initScrollToTopButton();
-  initUnsavedNoticeScrollLink();
+  initSaveChangesSubmit();
 
   // begin HTMX swap events
   document.body.addEventListener('htmx:beforeSettle', (e) => {
@@ -34,13 +34,14 @@ $(document).ready(function () {
         restoreFormState(window._viewCachedFormData[activeViewId.value]);
       }
 
-      // Restore save button state after HTMX replaces the filters DOM
-      const saveBtn = document.querySelector('.save-view-btn');
-      if (saveBtn && activeViewId && window._viewsWithUnsavedChanges) {
-        saveBtn.classList.toggle(
-          'has-unsaved-changes',
-          !!window._viewsWithUnsavedChanges[activeViewId.value]
+      // Restore save button visibility after HTMX replaces the filters DOM
+      const saveBtn = document.querySelector('.save-changes-btn');
+      if (saveBtn && activeViewId) {
+        const hasChanges = !!(
+          window._viewsWithUnsavedChanges &&
+          window._viewsWithUnsavedChanges[activeViewId.value]
         );
+        saveBtn.style.display = hasChanges ? '' : 'none';
       }
 
       // Lazy-load: if the active view panel has a placeholder, trigger a table refresh
@@ -107,28 +108,49 @@ function initScrollToTopButton() {
 }
 
 /**
- * Make the "unsaved changes" notice clickable: clicking it scrolls the
- * save button into view so the user can find it without hunting.
+ * On submit of the filter form via the "Save changes" button, prompt for a name
+ * if the active tab is the synthetic __new tab. Cancel = abort submit. Otherwise
+ * the form submits normally (overwriteView=1 on the button overwrites the active
+ * view, or the saveView handler creates a new view when view=__new).
  */
-function initUnsavedNoticeScrollLink() {
-  // Delegated so it survives htmx swaps of #filtersContainer.
-  document.addEventListener('click', function (e) {
-    const notice = e.target.closest('#unsavedChangesNotice');
-    if (!notice) return;
-    const saveBtn =
-      document.querySelector('.save-view-btn') ||
-      document.querySelector('.save-as-new-btn');
-    if (!saveBtn) return;
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
-    saveBtn.scrollIntoView({
-      behavior: reduceMotion ? 'auto' : 'smooth',
-      block: 'center',
-    });
-    // Quick highlight pulse so the user's eye lands on it
-    saveBtn.classList.add('save-btn-pulse');
-    setTimeout(() => saveBtn.classList.remove('save-btn-pulse'), 1200);
+function initSaveChangesSubmit() {
+  document.addEventListener('submit', function (e) {
+    const form = e.target;
+    if (!form || form.id !== 'filtersForm') return;
+
+    // The filters form has exactly one submit affordance now (#saveChangesBtn),
+    // so any submit it fires is a "Save changes". Other actions (rename, share,
+    // delete, pin, copy) live in the separate context-menu form.
+
+    // The active view: the form's hidden `view` field is rendered by the
+    // filters template for the currently-loaded view, so it's the source of
+    // truth. The page-level #selectedViewId is updated by the tab-activate
+    // handler in JS but only after a tab click; on initial empty-state page
+    // load (where no tab activate fires) the form is the only reliable source.
+    const viewField = form.querySelector('input[name="view"]');
+    const activeViewIdInput = document.getElementById('selectedViewId');
+    const activeViewId =
+      (viewField && viewField.value) ||
+      (activeViewIdInput && activeViewIdInput.value) ||
+      null;
+
+    if (activeViewId !== '__new') return;
+
+    // Defensive: ensure the field is `__new` (already is in normal flow, but
+    // protects against any stale state).
+    if (viewField) viewField.value = '__new';
+
+    const promptText =
+      (window.projectOverviewI18n &&
+        window.projectOverviewI18n.newViewPromptName) ||
+      'Name your new view';
+    const name = window.prompt(promptText);
+    if (name === null || name.trim() === '') {
+      e.preventDefault();
+      return;
+    }
+    const nameField = form.querySelector('#newViewName');
+    if (nameField) nameField.value = name.trim();
   });
 }
 
@@ -175,14 +197,9 @@ function initFiltersToggle() {
  * @return {void} This function does not return a value.
  */
 function initProjectOverviewFilters() {
-  // Tooltip on the unsaved-changes notice — init defensively even if Leantime
-  // core already runs a global tippy pass.
-  if (typeof tippy === 'function') {
-    const notice = document.getElementById('unsavedChangesNotice');
-    if (notice && !notice._tippy) {
-      tippy(notice);
-    }
-  }
+  // Sync save button visibility with the active tab on each filters reload (the
+  // "new" tab always shows the button; other tabs only show it when dirty).
+  syncSaveChangesVisibility();
 
   // Init date range select
   const dateRange = flatpickr('#dateRange', {
@@ -323,24 +340,39 @@ function initProjectOverviewFilters() {
   // --- Live filter update: refresh table on filter change ---
   if (!filtersForm || filtersForm.dataset.isSubscription === 'true') return;
 
-  const viewId = document.getElementById('selectedViewId');
-  const currentViewId = viewId ? viewId.value : null;
+  // Use the form's hidden `view` field (rendered by the template for the just-
+  // loaded view) as the source of truth. The page-level #selectedViewId can
+  // still hold the previously-active view's id at this point in some HTMX
+  // swap orderings.
+  const viewField = filtersForm.querySelector('input[name="view"]');
+  const currentViewId = viewField
+    ? viewField.value
+    : document.getElementById('selectedViewId')?.value || null;
 
-  // Store the initial state for the current view
+  // Store the initial state for the current view, and ensure dirty tracking
+  // for this view starts clean (the form was just rendered fresh by the
+  // server, so any "dirty" mark from a previous tab session is stale).
   if (currentViewId) {
     if (!window._viewInitialStates) window._viewInitialStates = {};
     window._viewInitialStates[currentViewId] = serializeFilterForm(filtersForm);
+    if (window._viewsWithUnsavedChanges) {
+      window._viewsWithUnsavedChanges[currentViewId] = false;
+    }
   }
 
   let filterDebounceTimer = null;
 
   function onFilterChange() {
-    const activeViewId = viewId ? viewId.value : null;
+    const vf = filtersForm.querySelector('input[name="view"]');
+    const activeViewId = vf
+      ? vf.value
+      : document.getElementById('selectedViewId')?.value || null;
     const initialState =
       activeViewId && window._viewInitialStates
         ? window._viewInitialStates[activeViewId]
         : null;
     const hasChanges =
+      initialState !== undefined &&
       initialState !== null &&
       serializeFilterForm(filtersForm) !== initialState;
     toggleUnsavedIndicator(activeViewId, hasChanges);
@@ -438,9 +470,15 @@ function initProjectOverviewTable() {
     const rect = target.parentElement.getBoundingClientRect();
     const tab = $(target).parent();
     const viewId = tab.data('target');
-    const isSubscription = tab.data('is-subscription') === true;
+    // Both stored subscriptions and live transient subscriptions need the
+    // subscription-mode menu (Pin / Save as copy).
+    const isSubscription =
+      tab.data('is-subscription') === true ||
+      tab.data('is-transient-subscription') === true;
+    const subscribeToken = tab.data('subscribe-token') || '';
     $('.settings-for-target').text(viewId);
     contextMenu
+      .attr('data-mode', isSubscription ? 'subscription' : 'owned')
       .css({
         left: `${rect.left + window.scrollX - 175}px`,
         top: `${rect.top + window.scrollY - rect.height - 25}px`,
@@ -453,10 +491,10 @@ function initProjectOverviewTable() {
       .val(currentName)
       .end()
       .find('input[name="view"]')
-      .val(viewId);
-
-    // Hide rename/share controls for subscribed views
-    contextMenu.find('.rename-section, .view-share').toggle(!isSubscription);
+      .val(viewId)
+      .end()
+      .find('input[name="subscribeToken"]')
+      .val(subscribeToken);
 
     if (!isSubscription) {
       requestAnimationFrame(() => {
@@ -528,13 +566,9 @@ function initProjectOverviewTable() {
           window._viewsWithUnsavedChanges &&
           window._viewsWithUnsavedChanges[viewId]
         );
-        const saveBtn = document.querySelector('.save-view-btn');
+        const saveBtn = document.querySelector('.save-changes-btn');
         if (saveBtn) {
-          saveBtn.classList.toggle('has-unsaved-changes', viewHasChanges);
-        }
-        const banner = document.getElementById('unsavedChangesNotice');
-        if (banner) {
-          banner.style.display = viewHasChanges ? '' : 'none';
+          saveBtn.style.display = viewHasChanges ? '' : 'none';
         }
         const url = new URL(window.location.href);
         url.searchParams.set('view', viewId);
@@ -547,13 +581,19 @@ function initProjectOverviewTable() {
     })
     .find('ul')
     .sortable({
-      items: 'li',
+      // The synthetic "new" tab is pinned rightmost via CSS (order: 999) and is
+      // also excluded from the saved order payload below. Excluding it from the
+      // sortable item set prevents the user from grabbing it.
+      items: 'li:not([data-target="__new"])',
       axis: 'x',
       tolerance: 'pointer',
       update: function (event, ui) {
         var newOrder = window
           .jQuery(this)
-          .sortable('toArray', { attribute: 'data-target' });
+          .sortable('toArray', { attribute: 'data-target' })
+          .filter(function (id) {
+            return id !== '__new';
+          });
 
         // Send AJAX request to save the new order
         window.jQuery.ajax({
@@ -1385,20 +1425,28 @@ function toggleUnsavedIndicator(targetViewId, hasChanges) {
     tab.classList.toggle('has-unsaved-changes', hasChanges);
   }
 
-  // Show save button highlight and banner if the currently active view has unsaved changes
+  // The save-changes button is visible when the active view has unsaved changes,
+  // or whenever the synthetic "new" tab is active (it always wants to be saveable
+  // once the user has interacted with it; the dirty-tracking handles the latter).
+  syncSaveChangesVisibility();
+}
+
+/**
+ * Read the active view from #selectedViewId and toggle the Save changes button
+ * accordingly. The button shows only when the active view has unsaved changes;
+ * the empty "new" tab is no exception — its baseline state (empty defaults) is
+ * captured by `_viewInitialStates`, so any user input flips it to dirty.
+ */
+function syncSaveChangesVisibility() {
   const activeViewId = document.getElementById('selectedViewId');
-  const saveBtn = document.querySelector('.save-view-btn');
-  const banner = document.getElementById('unsavedChangesNotice');
-  if (activeViewId) {
-    const activeHasChanges =
-      !!window._viewsWithUnsavedChanges[activeViewId.value];
-    if (saveBtn) {
-      saveBtn.classList.toggle('has-unsaved-changes', activeHasChanges);
-    }
-    if (banner) {
-      banner.style.display = activeHasChanges ? '' : 'none';
-    }
-  }
+  const saveBtn = document.querySelector('.save-changes-btn');
+  if (!activeViewId || !saveBtn) return;
+
+  const hasChanges = !!(
+    window._viewsWithUnsavedChanges &&
+    window._viewsWithUnsavedChanges[activeViewId.value]
+  );
+  saveBtn.style.display = hasChanges ? '' : 'none';
 }
 
 // Save success animation

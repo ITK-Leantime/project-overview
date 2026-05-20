@@ -130,6 +130,13 @@ class ProjectOverview extends Controller
                     $redirectUrl .= '?' . http_build_query([self::PARAM_VIEW => $newViewId]);
                 }
                 break;
+            case 'duplicateView':
+                $viewId = $_POST[self::PARAM_VIEW] ?? '';
+                $newViewId = $this->actionHandler->duplicateOwnedView($viewId);
+                if ($newViewId !== null) {
+                    $redirectUrl .= '?' . http_build_query([self::PARAM_VIEW => $newViewId]);
+                }
+                break;
         }
 
         return Frontcontroller::redirect($redirectUrl);
