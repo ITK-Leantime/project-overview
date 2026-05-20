@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-05-20
+
 * [PR-83](https://github.com/ITK-Leantime/project-overview/pull/83)
   * Redesign view management.
 * [PR-82](https://github.com/ITK-Leantime/project-overview/pull/82)
@@ -237,7 +239,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.1.0...HEAD
+[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.2.0...HEAD
+[4.2.0]: https://github.com/ITK-Leantime/project-overview/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/ITK-Leantime/project-overview/compare/4.0.2...4.1.0
 [4.0.2]: https://github.com/ITK-Leantime/project-overview/compare/4.0.1...4.0.2
 [4.0.1]: https://github.com/ITK-Leantime/project-overview/compare/4.0.0...4.0.1
