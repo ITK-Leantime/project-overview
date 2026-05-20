@@ -23,11 +23,18 @@ class ProjectOverview
     }
 
     /**
-     * @return array<int, mixed>
+     * Get milestones for multiple projects in a single query.
+     *
+     * @param  array<int, int|string> $projectIds The project IDs to fetch milestones for.
+     * @return array<int, array<int, mixed>> Milestones grouped by projectId.
      */
-    public function getMilestonesByProjectId(string $projectId): array
+    public function getMilestonesByProjectIds(array $projectIds): array
     {
-        return $this->query()
+        if (empty($projectIds)) {
+            return [];
+        }
+
+        $results = $this->query()
             ->from('zp_tickets AS ticket')
             ->select([
                 'ticket.id',
@@ -36,15 +43,177 @@ class ProjectOverview
                 'ticket.tags AS color',
             ])
             ->where('ticket.type', '=', 'milestone')
-            ->where('projectId', '=', $projectId)
+            ->whereIn('ticket.projectId', $projectIds)
             ->get()
             ->toArray();
+
+        $grouped = [];
+        foreach ($results as $row) {
+            $grouped[$row->projectId][] = $row;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * Per-ticket logged-hours rows for the given ticket IDs (one row per (ticketId, userId)).
+     * Caller composes the userHours display string in PHP, which sidesteps GROUP_CONCAT
+     * truncation and keeps the timesheet aggregation scoped to the rendered tickets.
+     *
+     * @param  array<int, int|string> $ticketIds
+     * @return array<int, array<int, array{firstname: string, lastname: string, hours: float}>>
+     */
+    public function getUserHoursByTicketIds(array $ticketIds): array
+    {
+        if (empty($ticketIds)) {
+            return [];
+        }
+
+        $results = $this->query()
+            ->from('zp_timesheets AS ts')
+            ->select([
+                'ts.ticketId',
+                'u.firstname',
+                'u.lastname',
+                app('db')->connection()->raw('ROUND(SUM(ts.hours), 2) AS userTotal'),
+            ])
+            ->join('zp_user AS u', 'u.id', '=', 'ts.userId')
+            ->whereIn('ts.ticketId', $ticketIds)
+            ->groupBy('ts.ticketId', 'ts.userId', 'u.firstname', 'u.lastname')
+            ->get();
+
+        $grouped = [];
+        foreach ($results as $row) {
+            $grouped[(int) $row->ticketId][] = [
+                'firstname' => (string) $row->firstname,
+                'lastname' => (string) $row->lastname,
+                'hours' => (float) $row->userTotal,
+            ];
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * Returns users assigned via zp_relationuserproject for the given projects, grouped by projectId.
+     * Mirrors the column shape of {@see \Leantime\Domain\Projects\Repositories\Projects::getUsersAssignedToProject}.
+     *
+     * Each project's user list is deduped by user id (the relation table can yield
+     * duplicates) and re-indexed with array_values, so callers iterate a 0-indexed
+     * list, not a user-id keyed map.
+     *
+     * @param  array<int, int|string> $projectIds
+     * @return array<int, array<int, array<string, mixed>>>
+     */
+    public function getProjectAssignedUsersByProjectIds(array $projectIds, bool $includeApiUsers = false): array
+    {
+        if (empty($projectIds)) {
+            return [];
+        }
+
+        $query = $this->query()
+            ->from('zp_relationuserproject AS rup')
+            ->select([
+                'rup.projectId',
+                'u.id',
+                app('db')->connection()->raw('IF(u.firstname IS NOT NULL, u.firstname, u.username) AS firstname'),
+                'u.lastname',
+                'u.username',
+                'u.notifications',
+                'u.profileId',
+                'u.jobTitle',
+                'u.source',
+                'u.status',
+                'u.modified',
+                'u.role',
+                'rup.projectRole',
+            ])
+            ->join('zp_user AS u', 'u.id', '=', 'rup.userId')
+            ->whereIn('rup.projectId', $projectIds);
+
+        if ($includeApiUsers === false) {
+            $query->whereRaw("!(u.source <=> 'api')");
+        }
+
+        $results = $query->orderBy('u.lastname')->get();
+
+        $grouped = [];
+        foreach ($results as $row) {
+            $projectId = (int) $row->projectId;
+            $user = (array) $row;
+            unset($user['projectId']);
+            // Dedupe by user id (relation table can produce duplicates via join paths)
+            $grouped[$projectId][$row->id] = $user;
+        }
+
+        return array_map('array_values', $grouped);
+    }
+
+    /**
+     * Returns users belonging to each given client, grouped by clientId.
+     *
+     * @param  array<int, int|string> $clientIds
+     * @return array<int, array<int, array<string, mixed>>>
+     */
+    public function getUsersByClientIds(array $clientIds): array
+    {
+        if (empty($clientIds)) {
+            return [];
+        }
+
+        $results = $this->query()
+            ->from('zp_user')
+            ->select([
+                'id',
+                'firstname',
+                'lastname',
+                'username',
+                'notifications',
+                'profileId',
+                'phone',
+                'status',
+                'clientId',
+            ])
+            ->whereIn('clientId', $clientIds)
+            ->whereRaw("!(source <=> 'api')")
+            ->get();
+
+        $grouped = [];
+        foreach ($results as $row) {
+            $clientId = (int) $row->clientId;
+            $user = (array) $row;
+            unset($user['clientId']);
+            $grouped[$clientId][] = $user;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * Returns the subset of $projectIds that the given user has a direct relation row for.
+     *
+     * @param  int                    $userId
+     * @param  array<int, int|string> $projectIds
+     * @return array<int, int>
+     */
+    public function getUserAssignedProjectIds(int $userId, array $projectIds): array
+    {
+        if (empty($projectIds)) {
+            return [];
+        }
+
+        return $this->query()
+            ->from('zp_relationuserproject')
+            ->where('userId', '=', $userId)
+            ->whereIn('projectId', $projectIds)
+            ->pluck('projectId')
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 
     /**
      * Get all projects from the database
      *
-     * @access public
      * @return array<int, mixed> Returns an array of all projects
      */
     public function getAllProjects(): array
@@ -59,19 +228,45 @@ class ProjectOverview
             ->get()
             ->keyBy('id')
             ->map(function ($item) {
-                return (array)$item;
+                return (array) $item;
             })
             ->toArray();
     }
 
     /**
-     * Retrieves a list of tasks based on the ViewDTO.
+     * Retrieves a page of tasks based on the ViewDTO.
      *
-     * @param ViewDTO $viewDTO The data transfer object containing filter criteria.
-     * @return array<int, mixed> Returns an array of tasks matching the specified filters.
+     * Pagination: when both {@see ViewDTO::$page} and {@see ViewDTO::$pageSize} are non-null,
+     * the result is limited to that page. Otherwise all matching rows are returned.
+     * `hasMore` is detected by fetching `pageSize + 1` rows and trimming the sentinel.
+     *
+     * Access control: $accessibleProjectIds is REQUIRED. The list is the set of
+     * projects the current user may see (see {@see ProjectOverviewHelper::computeAccessibleProjectIds()}).
+     * It is intersected with $viewDTO->projectFilters and enforced as a SQL
+     * `whereIn` so callers cannot accidentally bypass project-access checks.
+     * Pass an empty array to return no rows.
+     *
+     * @param  ViewDTO         $viewDTO              The data transfer object containing filter criteria.
+     * @param  array<int, int> $accessibleProjectIds Project ids the current user can access.
+     * @return array{rows: array<int, mixed>, hasMore: bool}
      */
-    public function getViewTasks(ViewDTO $viewDTO): array
+    public function getViewTasks(ViewDTO $viewDTO, array $accessibleProjectIds): array
     {
+        if (empty($accessibleProjectIds)) {
+            return ['rows' => [], 'hasMore' => false];
+        }
+
+        $effectiveProjectIds = !empty($viewDTO->projectFilters)
+            ? array_values(array_intersect(
+                array_map('intval', $viewDTO->projectFilters),
+                $accessibleProjectIds
+            ))
+            : $accessibleProjectIds;
+
+        if (empty($effectiveProjectIds)) {
+            return ['rows' => [], 'hasMore' => false];
+        }
+
         $fromDate = $viewDTO->fromDate ?? null;
         $toDate = $viewDTO->toDate ?? null;
 
@@ -99,8 +294,6 @@ class ProjectOverview
                 't2.id AS editorId',
                 't2.firstname AS editorFirstname',
                 't2.lastname AS editorLastname',
-                app('db')->connection()->raw("(SELECT GROUP_CONCAT(CONCAT(u.firstname, ' ', u.lastname, ': ', ROUND(IFNULL((SELECT SUM(hours) FROM zp_timesheets WHERE ticketId = ticket.id AND userId = u.id), 0), 2)) SEPARATOR '\n') FROM zp_user u WHERE u.id IN (SELECT DISTINCT userId FROM zp_timesheets WHERE ticketId = ticket.id)) as userHours"),
-                app('db')->connection()->raw('(SELECT ROUND(IFNULL(SUM(hours), 0), 2) FROM zp_timesheets WHERE ticketId = ticket.id) as sumHours'),
             ])
             ->leftJoin('zp_user AS t1', 'ticket.userId', '=', 't1.id')
             ->leftJoin('zp_user AS t2', 'ticket.editorId', '=', 't2.id')
@@ -139,9 +332,10 @@ class ProjectOverview
             });
         }
 
-        if (!empty($viewDTO->projectFilters)) {
-            $query->whereIn('ticket.projectId', $viewDTO->projectFilters);
-        }
+        // Always restrict to the intersection of (user-requested filters,
+        // user-accessible projects) computed above — this enforces access at
+        // the SQL layer instead of trusting the caller.
+        $query->whereIn('ticket.projectId', $effectiveProjectIds);
 
         if (!empty($viewDTO->priorityFilters) || !empty($viewDTO->statusFilters)) {
             $query->where(function ($q) use ($viewDTO) {
@@ -162,16 +356,52 @@ class ProjectOverview
             'editorLastname' => 't2.lastname',
             'planHours' => 'ticket.planHours',
             'hourRemaining' => 'ticket.hourRemaining',
-            'sumHours' => 'sumHours',
+            'sumHours' => 'ts_agg.sumHours',
             'milestoneid' => 'ticket.milestoneid',
             'tags' => 'ticket.tags',
         ];
 
         $sortColumn = $allowedSortColumns[$viewDTO->sortBy] ?? 'ticket.priority';
         $sortDirection = strtoupper($viewDTO->sortDirection) === 'DESC' ? 'DESC' : 'ASC';
-        $query->orderBy($sortColumn, $sortDirection);
 
-        return $query->get()->toArray();
+        // sumHours is composed in PHP from per-user logged-hours (see helper), not
+        // selected here. Only when the user explicitly sorts by Logged do we add
+        // the timesheet aggregation join. The inner aggregate is always scoped
+        // to the same project set the outer query is restricted to, so it never
+        // touches the full timesheets table.
+        if ($viewDTO->sortBy === 'sumHours') {
+            $tsAgg = $this->query()
+                ->from('zp_timesheets AS ts')
+                ->select([
+                    'ts.ticketId',
+                    app('db')->connection()->raw('ROUND(SUM(ts.hours), 2) AS sumHours'),
+                ])
+                ->join('zp_tickets AS t_scope', 't_scope.id', '=', 'ts.ticketId')
+                ->whereIn('t_scope.projectId', $effectiveProjectIds)
+                ->groupBy('ts.ticketId');
+
+            $query->leftJoinSub($tsAgg, 'ts_agg', 'ts_agg.ticketId', '=', 'ticket.id');
+        }
+
+        $query->orderBy($sortColumn, $sortDirection);
+        // Stable secondary sort so consecutive pages don't shuffle rows on ties
+        $query->orderBy('ticket.id', 'ASC');
+
+        if ($viewDTO->page !== null && $viewDTO->pageSize !== null) {
+            $page = max(1, min(ViewDTO::MAX_PAGE, $viewDTO->page));
+            $pageSize = max(1, min(ViewDTO::MAX_PAGE_SIZE, $viewDTO->pageSize));
+            $query->offset(($page - 1) * $pageSize)->limit($pageSize + 1);
+
+            $rows = $query->get()->toArray();
+            $hasMore = count($rows) > $pageSize;
+            if ($hasMore) {
+                $rows = array_slice($rows, 0, $pageSize);
+            }
+
+            return ['rows' => $rows, 'hasMore' => $hasMore];
+        }
+
+        return ['rows' => $query->get()->toArray(), 'hasMore' => false];
     }
 
     /**

@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+* [PR-83](https://github.com/ITK-Leantime/project-overview/pull/83)
+  * Redesign view management.
+* [PR-82](https://github.com/ITK-Leantime/project-overview/pull/82)
+  * Performance optimizations (batched queries replacing N+1 + correlated subqueries, paginated infinite scroll)
+  * Enforce project-access scoping in the repository SQL layer instead of trusting callers
+  * Auth checks added to lazy-load endpoints; session-expired vs server-error are surfaced separately in the UI
+  * `saveSortOrder` / `saveTabOrder` now return JSON via Laravel's response pipeline (no more `exit(json_encode(...))`)
+
 ## [4.1.0] - 2026-04-16
 
 * [PR-80](https://github.com/ITK-Leantime/project-overview/pull/80)

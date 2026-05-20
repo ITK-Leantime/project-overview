@@ -3,11 +3,15 @@
 namespace Leantime\Plugins\ProjectOverview\Helpers;
 
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Leantime\Domain\Auth\Models\Roles;
 use Leantime\Domain\Tickets\Services\Tickets;
 use Leantime\Domain\Users\Services\Users as UserService;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewDTO;
 use Leantime\Plugins\ProjectOverview\DTO\ProjectOverviewFiltersDataDTO;
 use Leantime\Plugins\ProjectOverview\DTO\UserViewDTO;
+use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
+use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
+use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
 use Leantime\Plugins\ProjectOverview\Services\ProjectOverview as ProjectOverviewService;
 
 /**
@@ -17,13 +21,15 @@ readonly class ProjectOverviewHelper
 {
     /**
      * Initialize dependencies.
+     *
      * @return void
      */
     public function __construct(
         private ProjectOverviewActionHandler $actionHandler,
         private ProjectOverviewService $projectOverviewService,
         private Tickets $ticketService,
-        private UserService $userService
+        private UserService $userService,
+        private ProjectOverviewRepository $projectOverviewRepository,
     ) {
     }
 
@@ -31,7 +37,8 @@ readonly class ProjectOverviewHelper
      * Retrieves and processes project overview data.
      *
      * @return ProjectOverviewDTO Returns a data transfer object containing
-     * The required project overview data.
+     *                            The required project overview data.
+     *
      * @throws BindingResolutionException
      */
     public function getProjectOverviewData(): ProjectOverviewDTO
@@ -40,10 +47,10 @@ readonly class ProjectOverviewHelper
         $projectTicketStatuses = [];
         $userViewObject = $this->actionHandler->getUserViewsObject();
         $allProjects = $this->projectOverviewService->getAllProjects();
-        $viewId = $_GET['view'] ?? null;
+        $viewId = request()->query('view');
         $allUsers = $this->userService->getAll();
 
-        usort($allUsers, fn($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
+        usort($allUsers, fn ($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'unassigned',
@@ -71,8 +78,18 @@ readonly class ProjectOverviewHelper
             }
         }
 
+        // Determine which view to eagerly load (first view if none selected)
+        $viewKeys = array_keys($userViewObject);
+        $selectedViewKey = $viewId;
+        if ($selectedViewKey === null && !empty($viewKeys)) {
+            $selectedViewKey = (string) $viewKeys[0];
+        }
+
         foreach ($userViewObject as $key => $userViewData) {
             $userView = UserViewDTO::fromArray($userViewData);
+            // Ensure the template always has the view id (used to build the
+            // lazy-load sentinel URL for the next page of rows).
+            $userViewObject[$key]['id'] = (string) $key;
 
             // Skip subscription resolution for transient views (already resolved above)
             $isTransient = $userViewData['isTransientSubscription'] ?? false;
@@ -87,6 +104,7 @@ readonly class ProjectOverviewHelper
                     $this->actionHandler->removeSubscription($key);
                     $removedSubscriptions[] = $userView->title;
                     unset($userViewObject[$key]);
+
                     continue;
                 }
 
@@ -103,10 +121,27 @@ readonly class ProjectOverviewHelper
                 $userViewObject[$key]['isSubscription'] = false;
             }
 
-            $viewTickets = $this->projectOverviewService->getViewTasks($viewDTO);
-            [$viewTickets, $ticketStatusLabels] = $this->enrichTickets($viewTickets, $allProjects);
-            $projectTicketStatuses = array_merge($projectTicketStatuses, $ticketStatusLabels);
-            $userViewObject[$key]['tickets'] = $viewTickets;
+            // Only load tickets for the selected view; other tabs lazy-load on activation
+            if ((string) $key === (string) $selectedViewKey) {
+                $paginatedDTO = $this->applyDefaultPagination($viewDTO, page: 1);
+                $accessibleIds = $this->computeAccessibleProjectIds(
+                    (int) session('userdata.id'),
+                    array_keys($allProjects),
+                    $allProjects
+                );
+                $page = $this->projectOverviewService->getViewTasks($paginatedDTO, $accessibleIds);
+                [$viewTickets, $ticketStatusLabels] = $this->enrichTickets($page['rows'], $allProjects);
+                $projectTicketStatuses = array_merge($projectTicketStatuses, $ticketStatusLabels);
+                $userViewObject[$key]['tickets'] = $viewTickets;
+                $userViewObject[$key]['hasMore'] = $page['hasMore'];
+                $userViewObject[$key]['nextPage'] = $page['hasMore'] ? 2 : null;
+                $userViewObject[$key]['pageSize'] = $paginatedDTO->pageSize;
+            } else {
+                $userViewObject[$key]['tickets'] = null;
+                $userViewObject[$key]['hasMore'] = false;
+                $userViewObject[$key]['nextPage'] = null;
+                $userViewObject[$key]['pageSize'] = ViewDTO::DEFAULT_PAGE_SIZE;
+            }
         }
         // Flash notification for auto-removed broken subscriptions
         if (!empty($removedSubscriptions)) {
@@ -130,68 +165,338 @@ readonly class ProjectOverviewHelper
     /**
      * Fetches and enriches table data for a single view from POST filter values.
      *
-     * @param array<string, mixed> $postData POST data containing filter values.
-     * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>}
+     * Page defaults to 1 unless POST contains `page`. Page size defaults to
+     * {@see ViewDTO::DEFAULT_PAGE_SIZE} unless POST contains `pageSize`.
+     *
+     * @param  array<string, mixed> $postData POST data containing filter values.
+     * @param  string|null          $viewId   Route-supplied view id; embedded into the response so the template can build the next-page sentinel URL.
+     * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
      */
-    public function getViewTableData(array $postData): array
+    public function getViewTableData(array $postData, ?string $viewId = null): array
     {
         $viewDTO = $this->actionHandler->parseFiltersFromPost($postData);
+        $viewDTO = $this->applyDefaultPagination(
+            $viewDTO,
+            page: $viewDTO->page ?? 1,
+            pageSize: $viewDTO->pageSize ?? ViewDTO::DEFAULT_PAGE_SIZE,
+        );
         $allProjects = $this->projectOverviewService->getAllProjects();
 
-        $viewTickets = $this->projectOverviewService->getViewTasks($viewDTO);
-        [$viewTickets, $statusLabels] = $this->enrichTickets($viewTickets, $allProjects);
+        $accessibleIds = $this->computeAccessibleProjectIds(
+            (int) session('userdata.id'),
+            array_keys($allProjects),
+            $allProjects
+        );
+
+        $page = $this->projectOverviewService->getViewTasks($viewDTO, $accessibleIds);
+        [$viewTickets, $statusLabels] = $this->enrichTickets($page['rows'], $allProjects);
 
         return [
             'userView' => [
+                'id' => $viewId ?? '',
                 'view' => [
                     'columns' => $viewDTO->columns,
                     'sortBy' => $viewDTO->sortBy,
                     'sortDirection' => $viewDTO->sortDirection,
                 ],
                 'tickets' => $viewTickets,
+                'hasMore' => $page['hasMore'],
+                'nextPage' => $page['hasMore'] ? $viewDTO->page + 1 : null,
+                'pageSize' => $viewDTO->pageSize,
             ],
             'statusLabels' => $statusLabels,
             'allPriorities' => $this->ticketService->getPriorityLabels(),
+            'hasMore' => $page['hasMore'],
+            'nextPage' => $page['hasMore'] ? $viewDTO->page + 1 : null,
+            'pageSize' => $viewDTO->pageSize,
         ];
     }
 
     /**
-     * Enriches tickets with project data, users, milestones, and status labels.
+     * Fetches one paginated chunk of rows for a view (used by the infinite-scroll sentinel).
+     * Page and pageSize come from POST (`page`, `pageSize`); both default if absent.
      *
-     * @param array<object>                    $tickets     Raw ticket objects from the repository.
-     * @param array<int, array<string, mixed>> $allProjects All projects indexed by ID.
+     * @param  array<string, mixed> $postData
+     * @return array{rows: array<int, mixed>, columns: array<int, string>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
+     */
+    public function getViewTableRows(array $postData): array
+    {
+        $viewDTO = $this->actionHandler->parseFiltersFromPost($postData);
+        $viewDTO = $this->applyDefaultPagination(
+            $viewDTO,
+            page: $viewDTO->page ?? 1,
+            pageSize: $viewDTO->pageSize ?? ViewDTO::DEFAULT_PAGE_SIZE,
+        );
+        $allProjects = $this->projectOverviewService->getAllProjects();
+
+        $accessibleIds = $this->computeAccessibleProjectIds(
+            (int) session('userdata.id'),
+            array_keys($allProjects),
+            $allProjects
+        );
+
+        $result = $this->projectOverviewService->getViewTasks($viewDTO, $accessibleIds);
+        [$rows, $statusLabels] = $this->enrichTickets($result['rows'], $allProjects);
+
+        return [
+            'rows' => $rows,
+            'columns' => $viewDTO->columns,
+            'statusLabels' => $statusLabels,
+            'allPriorities' => $this->ticketService->getPriorityLabels(),
+            'hasMore' => $result['hasMore'],
+            'nextPage' => $result['hasMore'] ? $viewDTO->page + 1 : null,
+            'pageSize' => $viewDTO->pageSize,
+        ];
+    }
+
+    /**
+     * Returns a copy of the DTO with page/pageSize filled in (defaults applied
+     * only where the original is null). Use page=1 to force a reset to the first
+     * page regardless of what the caller provided.
+     *
+     * @param  ViewDTO  $dto
+     * @param  int|null $page
+     * @param  int|null $pageSize
+     * @return ViewDTO
+     */
+    private function applyDefaultPagination(ViewDTO $dto, ?int $page = null, ?int $pageSize = null): ViewDTO
+    {
+        return new ViewDTO(
+            title: $dto->title,
+            users: $dto->users,
+            dateType: $dto->dateType,
+            fromDate: $dto->fromDate,
+            toDate: $dto->toDate,
+            columns: $dto->columns,
+            projectFilters: $dto->projectFilters,
+            priorityFilters: $dto->priorityFilters,
+            statusFilters: $dto->statusFilters,
+            customFilters: $dto->customFilters,
+            sortBy: $dto->sortBy,
+            sortDirection: $dto->sortDirection,
+            page: $page ?? $dto->page ?? 1,
+            pageSize: $pageSize ?? $dto->pageSize ?? ViewDTO::DEFAULT_PAGE_SIZE,
+            search: $dto->search,
+        );
+    }
+
+    /**
+     * Enriches tickets with project data, users, milestones, status labels, and a userHours tooltip.
+     *
+     * All cross-ticket lookups are batched to avoid N+1 queries:
+     *  - milestones: 1 query for all projectIds
+     *  - project-access user lists: bounded number of queries regardless of project count
+     *    (relation users + client users + UserService::getAll() when any project uses
+     *     psettings='all'; the latter typically resolves from cache)
+     *  - per-user logged hours per ticket: 1 query for all ticketIds
+     *
+     * @param  array<object>                    $tickets     Raw ticket objects from the repository.
+     * @param  array<int, array<string, mixed>> $allProjects All projects indexed by ID.
      * @return array{0: array<object>, 1: array<int, mixed>} Enriched tickets and status labels.
      */
     private function enrichTickets(array $tickets, array $allProjects): array
     {
         $projectIds = array_unique(array_column($tickets, 'projectId'));
         $statusLabels = [];
-        $userAndProject = [];
-        $milestonesAndProject = [];
+
+        $milestonesByProject = $this->projectOverviewRepository->getMilestonesByProjectIds($projectIds);
 
         foreach ($projectIds as $projectId) {
+            // getStatusLabels is cached per-project inside core's TicketRepository.
             $statusLabels[$projectId] = $this->ticketService->getStatusLabels($projectId);
-            $userAndProject[$projectId] = $this->userService->getUsersWithProjectAccess(((int)session('userdata.id')), $projectId);
-            $milestonesAndProject[$projectId] = $this->projectOverviewService->getMilestonesByProjectId($projectId);
         }
+
+        $usersByProject = $this->loadProjectUsers(
+            (int) session('userdata.id'),
+            $projectIds,
+            $allProjects
+        );
+
+        $ticketIds = array_unique(array_column($tickets, 'id'));
+        $userHoursByTicket = $this->projectOverviewRepository->getUserHoursByTicketIds($ticketIds);
 
         foreach ($tickets as $ticket) {
             if ($ticket->dueDate == '0000-00-00') {
                 $ticket->dueDate = null;
             }
-            $ticket->projectUsers = $userAndProject[$ticket->projectId];
-            $ticket->projectMilestones = $milestonesAndProject[$ticket->projectId];
+            $ticket->projectUsers = $usersByProject[$ticket->projectId] ?? [];
+            $ticket->projectMilestones = $milestonesByProject[$ticket->projectId] ?? [];
             $ticket->projectName = $allProjects[$ticket->projectId]['name'] ?? '';
             $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
+
+            $userRows = $userHoursByTicket[(int) $ticket->id] ?? [];
+            $ticket->userHours = $this->formatUserHoursTooltip($userRows);
+            $ticket->sumHours = number_format(
+                array_sum(array_column($userRows, 'hours')),
+                2,
+                '.',
+                ''
+            );
         }
 
         return [$tickets, $statusLabels];
     }
 
     /**
+     * Resolves "users that have access to project X" for a batch of projects in one pass,
+     * mirroring the access logic of {@see UserService::getUsersWithProjectAccess()} but
+     * collapsing the per-project queries into a small bounded set:
+     *   - 1 query for relation users (when any project needs them)
+     *   - 1 query for client users (when any project has psettings='clients')
+     *   - 1 call to UserService::getAll() (when any project has psettings='all')
+     *
+     * @param  int                              $currentUserId
+     * @param  array<int, int|string>           $projectIds
+     * @param  array<int, array<string, mixed>> $allProjects   All projects indexed by ID (must include psettings, clientId).
+     * @return array<int, array<int, array<string, mixed>>> projectId => list of users
+     */
+    private function loadProjectUsers(int $currentUserId, array $projectIds, array $allProjects): array
+    {
+        if (empty($projectIds)) {
+            return [];
+        }
+
+        $accessibleProjectIds = $this->computeAccessibleProjectIds($currentUserId, $projectIds, $allProjects);
+
+        if (empty($accessibleProjectIds)) {
+            return [];
+        }
+
+        // Step 2: bucket accessible projects by psettings so we know what user list each needs.
+        $allUsersProjectIds = [];
+        $clientProjectsByClientId = [];
+        $relationOnlyProjectIds = [];
+        foreach ($accessibleProjectIds as $pid) {
+            $project = $allProjects[$pid] ?? null;
+            if ($project === null) {
+                continue;
+            }
+            $psettings = $project['psettings'] ?? '';
+            if ($psettings === 'all') {
+                $allUsersProjectIds[] = $pid;
+            } elseif ($psettings === 'clients') {
+                $clientProjectsByClientId[(int) ($project['clientId'] ?? -1)][] = $pid;
+            } else {
+                $relationOnlyProjectIds[] = $pid;
+            }
+        }
+
+        // Step 3: batch-fetch the data (at most three queries: relation users, client users, all users).
+        $relationUsersNeeded = array_merge($relationOnlyProjectIds, ...array_values($clientProjectsByClientId));
+        $relationUsersByProject = !empty($relationUsersNeeded)
+            ? $this->projectOverviewRepository->getProjectAssignedUsersByProjectIds($relationUsersNeeded)
+            : [];
+
+        $clientUsersByClient = !empty($clientProjectsByClientId)
+            ? $this->projectOverviewRepository->getUsersByClientIds(array_keys($clientProjectsByClientId))
+            : [];
+
+        $allUsersList = !empty($allUsersProjectIds)
+            ? $this->userService->getAll()
+            : [];
+
+        // Step 4: assemble the per-project map.
+        $result = [];
+        foreach ($allUsersProjectIds as $pid) {
+            $result[$pid] = $allUsersList;
+        }
+        foreach ($clientProjectsByClientId as $cid => $pids) {
+            $clientUsers = $clientUsersByClient[$cid] ?? [];
+            foreach ($pids as $pid) {
+                $merged = $clientUsers;
+                $seenIds = array_column($merged, 'id');
+                foreach ($relationUsersByProject[$pid] ?? [] as $u) {
+                    if (!in_array($u['id'], $seenIds, true)) {
+                        $merged[] = $u;
+                        $seenIds[] = $u['id'];
+                    }
+                }
+                $result[$pid] = $merged;
+            }
+        }
+        foreach ($relationOnlyProjectIds as $pid) {
+            $result[$pid] = $relationUsersByProject[$pid] ?? [];
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns the subset of $candidateProjectIds the given user can see.
+     * Mirrors Leantime's psettings logic (admin/owner = all; 'all' = all logged-in;
+     * 'clients' = same clientId; otherwise relation row required).
+     *
+     * @param  int                              $currentUserId
+     * @param  array<int, int|string>           $candidateProjectIds
+     * @param  array<int, array<string, mixed>> $allProjects         Indexed by id (must include psettings, clientId).
+     * @return array<int, int>
+     */
+    private function computeAccessibleProjectIds(int $currentUserId, array $candidateProjectIds, array $allProjects): array
+    {
+        if (empty($candidateProjectIds)) {
+            return [];
+        }
+
+        $role = (string) session('userdata.role');
+        $userClientId = (int) (session('userdata.clientId') ?? -1);
+        $isPrivileged = in_array($role, [Roles::$admin, Roles::$owner], true);
+
+        $needsRelationCheck = [];
+        $accessibleProjectIds = [];
+        foreach ($candidateProjectIds as $pid) {
+            $project = $allProjects[$pid] ?? null;
+            if ($project === null) {
+                continue;
+            }
+            $psettings = $project['psettings'] ?? '';
+
+            if ($isPrivileged || $psettings === 'all') {
+                $accessibleProjectIds[] = (int) $pid;
+
+                continue;
+            }
+
+            if ($psettings === 'clients' && (int) ($project['clientId'] ?? -1) === $userClientId) {
+                $accessibleProjectIds[] = (int) $pid;
+
+                continue;
+            }
+
+            $needsRelationCheck[] = (int) $pid;
+        }
+
+        if (!empty($needsRelationCheck)) {
+            $assigned = $this->projectOverviewRepository->getUserAssignedProjectIds($currentUserId, $needsRelationCheck);
+            $accessibleProjectIds = array_merge($accessibleProjectIds, $assigned);
+        }
+
+        return array_values(array_unique(array_map('intval', $accessibleProjectIds)));
+    }
+
+    /**
+     * Builds the tooltip string shown over the sumHours cell.
+     *
+     * @param  array<int, array{firstname: string, lastname: string, hours: float}> $rows
+     * @return string
+     */
+    private function formatUserHoursTooltip(array $rows): string
+    {
+        if (empty($rows)) {
+            return '';
+        }
+
+        $lines = [];
+        foreach ($rows as $row) {
+            $lines[] = trim($row['firstname'] . ' ' . $row['lastname']) . ': ' . number_format($row['hours'], 2, '.', '');
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
      * Retrieves and prepares filter data for the project overview.
      *
-     * @param array<string, string> $data An associative array containing input parameters.
+     * @param  array<string, string> $data An associative array containing input parameters.
      * @return ProjectOverviewFiltersDataDTO A data transfer object containing all necessary data for populating the project overview filters.
      */
     public function getProjectOverviewFiltersData(array $data): ProjectOverviewFiltersDataDTO
@@ -215,8 +520,7 @@ readonly class ProjectOverviewHelper
         ]);
 
         // Sort projects alphabetically
-        uasort($allProjects, fn($a, $b) => strcmp($a['name'], $b['name']));
-
+        uasort($allProjects, fn ($a, $b) => strcmp($a['name'], $b['name']));
 
         // Get precalculated date ranges for display (with inclusive end dates)
         $dateRanges = $this->projectOverviewService->calculateDisplayDateRanges();
@@ -241,6 +545,12 @@ readonly class ProjectOverviewHelper
         $isSubscription = false;
         $isTransientSubscription = false;
         $subscribeToken = null;
+
+        // The synthetic "new" tab uses defaults only — no persistence, no lookup.
+        if ($selectedViewId === '__new') {
+            $userViewsData['dateType'] = DateTypeEnum::THIS_WEEK->value;
+            $userViewsData['selectedViewId'] = '__new';
+        }
 
         // Check if selected view is a transient subscription from session
         $transientSub = session('project_overview.transient_subscription');

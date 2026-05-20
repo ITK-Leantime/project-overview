@@ -690,13 +690,130 @@ th.sort-desc .label-and-caret-wrapper::after {
   padding: 0 0 0 5px;
 }
 
-/* Unsaved changes notice next to filters */
-.unsaved-changes-notice {
-  font-size: 12px;
-  color: var(--itk-color-warning);
+/* "Save changes" — primary save action, lives next to the filter inputs as
+   a flex sibling. Matches their height and the project-overview-flat
+   (zero-radius) look; uses the project-overview blue from the legacy
+   save-view buttons above. The !important on border-radius is intentional:
+   Leantime core's `.btn` selector applies `border-radius: var(--element-radius)
+   !important` and would otherwise win. */
+#filtersForm .save-changes-btn {
+  margin-left: 10px;
+  height: 35px;
+  align-self: flex-start;
+  color: #fff;
+  font-weight: normal;
+  background-color: var(--itk-color-primary);
+  border: 1px solid var(--itk-color-primary);
+  border-radius: 0 !important;
+  cursor: pointer;
+  padding: var(--itk-button-padding);
   white-space: nowrap;
-  align-self: center;
-  margin-left: 8px;
+  box-shadow: none;
+  transition: background-color 0.15s ease;
+}
+
+#filtersForm .save-changes-btn:hover,
+#filtersForm .save-changes-btn:focus-visible {
+  background-color: var(--itk-color-primary-800);
+  border-color: var(--itk-color-primary-800);
+  outline: none;
+}
+
+/* `.filters-row` is just a wrapper for the filters pane; the toggle is
+   absolutely positioned out of flow (against `.project-overview-container`,
+   which is already `position: relative`) and pinned to the container's inner
+   top-right corner. This way the toggle always sits at the same screen
+   position regardless of whether filters are visible: open → next to filters,
+   collapsed → next to the tabs (which reflows up under the now-zero-height
+   filters row). */
+.filters-row {
+  display: block;
+}
+
+.filters-row > .search-and-filter {
+  /* Inherits margin-bottom: 15px (open) / 0 (collapsed) from the base
+     .search-and-filter rule above; do not override here. */
+  /* Reserve space on the right so filter inputs never run under the toggle. */
+  padding-right: 130px;
+}
+
+.filters-row > .filters-toggle {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 5;
+  height: 35px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--itk-color-primary);
+  background: #fff;
+  border: 1px solid var(--itk-color-primary);
+  border-radius: 0 !important;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.filters-row > .filters-toggle:hover,
+.filters-row > .filters-toggle:focus-visible {
+  background-color: var(--itk-color-primary);
+  color: #fff;
+  outline: none;
+}
+
+.filters-toggle .toggle-arrow {
+  transition: transform 0.2s ease;
+}
+
+.filters-toggle.collapsed .toggle-arrow {
+  transform: rotate(180deg);
+}
+
+/* Floating scroll-to-top button */
+.scroll-to-top-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: var(--itk-color-primary, #1d72b8);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    background 0.15s ease;
+}
+
+.scroll-to-top-btn[hidden] {
+  display: none !important;
+}
+
+.scroll-to-top-btn.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-to-top-btn:hover,
+.scroll-to-top-btn:focus-visible {
+  background: var(--itk-color-primary-800, #155a8e);
+  outline: none;
 }
 
 /* Unsaved changes indicator on tab */
@@ -715,13 +832,6 @@ th.sort-desc .label-and-caret-wrapper::after {
   animation: unsaved-pulse 1.5s ease-in-out 2;
 }
 
-/* Highlight save button when there are unsaved changes */
-.save-view-btn.has-unsaved-changes {
-  background-color: var(--itk-color-warning) !important;
-  border-color: var(--itk-color-warning) !important;
-  animation: unsaved-pulse 1.5s ease-in-out 2;
-}
-
 @keyframes unsaved-pulse {
   0%,
   100% {
@@ -730,6 +840,73 @@ th.sort-desc .label-and-caret-wrapper::after {
   50% {
     opacity: 0.5;
   }
+}
+
+/* Synthetic "new" tab — uses flex `order` to sit after real tabs without
+   forcing far-right alignment, so when it's the only tab (empty state) it
+   still appears at the start of the row. */
+#projectOverviewTabs .ui-tabs-nav li.new-view-tab {
+  order: 999;
+}
+
+/* When `__new` is the only tab, clicking it does nothing useful — disable the
+   click affordance so it reads as a label, not a button. */
+#projectOverviewTabs .ui-tabs-nav li.new-view-tab.is-only-tab,
+#projectOverviewTabs .ui-tabs-nav li.new-view-tab.is-only-tab a {
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Onboarding tips inside the synthetic "new" view panel — muted styling so the
+   user reads them as helper text, not as primary content. */
+.new-view-tips-section {
+  padding: 24px 8px;
+}
+
+.new-view-tips-heading {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--itk-color-text-secondary, #888);
+}
+
+.new-view-tips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.new-view-tip-card {
+  padding: 12px 16px;
+  background: transparent;
+  border: 1px dashed var(--itk-color-border, #d8dde3);
+  border-radius: 6px;
+  color: var(--itk-color-text-secondary, #6c7480);
+}
+
+.new-view-tip-card h4 {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--itk-color-text-primary, #2c333d);
+}
+
+.new-view-tip-card p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--itk-color-text-secondary, #6c7480);
+}
+
+/* Mode-aware context menu: hide items that don't apply to the current view type */
+#view-context-menu[data-mode='subscription'] .owned-only {
+  display: none;
+}
+
+#view-context-menu[data-mode='owned'] .subscription-only {
+  display: none;
 }
 
 /* Ensure date options select has no rounded corners */
@@ -963,31 +1140,9 @@ select#dateOptions {
     height: 0;
   }
 
-  .filters-toggle {
-    all: unset;
-    cursor: pointer;
-    position: absolute;
-    top: 8px;
-    right: 0;
-    color: #555555;
-    font-size: 12px;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    .toggle-arrow {
-      transition: transform 0.2s ease;
-    }
-
-    &.collapsed .toggle-arrow {
-      transform: rotate(180deg);
-    }
-
-    &:hover {
-      color: var(--itk-color-primary);
-    }
-  }
+  /* `.filters-toggle` styling lives in the top-level `.filters-row` rule below;
+     this nested block is intentionally empty so prior absolute-positioning
+     declarations don't leak through scoped specificity. */
 
   .ui-widget-header {
     background: transparent;
@@ -1051,6 +1206,10 @@ select#dateOptions {
     }
   }
   .ui-tabs-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
     li {
       position: relative;
 
@@ -1333,6 +1492,139 @@ select#dateOptions {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Initial loader shown for views that haven't been fetched yet */
+.view-lazy-load {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 240px;
+  color: #888;
+  font-size: 0.95em;
+}
+
+.view-lazy-load-spinner {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 2px solid #d8d8d8;
+  border-top-color: #1d72b8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex: none;
+}
+
+/* Lazy-load sentinel and end-of-list marker (infinite-scroll footer rows) */
+.lazy-row-sentinel,
+.lazy-row-end-marker {
+  background: transparent !important;
+}
+
+.lazy-row-sentinel > td,
+.lazy-row-end-marker > td {
+  border-top: none;
+  padding: 18px 12px;
+  background: transparent;
+}
+
+.lazy-row-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #888;
+  font-size: 0.95em;
+  min-height: 28px;
+}
+
+.lazy-row-status[hidden] {
+  display: none !important;
+}
+
+.lazy-row-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d8d8d8;
+  border-top-color: #1d72b8;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex: none;
+}
+
+.lazy-row-error {
+  color: #b94a48;
+}
+
+.lazy-row-status-icon {
+  font-size: 1.1em;
+}
+
+.lazy-row-retry {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 2px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.lazy-row-retry:hover {
+  background: rgba(185, 74, 72, 0.08);
+}
+
+.lazy-row-load-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #d0d7de;
+  color: #1d72b8;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95em;
+  font-weight: 500;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.lazy-row-load-more:hover,
+.lazy-row-load-more:focus-visible {
+  background: var(--itk-color-primary, #1d72b8);
+  border-color: var(--itk-color-primary, #1d72b8);
+  color: #fff;
+  outline: none;
+}
+
+.lazy-row-load-more i {
+  font-size: 0.9em;
+}
+
+.lazy-row-end {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #aaa;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lazy-row-end-line {
+  flex: 0 0 60px;
+  height: 1px;
+  background: #ddd;
+}
+
+.lazy-row-end-text {
+  white-space: nowrap;
 }
 
 .error-message {

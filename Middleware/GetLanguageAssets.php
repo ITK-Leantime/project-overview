@@ -31,12 +31,12 @@ class GetLanguageAssets
     {
         $languageArray = Cache::get('projectOverview.languageArray', []);
 
-        if (! empty($languageArray)) {
+        if (!empty($languageArray)) {
             $this->language->ini_array = array_merge($this->language->ini_array, $languageArray);
             return $next($request);
         }
 
-        if (! Cache::store('installation')->has('projectOverview.language.en-US')) {
+        if (!Cache::store('installation')->has('projectOverview.language.en-US')) {
             $languageArray += parse_ini_file(__DIR__ . '/../Language/en-US.ini', true);
         }
 
@@ -45,7 +45,7 @@ class GetLanguageAssets
             $languageFile = __DIR__ . '/../Language/' . $language . '.ini';
 
             if (file_exists($languageFile)) {
-                if (! Cache::store('installation')->has('projectOverview.language.' . $language)) {
+                if (!Cache::store('installation')->has('projectOverview.language.' . $language)) {
                     Cache::store('installation')->put(
                         'projectOverview.language.' . $language,
                         parse_ini_file($languageFile, true)

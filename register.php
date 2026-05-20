@@ -1,13 +1,14 @@
 <?php
 
-use Leantime\Plugins\ProjectOverview\Middleware\GetLanguageAssets;
 use Leantime\Core\Events\EventDispatcher;
+use Leantime\Plugins\ProjectOverview\Middleware\GetLanguageAssets;
 
 /**
-* Adds a menu point for adding fixture data.
-* @param array<string, array<int, array<string, mixed>>> $menuStructure The existing menu structure to which the new item will be added.
-* @return array<string, array<int, array<string, mixed>>> The modified menu structure with the new item added.
-*/
+ * Adds a menu point for adding fixture data.
+ *
+ * @param  array<string, array<int, array<string, mixed>>> $menuStructure The existing menu structure to which the new item will be added.
+ * @return array<string, array<int, array<string, mixed>>> The modified menu structure with the new item added.
+ */
 function addProjectOverviewMenuPoint(array $menuStructure): array
 {
     // So, why the number 21: In menu.php the menu seem to be ordered by putting menu items into an array by a number
@@ -23,17 +24,20 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
         'active' => ['ProjectOverview'],
         'module' => 'ProjectOverview',
     ];
+
     return $menuStructure;
 }
 
 /**
  * Adds Timetable to the personal menu
- * @param array<string, array<int, array<string, mixed>>> $sections The sections in the menu is to do with which menu is displayed on the current page.
+ *
+ * @param  array<string, array<int, array<string, mixed>>> $sections The sections in the menu is to do with which menu is displayed on the current page.
  * @return array<string, string> - the sections array, where ProjectOverview.projectOverview is in the "personal" menu.
  */
 function addProjectOverviewToPersonalMenu(array $sections): array
 {
     $sections['ProjectOverview.ProjectOverview'] = 'personal';
+
     return $sections;
 }
 
@@ -52,9 +56,24 @@ EventDispatcher::add_event_listener(
     function () {
 
         if (null !== (session('userdata.id')) && str_contains($_SERVER['REQUEST_URI'], '/ProjectOverview/ProjectOverview')) {
-            $projectOverviewUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => '%%VERSION%%']);
+            // %%VERSION%% is substituted during release packaging. In dev that
+            // placeholder is left as-is, which freezes the URL and lets the
+            // browser cache forever; fall back to the bundle's mtime so every
+            // rebuild produces a fresh URL.
+            $jsPath = __DIR__ . '/dist/js/project-overview.js';
+            $cssPath = __DIR__ . '/dist/css/project-overview.css';
+            $jsVersion = '%%VERSION%%';
+            $cssVersion = '%%VERSION%%';
+            if ($jsVersion === '%' . '%VERSION%' . '%' && is_file($jsPath)) {
+                $jsVersion = (string) filemtime($jsPath);
+            }
+            if ($cssVersion === '%' . '%VERSION%' . '%' && is_file($cssPath)) {
+                $cssVersion = (string) filemtime($cssPath);
+            }
+
+            $projectOverviewUrl = '/dist/js/project-overview.js?' . http_build_query(['v' => $jsVersion]);
             echo '<script type="module" src="' . htmlspecialchars($projectOverviewUrl) . '"></script>';
-            $projectOverviewStyle = '/dist/css/project-overview.css?' . http_build_query(['v' => '%%VERSION%%']);
+            $projectOverviewStyle = '/dist/css/project-overview.css?' . http_build_query(['v' => $cssVersion]);
             echo '<link rel="stylesheet" href="' . htmlspecialchars($projectOverviewStyle) . '"></link>';
         }
     },

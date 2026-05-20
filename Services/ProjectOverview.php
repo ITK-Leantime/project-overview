@@ -3,7 +3,7 @@
 namespace Leantime\Plugins\ProjectOverview\Services;
 
 use Carbon\CarbonImmutable;
-use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Cache;
 use Leantime\Plugins\ProjectOverview\DTO\ViewDTO;
 use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
 use Leantime\Plugins\ProjectOverview\Repositories\ProjectOverview as ProjectOverviewRepository;
@@ -23,11 +23,14 @@ class ProjectOverview
     ];
 
     public const FRONTEND_DATE_FORMAT = 'd-m-Y';
+
     public const BACKEND_DATE_FORMAT = 'Y-m-d';
+
+    private const ALL_PROJECTS_CACHE_KEY = 'po_all_projects';
 
     /** Constructor method for the class.
      *
-     * @param ProjectOverviewRepository $projectOverviewRepository The ticket repository instance.
+     * @param  ProjectOverviewRepository $projectOverviewRepository The ticket repository instance.
      */
     public function __construct(private ProjectOverviewRepository $projectOverviewRepository)
     {
@@ -84,11 +87,15 @@ class ProjectOverview
     }
 
     /**
-     * Get tasks.
+     * Get tasks for a view, optionally paginated.
      *
-     * @return array<int, mixed>
+     * @param  ViewDTO         $viewDTO
+     * @param  array<int, int> $accessibleProjectIds Project ids the current user may see.
+     *                                               Forwarded to the repository, which enforces
+     *                                               project-access at the SQL layer.
+     * @return array{rows: array<int, mixed>, hasMore: bool}
      */
-    public function getViewTasks(ViewDTO $viewDTO): array
+    public function getViewTasks(ViewDTO $viewDTO, array $accessibleProjectIds): array
     {
         $newFromDate = $viewDTO->fromDate;
         $newToDate = $viewDTO->toDate;
@@ -116,16 +123,20 @@ class ProjectOverview
             customFilters: $viewDTO->customFilters,
             sortBy: $viewDTO->sortBy,
             sortDirection: $viewDTO->sortDirection,
+            page: $viewDTO->page,
+            pageSize: $viewDTO->pageSize,
+            search: $viewDTO->search,
         );
 
-        return $this->projectOverviewRepository->getViewTasks($processedDTO);
+        return $this->projectOverviewRepository->getViewTasks($processedDTO, $accessibleProjectIds);
     }
 
     /**
      * Calculate date range for a given date type.
      *
-     * @param DateTypeEnum $dateType The date type to calculate range for
+     * @param  DateTypeEnum $dateType The date type to calculate range for
      * @return array<string, string> Array with 'start' and 'end' keys in Y-m-d format
+     *
      * @api
      */
     public function calculateDateRangeForType(DateTypeEnum $dateType): array
@@ -154,6 +165,7 @@ class ProjectOverview
      * Returns programmatic date ranges for predefined date range types.
      *
      * @return array<string, array<string, string>> Array of date ranges keyed by date type value
+     *
      * @api
      */
     public function calculateAllDateRanges(): array
@@ -169,6 +181,7 @@ class ProjectOverview
      * Calculate display-friendly date ranges for date range UI element.
      *
      * @return array<string, array<string, string>> Array of display date ranges keyed by date type value
+     *
      * @api
      */
     public function calculateDisplayDateRanges(): array
@@ -184,27 +197,45 @@ class ProjectOverview
     }
 
     /**
-     * @return array<int, mixed>
-     */
-    public function getMilestonesByProjectId(string $projectId): array
-    {
-        return $this->projectOverviewRepository->getMilestonesByProjectId($projectId);
-    }
-
-    /**
-     * Get all projects.
+     * Get all projects (cached briefly).
+     *
+     * The 60s TTL is a deliberate trade: project add/edit/archive isn't surfaced
+     * via Leantime events, so we can't invalidate precisely. A short window keeps
+     * the overview fast while ensuring mutations reach the page within a minute.
+     * Call {@see flushAllProjectsCache()} from any caller that mutates projects.
+     *
+     * Staleness window applies to *all* project columns used downstream — most
+     * importantly `psettings` and `clientId`, which feed access-decision logic in
+     * {@see ProjectOverviewHelper::computeAccessibleProjectIds()}. A privacy
+     * change (e.g. switching a project from 'all' to relation-only) is therefore
+     * not enforced until the cache expires. Cache key is global (not per-user),
+     * which is safe because the payload is identical for every caller — but it
+     * also means flushing affects everyone simultaneously.
      *
      * @return array<int, mixed> An array containing all projects.
      */
     public function getAllProjects(): array
     {
-        return $this->projectOverviewRepository->getAllProjects();
+        return Cache::remember(self::ALL_PROJECTS_CACHE_KEY, 60, function () {
+            return $this->projectOverviewRepository->getAllProjects();
+        });
+    }
+
+    /**
+     * Drop the all-projects cache. Call after mutating any project from this plugin.
+     *
+     * @return void
+     */
+    public function flushAllProjectsCache(): void
+    {
+        Cache::forget(self::ALL_PROJECTS_CACHE_KEY);
     }
 
     /**
      * Get all unique tags from all tickets.
      *
      * @return array<int, string> An array of unique tags.
+     *
      * @api
      */
     public function getAllUniqueTags(): array
