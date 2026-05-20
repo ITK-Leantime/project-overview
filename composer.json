@@ -3,11 +3,11 @@
   "description": "A project overview for leantime",
   "license": "MIT",
   "type": "leantime-plugin",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "authors": [
     {
-      "name": "Sine Jespersen",
-      "email": "sinejespersen@gmail.com"
+      "name": "Jeppe Krogh",
+      "email": "kjej@aarhus.dk"
     }
   ],
   "homepage": "https://github.com/ITK-Leantime/project-overview",
