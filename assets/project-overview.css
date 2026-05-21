@@ -1129,10 +1129,6 @@ select#dateOptions {
   color: #000 !important;
 }
 
-.project-overview-dropdown .select2-results__option--selected {
-  display: list-item !important;
-}
-
 #projectOverviewTabs {
   background: transparent;
   border: none;
