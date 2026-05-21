@@ -719,21 +719,12 @@ th.sort-desc .label-and-caret-wrapper::after {
   outline: none;
 }
 
-/* `.filters-row` is just a wrapper for the filters pane; the toggle is
-   absolutely positioned out of flow (against `.project-overview-container`,
-   which is already `position: relative`) and pinned to the container's inner
-   top-right corner. This way the toggle always sits at the same screen
-   position regardless of whether filters are visible: open → next to filters,
-   collapsed → next to the tabs (which reflows up under the now-zero-height
-   filters row). */
 .filters-row {
   display: block;
+  min-height: 50px;
 }
 
 .filters-row > .search-and-filter {
-  /* Inherits margin-bottom: 15px (open) / 0 (collapsed) from the base
-     .search-and-filter rule above; do not override here. */
-  /* Reserve space on the right so filter inputs never run under the toggle. */
   padding-right: 130px;
 }
 
@@ -1256,7 +1247,7 @@ select#dateOptions {
 }
 
 #view-context-menu {
-  position: absolute;
+  position: fixed;
   z-index: 99999;
   display: none !important;
   min-width: 200px;
@@ -1692,4 +1683,171 @@ select#dateOptions {
 
 div.milestone-select.no-milestones select {
   opacity: 0.5;
+}
+
+#projectOverviewTabs > ul {
+  display: none !important;
+}
+
+li.title:has(.projectoverview-views-header-text) {
+  margin-top: 6px;
+  border-bottom: 1px solid var(--itk-color-gray-200, #cbd2da);
+}
+
+li.title:has(.projectoverview-views-header-text) a {
+  display: block;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  padding-left: 15px !important;
+  pointer-events: none;
+  cursor: default;
+}
+
+.projectoverview-views-header-text {
+  display: inline-block;
+  font-size: 1em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+
+a.projectoverview-view-item {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  gap: 0;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  padding-left: 15px !important;
+  padding-right: 32px !important;
+  font-size: 0.92em;
+}
+
+a.projectoverview-view-item .view-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+a.projectoverview-view-item .view-context-menu-trigger {
+  display: none;
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  font-size: 1em;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.12s ease;
+}
+
+a.projectoverview-view-item .view-context-menu-trigger .fa-ellipsis-v {
+  line-height: 22px;
+}
+
+a.projectoverview-view-item:hover .view-context-menu-trigger,
+li.projectoverview-view-active
+  a.projectoverview-view-item
+  .view-context-menu-trigger {
+  display: inline-block;
+}
+
+a.projectoverview-view-item .view-context-menu-trigger:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+li.projectoverview-view-active > a.projectoverview-view-item {
+  font-weight: 600;
+}
+
+li.has-unsaved-changes > a.projectoverview-view-item .view-label {
+  font-style: italic;
+}
+
+a.projectoverview-view-item .view-dirty-dot {
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--itk-color-warning);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+li.has-unsaved-changes > a.projectoverview-view-item .view-dirty-dot {
+  display: inline-block;
+  animation: unsaved-pulse 1.5s ease-in-out 2;
+}
+
+a.projectoverview-view-item .subscription-indicator {
+  margin-left: 4px;
+  opacity: 0.7;
+  font-size: 0.85em;
+}
+
+a.projectoverview-new-view-item .view-new-icon {
+  font-weight: bold;
+  margin-right: 4px;
+}
+
+a.projectoverview-new-view-item {
+  opacity: 0.75;
+}
+
+a.projectoverview-new-view-item:hover {
+  opacity: 1;
+}
+
+li.ui-sortable-helper a.projectoverview-view-item,
+li.ui-sortable-helper a.projectoverview-view-item * {
+  user-select: none;
+}
+
+li.projectoverview-views-scroller {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+ul.projectoverview-views-inner-list {
+  display: block !important;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: min(360px, 60vh);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+ul.projectoverview-views-inner-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+ul.projectoverview-views-inner-list::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+}
+
+ul.projectoverview-views-inner-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+li.projectoverview-view-placeholder {
+  list-style: none;
+  visibility: visible !important;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px dashed var(--itk-color-gray-200, #cbd2da);
+  border-radius: 4px;
+  margin: 2px 0;
+  box-sizing: border-box;
 }
