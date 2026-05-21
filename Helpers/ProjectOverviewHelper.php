@@ -131,7 +131,7 @@ readonly class ProjectOverviewHelper
                 );
                 $page = $this->projectOverviewService->getViewTasks($paginatedDTO, $accessibleIds);
                 [$viewTickets, $ticketStatusLabels] = $this->enrichTickets($page['rows'], $allProjects);
-                $projectTicketStatuses = array_merge($projectTicketStatuses, $ticketStatusLabels);
+                $projectTicketStatuses = $projectTicketStatuses + $ticketStatusLabels;
                 $userViewObject[$key]['tickets'] = $viewTickets;
                 $userViewObject[$key]['hasMore'] = $page['hasMore'];
                 $userViewObject[$key]['nextPage'] = $page['hasMore'] ? 2 : null;
