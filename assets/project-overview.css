@@ -838,6 +838,12 @@ th.sort-desc .label-and-caret-wrapper::after {
    still appears at the start of the row. */
 #projectOverviewTabs .ui-tabs-nav li.new-view-tab {
   order: 999;
+  position: sticky;
+  right: 0;
+  background: #fff;
+  padding-left: 12px;
+  z-index: 2;
+  box-shadow: -8px 0 8px -6px rgba(0, 0, 0, 0.08);
 }
 
 /* When `__new` is the only tab, clicking it does nothing useful — disable the
@@ -1198,11 +1204,48 @@ select#dateOptions {
   }
   .ui-tabs-nav {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
     align-items: center;
+    scrollbar-width: thin;
+    scrollbar-color: var(--itk-color-gray-200) transparent;
+    padding-bottom: 10px;
+
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--itk-color-gray-200);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::after {
+      content: '';
+      flex-shrink: 0;
+      flex-basis: 140px;
+      order: 998;
+    }
 
     li {
       position: relative;
+      flex-shrink: 0;
+      max-width: 220px;
+      scroll-margin-inline-end: 150px;
+
+      .tab-link {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding-right: 24px;
+      }
 
       .tab-context-menu {
         display: none;

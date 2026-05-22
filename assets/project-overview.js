@@ -252,6 +252,20 @@ function scrollActiveSidebarViewIntoView() {
 }
 
 /**
+ * Horizontal-tab-strip counterpart of {@link scrollActiveSidebarViewIntoView}.
+ * Used on init so a page loaded with `?view=<id>` pointing at a tab past the
+ * fold of the scrollable strip isn't hidden behind the sticky "+ Ny visning"
+ * pin — the activate handler already scrolls on user-driven tab switches.
+ */
+function scrollActiveTabIntoView() {
+  const active = document.querySelector(
+    '#projectOverviewTabs .ui-tabs-nav .ui-state-active'
+  );
+  if (!active) return;
+  active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+}
+
+/**
  * Wraps the saved-view <li>s in a max-height + overflow:auto container so a
  * long view list scrolls inside the sidebar instead of pushing the layout.
  * Idempotent — does nothing if the wrapper already exists.
@@ -833,6 +847,14 @@ function initProjectOverviewTable() {
       activate: function (event, ui) {
         window.jQuery('#edit-time-log-modal').removeClass('shown');
 
+        if (ui.newTab && ui.newTab[0]) {
+          ui.newTab[0].scrollIntoView({
+            inline: 'nearest',
+            block: 'nearest',
+            behavior: 'smooth',
+          });
+        }
+
         // Update URL when tab is activated
         const viewId = ui.newPanel.attr('id').replace('view-', '');
 
@@ -866,6 +888,8 @@ function initProjectOverviewTable() {
       items: 'li:not([data-target="__new"])',
       axis: 'x',
       tolerance: 'pointer',
+      delay: 150,
+      distance: 5,
       update: function (event, ui) {
         var newOrder = window
           .jQuery(this)
@@ -905,6 +929,8 @@ function initProjectOverviewTable() {
 
   // Fade in after initialization
   $projectOverviewTabs.removeClass('is-hidden');
+
+  scrollActiveTabIntoView();
 
   // Set initial URL state
   if (!urlViewId) {
