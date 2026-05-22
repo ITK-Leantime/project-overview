@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-84](https://github.com/ITK-Leantime/project-overview/pull/84)
+  * Use javascript to move the list of user views into a submenu-looking structure in sidebar.
+
 ## [4.2.0] - 2026-05-20
 
 * [PR-83](https://github.com/ITK-Leantime/project-overview/pull/83)
