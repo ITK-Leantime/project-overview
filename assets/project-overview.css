@@ -1685,7 +1685,13 @@ div.milestone-select.no-milestones select {
   opacity: 0.5;
 }
 
-#projectOverviewTabs > ul {
+.mainwrapper.menuopen #projectOverviewTabs > ul {
+  display: none !important;
+}
+
+.mainwrapper.menuclosed li.title:has(.projectoverview-views-header-text),
+.mainwrapper.menuclosed li.projectoverview-views-scroller,
+.mainwrapper.menuclosed li:has(> a.projectoverview-new-view-item) {
   display: none !important;
 }
 

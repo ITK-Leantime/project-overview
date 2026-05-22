@@ -741,7 +741,8 @@ function initProjectOverviewTable() {
   // Init click event on context menu
   $(document).on('click', 'span.tab-context-menu', ({ target }) => {
     const currentName = $(target).siblings('.tab-link').first().text().trim();
-    const rect = target.parentElement.getBoundingClientRect();
+    const triggerRect = target.getBoundingClientRect();
+    const liRect = target.parentElement.getBoundingClientRect();
     const tab = $(target).parent();
     const viewId = tab.data('target');
     // Both stored subscriptions and live transient subscriptions need the
@@ -754,8 +755,8 @@ function initProjectOverviewTable() {
     contextMenu
       .attr('data-mode', isSubscription ? 'subscription' : 'owned')
       .css({
-        left: `${rect.left + window.scrollX - 175}px`,
-        top: `${rect.top + window.scrollY - rect.height - 25}px`,
+        left: `${liRect.left}px`,
+        top: `${triggerRect.bottom + 12}px`,
       })
       .addClass('shown')
       .find('#contextMenuTitle')
