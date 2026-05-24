@@ -25,7 +25,7 @@ class ProjectOverview
     /**
      * Get milestones for multiple projects in a single query.
      *
-     * @param  array<int, int|string> $projectIds The project IDs to fetch milestones for.
+     * @param  array<int, int|string>  $projectIds  The project IDs to fetch milestones for.
      * @return array<int, array<int, mixed>> Milestones grouped by projectId.
      */
     public function getMilestonesByProjectIds(array $projectIds): array
@@ -60,7 +60,7 @@ class ProjectOverview
      * Caller composes the userHours display string in PHP, which sidesteps GROUP_CONCAT
      * truncation and keeps the timesheet aggregation scoped to the rendered tickets.
      *
-     * @param  array<int, int|string> $ticketIds
+     * @param  array<int, int|string>  $ticketIds
      * @return array<int, array<int, array{firstname: string, lastname: string, hours: float}>>
      */
     public function getUserHoursByTicketIds(array $ticketIds): array
@@ -102,7 +102,7 @@ class ProjectOverview
      * duplicates) and re-indexed with array_values, so callers iterate a 0-indexed
      * list, not a user-id keyed map.
      *
-     * @param  array<int, int|string> $projectIds
+     * @param  array<int, int|string>  $projectIds
      * @return array<int, array<int, array<string, mixed>>>
      */
     public function getProjectAssignedUsersByProjectIds(array $projectIds, bool $includeApiUsers = false): array
@@ -152,7 +152,7 @@ class ProjectOverview
     /**
      * Returns users belonging to each given client, grouped by clientId.
      *
-     * @param  array<int, int|string> $clientIds
+     * @param  array<int, int|string>  $clientIds
      * @return array<int, array<int, array<string, mixed>>>
      */
     public function getUsersByClientIds(array $clientIds): array
@@ -192,8 +192,7 @@ class ProjectOverview
     /**
      * Returns the subset of $projectIds that the given user has a direct relation row for.
      *
-     * @param  int                    $userId
-     * @param  array<int, int|string> $projectIds
+     * @param  array<int, int|string>  $projectIds
      * @return array<int, int>
      */
     public function getUserAssignedProjectIds(int $userId, array $projectIds): array
@@ -246,8 +245,8 @@ class ProjectOverview
      * `whereIn` so callers cannot accidentally bypass project-access checks.
      * Pass an empty array to return no rows.
      *
-     * @param  ViewDTO         $viewDTO              The data transfer object containing filter criteria.
-     * @param  array<int, int> $accessibleProjectIds Project ids the current user can access.
+     * @param  ViewDTO  $viewDTO  The data transfer object containing filter criteria.
+     * @param  array<int, int>  $accessibleProjectIds  Project ids the current user can access.
      * @return array{rows: array<int, mixed>, hasMore: bool}
      */
     public function getViewTasks(ViewDTO $viewDTO, array $accessibleProjectIds): array
@@ -256,7 +255,7 @@ class ProjectOverview
             return ['rows' => [], 'hasMore' => false];
         }
 
-        $effectiveProjectIds = !empty($viewDTO->projectFilters)
+        $effectiveProjectIds = ! empty($viewDTO->projectFilters)
             ? array_values(array_intersect(
                 array_map('intval', $viewDTO->projectFilters),
                 $accessibleProjectIds
@@ -321,10 +320,18 @@ class ProjectOverview
                 }
             });
 
-        if (!empty($viewDTO->users)) {
+        if (! empty($viewDTO->users)) {
             $query->where(function ($q) use ($viewDTO) {
                 if (in_array('unassigned', $viewDTO->users)) {
-                    $q->where('ticket.editorId', '=', '');
+                    // `editorId` is a nullable VARCHAR (see SchemaBuilder).
+                    // In practice unassigned tickets in this DB are stored
+                    // as '-1', but legacy / freshly-inserted rows may also
+                    // be NULL or empty string — match all three.
+                    $q->where(function ($inner) {
+                        $inner->whereNull('ticket.editorId')
+                            ->orWhere('ticket.editorId', '=', '')
+                            ->orWhere('ticket.editorId', '=', '-1');
+                    });
                 }
                 if (count(array_diff($viewDTO->users, ['unassigned'])) > 0) {
                     $q->orWhereIn('ticket.editorId', array_diff($viewDTO->users, ['unassigned']));
@@ -337,12 +344,12 @@ class ProjectOverview
         // the SQL layer instead of trusting the caller.
         $query->whereIn('ticket.projectId', $effectiveProjectIds);
 
-        if (!empty($viewDTO->priorityFilters) || !empty($viewDTO->statusFilters)) {
+        if (! empty($viewDTO->priorityFilters) || ! empty($viewDTO->statusFilters)) {
             $query->where(function ($q) use ($viewDTO) {
-                if (!empty($viewDTO->priorityFilters)) {
+                if (! empty($viewDTO->priorityFilters)) {
                     $q->orWhereIn('ticket.priority', $viewDTO->priorityFilters);
                 }
-                if (!empty($viewDTO->statusFilters)) {
+                if (! empty($viewDTO->statusFilters)) {
                     $q->orWhereIn('ticket.status', $viewDTO->statusFilters);
                 }
             });
@@ -427,7 +434,7 @@ class ProjectOverview
             $tags = explode(',', $tagString);
             foreach ($tags as $tag) {
                 $tag = trim($tag);
-                if ($tag !== '' && !in_array($tag, $uniqueTags)) {
+                if ($tag !== '' && ! in_array($tag, $uniqueTags)) {
                     $uniqueTags[] = $tag;
                 }
             }
