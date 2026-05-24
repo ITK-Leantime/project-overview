@@ -489,6 +489,12 @@ function initProjectOverviewFilters() {
   // "new" tab always shows the button; other tabs only show it when dirty).
   syncSaveChangesVisibility();
 
+  // Build a dropdown adapter that puts a search input at the top of the open
+  // dropdown panel. Select2 v4 only renders an inline search inside the
+  // selection chip area for multi-selects, and our selection bar is hidden by
+  // CSS — so without this, users have to type blind to filter.
+  const dropdownWithSearch = buildDropdownAdapterWithSearch();
+
   // Init date range select
   const dateRange = flatpickr('#dateRange', {
     mode: 'range',
@@ -520,6 +526,23 @@ function initProjectOverviewFilters() {
     .select2({
       closeOnSelect: false,
       dropdownCssClass: 'project-overview-dropdown',
+      dropdownAdapter: dropdownWithSearch,
+      // Skip the default matcher's fallback that matches against an optgroup's
+      // own label — without this, typing "Priority"/"Status"/"Custom filters"
+      // would expand the entire group. We only want option text to match.
+      matcher: function matchOptionsOnly(params, data) {
+        if (!params.term || !params.term.trim()) return data;
+        if (data.children && data.children.length > 0) {
+          const filtered = Object.assign({}, data, { children: [] });
+          for (const child of data.children) {
+            const m = matchOptionsOnly(params, child);
+            if (m) filtered.children.push(m);
+          }
+          return filtered.children.length > 0 ? filtered : null;
+        }
+        const text = (data.text || '').toUpperCase();
+        return text.indexOf(params.term.toUpperCase()) !== -1 ? data : null;
+      },
     })
     .on('select2:select', () => {
       $(this).val(null).trigger('change');
@@ -536,23 +559,94 @@ function initProjectOverviewFilters() {
     return filterSelect.select2('data')?.length;
   });
 
-  // Init column select2
+  // Init project select2. The synthetic "__all" option represents the
+  // "no filter — show every project" state. It's mutually exclusive with
+  // real project selections: picking a project removes __all, picking __all
+  // (or clearing every real selection) snaps the value back to ['__all'].
+  const projectSelect = $('#projectSelect')
+    .select2({
+      closeOnSelect: false,
+      dropdownCssClass: 'project-overview-dropdown',
+      dropdownAdapter: dropdownWithSearch,
+      matcher: function (params, data) {
+        if (!params.term) return data;
+        const text = (data.text || '').toUpperCase();
+        return text.indexOf(params.term.toUpperCase()) !== -1 ? data : null;
+      },
+    })
+    .on('select2:select', function (e) {
+      const justPicked = e.params.data.id;
+      const current = projectSelect.val() || [];
+      if (justPicked === '__all') {
+        if (current.length !== 1 || current[0] !== '__all') {
+          applySelectMutex(projectSelect, ['__all']);
+        }
+      } else if (current.includes('__all')) {
+        applySelectMutex(
+          projectSelect,
+          current.filter((v) => v !== '__all')
+        );
+      }
+    })
+    .on('select2:unselect', function () {
+      const current = projectSelect.val() || [];
+      if (current.length === 0) {
+        applySelectMutex(projectSelect, ['__all']);
+      }
+    })
+    .on('change.select2', () => {
+      const vals = projectSelect.val() || [];
+      const label = vals.includes('__all') ? 'All' : vals.length;
+      projectSelect.next('.select2').attr('data-length', label);
+    });
+
+  (function setInitialProjectLength() {
+    const vals = projectSelect.val() || [];
+    const label = vals.includes('__all') ? 'All' : vals.length;
+    projectSelect.next('.select2').attr('data-length', label);
+  })();
+
+  // Init column select2. "__all" mirrors the projects/users dropdowns:
+  // mutually exclusive with concrete column picks, default when nothing is
+  // chosen, and stripped server-side so an empty stored columns array stays
+  // canonical for "show every column".
   const columnSelect = $('#columnSelect')
     .select2({
       closeOnSelect: false,
       dropdownCssClass: 'project-overview-dropdown',
+      dropdownAdapter: dropdownWithSearch,
+    })
+    .on('select2:select', function (e) {
+      const justPicked = e.params.data.id;
+      const current = columnSelect.val() || [];
+      if (justPicked === '__all') {
+        if (current.length !== 1 || current[0] !== '__all') {
+          applySelectMutex(columnSelect, ['__all']);
+        }
+      } else if (current.includes('__all')) {
+        applySelectMutex(
+          columnSelect,
+          current.filter((v) => v !== '__all')
+        );
+      }
+    })
+    .on('select2:unselect', function () {
+      const current = columnSelect.val() || [];
+      if (current.length === 0) {
+        applySelectMutex(columnSelect, ['__all']);
+      }
     })
     .on('change.select2', () => {
-      $(columnSelect)
-        .next('.select2')
-        .attr('data-length', function () {
-          return columnSelect.select2('data')?.length;
-        });
+      const vals = columnSelect.val() || [];
+      const label = vals.includes('__all') ? 'All' : vals.length;
+      columnSelect.next('.select2').attr('data-length', label);
     });
 
-  columnSelect.next('.select2').attr('data-length', function () {
-    return columnSelect.select2('data')?.length;
-  });
+  (function setInitialColumnLength() {
+    const vals = columnSelect.val() || [];
+    const label = vals.includes('__all') ? 'All' : vals.length;
+    columnSelect.next('.select2').attr('data-length', label);
+  })();
 
   // Init date range select
   $('#dateOptions')
@@ -587,11 +681,14 @@ function initProjectOverviewFilters() {
     })
     .trigger('change');
 
-  // Init assignee select2
+  // Init assignee select2. Like the project select, "__all" is mutually
+  // exclusive with concrete user selections — including the "unassigned"
+  // sentinel — and snaps back as the default when the list is emptied.
   const userSelect = $('#userSelect')
     .select2({
       closeOnSelect: false,
       dropdownCssClass: 'project-overview-dropdown',
+      dropdownAdapter: dropdownWithSearch,
       matcher: function (params, data) {
         if (!params.term) return data;
         const keywords = params.term.split(' ');
@@ -602,16 +699,37 @@ function initProjectOverviewFilters() {
         return data;
       },
     })
+    .on('select2:select', function (e) {
+      const justPicked = e.params.data.id;
+      const current = userSelect.val() || [];
+      if (justPicked === '__all') {
+        if (current.length !== 1 || current[0] !== '__all') {
+          applySelectMutex(userSelect, ['__all']);
+        }
+      } else if (current.includes('__all')) {
+        applySelectMutex(
+          userSelect,
+          current.filter((v) => v !== '__all')
+        );
+      }
+    })
+    .on('select2:unselect', function () {
+      const current = userSelect.val() || [];
+      if (current.length === 0) {
+        applySelectMutex(userSelect, ['__all']);
+      }
+    })
     .on('change.select2', () => {
-      $(userSelect)
-        .next('.select2')
-        .attr('data-length', function () {
-          return userSelect.select2('data')?.length;
-        });
+      const vals = userSelect.val() || [];
+      const label = vals.includes('__all') ? 'All' : vals.length;
+      userSelect.next('.select2').attr('data-length', label);
     });
-  userSelect.next('.select2').attr('data-length', function () {
-    return userSelect.select2('data')?.length;
-  });
+
+  (function setInitialUserLength() {
+    const vals = userSelect.val() || [];
+    const label = vals.includes('__all') ? 'All' : vals.length;
+    userSelect.next('.select2').attr('data-length', label);
+  })();
 
   // Re-enable disabled fields on submit so their values are included in POST data
   const filtersForm = document.getElementById('filtersForm');
@@ -673,6 +791,7 @@ function initProjectOverviewFilters() {
 
   $('#userSelect').on('change.select2', onFilterChange);
   $('#filterSelect').on('change.select2', onFilterChange);
+  $('#projectSelect').on('change.select2', onFilterChange);
   $('#columnSelect').on('change.select2', onFilterChange);
   $('#dateOptions').on('change', onFilterChange);
 
@@ -691,6 +810,69 @@ function initProjectOverviewFilters() {
 function initProjectOverviewTable() {
   // Init tags select for each row.
   initTagsSelects();
+
+  // Capture-phase key handling for the dropdown search input.
+  //   - Enter: select2's default Enter on multi-select is "select-only", but
+  //     we want toggle behavior matching what a mouse click does. Triggering
+  //     mouseup on the highlighted result reuses select2's own click handler,
+  //     which already implements toggle.
+  //   - Escape: select2 closes the dropdown, but in our layout something in
+  //     the post-close focus dance reopens it almost immediately. We can't
+  //     reliably stop the reopen at the keydown level (it survives even
+  //     stopImmediatePropagation from a capture-phase handler), so instead we
+  //     mark the select "suppress next open" and cancel any `select2:opening`
+  //     event that fires within a short window after Escape. The
+  //     `select2:opening` listener is delegated at document level so it
+  //     covers each fresh select2 instance after HTMX swaps.
+  $(document).on(
+    'select2:opening',
+    '#filterSelect, #projectSelect, #columnSelect, #userSelect',
+    function (e) {
+      const $select = $(this);
+      if ($select.data('_povSuppressOpen')) {
+        e.preventDefault();
+        $select.removeData('_povSuppressOpen');
+      }
+    }
+  );
+
+  $(document).on(
+    'select2:open',
+    '#filterSelect, #projectSelect, #columnSelect, #userSelect',
+    function () {
+      const $select = $(this);
+      const input = document.querySelector(
+        '.project-overview-dropdown .select2-search__field'
+      );
+      if (!input) return;
+      input.addEventListener(
+        'keydown',
+        function (e) {
+          const isEscape = e.key === 'Escape' || e.keyCode === 27;
+          const isEnter = e.key === 'Enter' || e.keyCode === 13;
+          if (!isEscape && !isEnter) return;
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          if (isEscape) {
+            $select.data('_povSuppressOpen', true);
+            $select.select2('close');
+            // Clear the suppression flag after the event loop has had a
+            // chance to fire (and be cancelled by) any spurious opening.
+            setTimeout(() => $select.removeData('_povSuppressOpen'), 200);
+            return;
+          }
+          const highlighted = document.querySelector(
+            '.project-overview-dropdown .select2-results__option--highlighted'
+          );
+          if (highlighted) {
+            $(highlighted).trigger('mouseup');
+          }
+        },
+        true
+      );
+    }
+  );
 
   // Wire the lazy-load buttons on the initially-rendered active panel.
   // (Inactive tabs hold a placeholder until activated, then refreshViewTable
@@ -807,11 +989,6 @@ function initProjectOverviewTable() {
       contextMenu.removeClass('shown');
     }
   });
-  // Expand Project results.
-  $(document).on('click', '.select2-results__group', ({ target }) => {
-    $(target).toggleClass('show-all-projects');
-  });
-
   // Check if URL has a view parameter
   const urlParams = new URLSearchParams(window.location.search);
   const urlViewId = urlParams.get('view');
@@ -1335,10 +1512,82 @@ function changeSortBy(sortBy, clickedTh) {
  * @param {HTMLFormElement} form
  * @returns {object} Field values keyed by name.
  */
+/**
+ * Build a select2 dropdownAdapter that renders a search input at the top of
+ * the open dropdown panel. Required because select2 v4 puts the search inline
+ * inside the selection bar for multi-selects, and our selection bars are
+ * hidden by CSS — so without this, users have to type blind to filter.
+ *
+ * Select2's bundled AMD shim (almond) defers `require([...], cb)` via
+ * setTimeout unless you pass `forceSync=true` as the 4th argument, so we
+ * forward that flag — otherwise the callback would fire after we've already
+ * returned `undefined`.
+ *
+ * @returns {Function} A constructor to pass as `dropdownAdapter` to select2().
+ */
+function buildDropdownAdapterWithSearch() {
+  let Adapter;
+  $.fn.select2.amd.require(
+    [
+      'select2/dropdown',
+      'select2/dropdown/search',
+      'select2/dropdown/dropdownCss',
+      'select2/dropdown/attachBody',
+      'select2/utils',
+    ],
+    function (Dropdown, DropdownSearch, DropdownCss, AttachBody, Utils) {
+      // Decorator order matches select2's default chain (see dist
+      // select2.js around the `options.dropdownAdapter == null` branch):
+      // base → search → dropdownCss → attachBody. CloseOnSelect is
+      // intentionally omitted so `closeOnSelect: false` stays in effect.
+      let A = Utils.Decorate(Dropdown, DropdownSearch);
+      A = Utils.Decorate(A, DropdownCss);
+      A = Utils.Decorate(A, AttachBody);
+      Adapter = A;
+    },
+    null,
+    true
+  );
+  return Adapter;
+}
+
+/**
+ * Update the underlying <select> value and re-sync the open select2 dropdown's
+ * visible checkboxes. We need this because select2 v4 with `closeOnSelect:
+ * false` does not redraw the open results panel when val() is changed
+ * programmatically — so a mutex change (e.g. "remove __all when a real
+ * option is picked") would take effect in the data but the user would still
+ * see __all visually ticked.
+ *
+ * @param {JQuery} $select The wrapped select (must have an id attribute).
+ * @param {string[]} newVals The new value array.
+ */
+function applySelectMutex($select, newVals) {
+  $select.val(newVals).trigger('change');
+
+  const selectId = $select.attr('id');
+  if (!selectId) return;
+  const results = document.getElementById('select2-' + selectId + '-results');
+  if (!results) return;
+
+  const valSet = new Set(newVals.map(String));
+  const optionIdRegex = new RegExp(
+    '^select2-' + selectId + '-result-[^-]+-(.+)$'
+  );
+  results.querySelectorAll('.select2-results__option').forEach(function (li) {
+    const m = (li.id || '').match(optionIdRegex);
+    if (!m) return;
+    const isSelected = valSet.has(m[1]);
+    li.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+    li.classList.toggle('select2-results__option--selected', isSelected);
+  });
+}
+
 function captureFormState(form) {
   return {
     users: $('#userSelect', form).val() || [],
     filters: $('#filterSelect', form).val() || [],
+    projects: $('#projectSelect', form).val() || [],
     columns: $('#columnSelect', form).val() || [],
     dateType: $('#dateOptions', form).val(),
     fromDate: $('#fromDate', form).val(),
@@ -1357,6 +1606,9 @@ function restoreFormState(state) {
   // Restore select2 multi-selects (set values without triggering change yet)
   $('#userSelect').val(state.users).trigger('change.select2');
   $('#filterSelect').val(state.filters).trigger('change.select2');
+  $('#projectSelect')
+    .val(state.projects || [])
+    .trigger('change.select2');
   $('#columnSelect').val(state.columns).trigger('change.select2');
 
   // Restore date type (triggers the dateRange toggle handler)

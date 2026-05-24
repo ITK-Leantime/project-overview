@@ -215,6 +215,7 @@
       }
 
       .filters,
+      .projects,
       .date-options,
       .columns-display {
         margin-left: 10px;
@@ -918,6 +919,7 @@ select#dateOptions {
 }
 
 #filterSelect + span.select2,
+#projectSelect + span.select2,
 #columnSelect + span.select2,
 #userSelect + span.select2 {
   width: 150px !important;
@@ -961,11 +963,31 @@ select#dateOptions {
     }
   }
   &:after {
-    content: 'Filters (' attr(data-length) ')';
+    content: 'Other filters (' attr(data-length) ')';
   }
 
   &.select2-container--open:after {
-    content: 'Filters (' attr(data-length) ') ▾';
+    content: 'Other filters (' attr(data-length) ') ▾';
+  }
+}
+
+#projectSelect + span.select2 {
+  height: 35px !important;
+  > .selection {
+    height: inherit;
+    > .select2-selection {
+      height: inherit;
+      > .select2-selection__rendered {
+        display: none;
+      }
+    }
+  }
+  &:after {
+    content: 'Projects (' attr(data-length) ')';
+  }
+
+  &.select2-container--open:after {
+    content: 'Projects (' attr(data-length) ') ▾';
   }
 }
 
@@ -981,11 +1003,11 @@ select#dateOptions {
     }
   }
   &:after {
-    content: 'Display (' attr(data-length) ')';
+    content: 'Columns (' attr(data-length) ')';
   }
 
   &.select2-container--open:after {
-    content: 'Display (' attr(data-length) ') ▾';
+    content: 'Columns (' attr(data-length) ') ▾';
   }
 }
 
@@ -1001,11 +1023,11 @@ select#dateOptions {
     }
   }
   &:after {
-    content: 'User (' attr(data-length) ')';
+    content: 'Users (' attr(data-length) ')';
   }
 
   &.select2-container--open:after {
-    content: 'User (' attr(data-length) ') ▾';
+    content: 'Users (' attr(data-length) ') ▾';
   }
 }
 
@@ -1014,43 +1036,51 @@ select#dateOptions {
   border-top: 1px solid #aaa !important;
 }
 
+.project-overview-dropdown .select2-search--dropdown {
+  padding: 6px 8px;
+  background-color: #fff;
+  border-bottom: 1px solid #e9e9e9;
+}
+
+.project-overview-dropdown .select2-search--dropdown .select2-search__field {
+  box-sizing: border-box;
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  margin: 0;
+  border: 1px solid var(--main-border-color, #ccc) !important;
+  border-radius: 0 !important;
+  -webkit-border-radius: 0 !important;
+  -moz-border-radius: 0 !important;
+  background-color: #fff;
+  cursor: text !important;
+  outline: none;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.project-overview-dropdown
+  .select2-search--dropdown
+  .select2-search__field:focus {
+  border-color: var(--itk-color-primary, #1565c0);
+}
+
 #select2-filterSelect-results,
 #select2-columnSelect-results,
 #select2-userSelect-results {
-  > .select2-results__option[aria-label='Projects'] {
-    > strong {
-      &:has(+ ul > li:nth-child(6)) {
-        &:after {
-          float: right;
-          content: 'Vis alle';
-          margin-left: auto;
-          display: inline-block;
-          cursor: pointer;
-        }
-
-        &.show-all-projects:after {
-          content: 'Vis færre';
-        }
-      }
-    }
-
-    > ul {
-      > li:nth-child(n + 6) {
-        display: none !important;
-      }
-    }
-
-    > strong.show-all-projects + ul > li:nth-child(n + 6) {
-      display: block !important;
-    }
-  }
-
   > .select2-results__option > ul {
     border-top: 1px solid #e9e9e9;
   }
 }
 
+#select2-projectSelect-results > li[id$='-__all'],
+#select2-userSelect-results > li[id$='-__all'],
+#select2-columnSelect-results > li[id$='-__all'] {
+  border-bottom: 1px solid #e9e9e9;
+}
+
 .select2-results__options[aria-multiselectable='true']#select2-filterSelect-results,
+.select2-results__options[aria-multiselectable='true']#select2-projectSelect-results,
 .select2-results__options[aria-multiselectable='true']#select2-columnSelect-results,
 .select2-results__options[aria-multiselectable='true']#select2-userSelect-results {
   max-height: 600px;
@@ -1107,6 +1137,7 @@ select#dateOptions {
 }
 
 #select2-filterSelect-container,
+#select2-projectSelect-container,
 #select2-columnSelect-container,
 #select2-userSelect-container {
   > li:not(:first-child) {
