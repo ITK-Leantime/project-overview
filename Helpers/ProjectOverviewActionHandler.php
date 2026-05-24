@@ -15,8 +15,6 @@ use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
  */
 readonly class ProjectOverviewActionHandler
 {
-    private const FILTER_PREFIX_PROJECT = 'project_';
-
     private const FILTER_PREFIX_PRIORITY = 'priority_';
 
     private const FILTER_PREFIX_STATUS = 'status_';
@@ -28,21 +26,20 @@ readonly class ProjectOverviewActionHandler
      *
      * @return void
      */
-    public function __construct(private UserService $userService, private UserRepository $userRepository)
-    {
-    }
+    public function __construct(private UserService $userService, private UserRepository $userRepository) {}
 
     /**
      * Parses filter values from POST data and constructs a ViewDTO.
      *
-     * @param  array<string, mixed> $postData      POST data containing filter values.
-     * @param  string|null          $sortBy        Optional sort column override.
-     * @param  string|null          $sortDirection Optional sort direction override.
-     * @return ViewDTO
+     * @param  array<string, mixed>  $postData  POST data containing filter values.
+     * @param  string|null  $sortBy  Optional sort column override.
+     * @param  string|null  $sortDirection  Optional sort direction override.
      */
     public function parseFiltersFromPost(array $postData, ?string $sortBy = null, ?string $sortDirection = null): ViewDTO
     {
-        $users = $postData['users'] ?? [];
+        // Drop the synthetic "__all" sentinel — it's purely a UI marker for
+        // "no filter, show everyone" and must never reach the SQL layer.
+        $users = array_values(array_filter((array) ($postData['users'] ?? []), fn ($u) => $u !== '__all'));
         $dateType = DateTypeEnum::tryFrom($postData['dateType'] ?? '');
         $fromDate = null;
         $toDate = null;
@@ -53,11 +50,15 @@ readonly class ProjectOverviewActionHandler
             $fromDate = $postData['fromDate'] ?? null;
             $toDate = $postData['toDate'] ?? null;
         }
-        $columns = $postData['columns'] ?? [];
+        // Drop the synthetic "__all" sentinel — saving an empty columns
+        // array is the canonical "show every column" state (the template
+        // pre-selects every header when selectedColumns is empty).
+        $columns = array_values(array_filter((array) ($postData['columns'] ?? []), fn ($c) => $c !== '__all'));
         $filters = $postData['filters'] ?? [];
+        $projectFilters = $postData['projectFilters'] ?? [];
 
         $groupedFilters = [
-            'projects' => [],
+            'projects' => array_values(array_filter(array_map('strval', (array) $projectFilters), 'ctype_digit')),
             'priorities' => [],
             'statuses' => [],
             'custom' => [],
@@ -67,7 +68,6 @@ readonly class ProjectOverviewActionHandler
             if (preg_match('/^([^_]+)_(.+)/', $filter, $matches)) {
                 [, $group, $value] = $matches;
                 $filterMap = [
-                    rtrim(self::FILTER_PREFIX_PROJECT, '_') => 'projects',
                     rtrim(self::FILTER_PREFIX_PRIORITY, '_') => 'priorities',
                     rtrim(self::FILTER_PREFIX_STATUS, '_') => 'statuses',
                     rtrim(self::FILTER_PREFIX_CUSTOM, '_') => 'custom',
@@ -101,8 +101,8 @@ readonly class ProjectOverviewActionHandler
     /**
      * Save the user's view.
      *
-     * @param  array<string, mixed> $postData    POST data containing view configuration.
-     * @param  string               $redirectUrl Base redirect URL.
+     * @param  array<string, mixed>  $postData  POST data containing view configuration.
+     * @param  string  $redirectUrl  Base redirect URL.
      * @return string Redirect URL with view parameter.
      */
     public function saveView(array $postData, string $redirectUrl): string
@@ -119,7 +119,7 @@ readonly class ProjectOverviewActionHandler
         }
 
         // Check if view already exists and overwrite if requested.
-        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
+        if (! empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
 
             // Prevent overwriting a subscription — force "save as new" instead
@@ -131,7 +131,7 @@ readonly class ProjectOverviewActionHandler
         // Preserve sort fields from existing view when overwriting, otherwise use defaults.
         $sortBy = 'priority';
         $sortDirection = 'ASC';
-        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
+        if (! empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
             $sortBy = $existingView->view->sortBy ?? 'priority';
             $sortDirection = $existingView->view->sortDirection ?? 'ASC';
@@ -139,7 +139,7 @@ readonly class ProjectOverviewActionHandler
 
         $viewDTO = $this->parseFiltersFromPost($postData, $sortBy, $sortDirection);
 
-        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
+        if (! empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
             $userViewsObject[$existingViewId] = new UserViewDTO(
                 id: $existingView->id,
@@ -165,14 +165,14 @@ readonly class ProjectOverviewActionHandler
 
             // Determine title: explicit viewName from POST wins; otherwise subscription
             // copy-name; otherwise default.
-            $newTitle = 'View ' . (count($userViewsObject) + 1);
+            $newTitle = 'View '.(count($userViewsObject) + 1);
             $explicitName = trim((string) ($postData['viewName'] ?? ''));
             if ($explicitName !== '') {
                 $newTitle = $explicitName;
-            } elseif (!empty($existingViewId) && isset($userViewsObject[$existingViewId])) {
+            } elseif (! empty($existingViewId) && isset($userViewsObject[$existingViewId])) {
                 $sourceView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
                 if ($sourceView->isSubscription()) {
-                    $newTitle = $sourceView->title . ' (' . __('projectOverview.copy_suffix') . ')';
+                    $newTitle = $sourceView->title.' ('.__('projectOverview.copy_suffix').')';
                 }
             }
 
@@ -195,14 +195,13 @@ readonly class ProjectOverviewActionHandler
 
         $this->saveUserViewsObject($userViewsObject);
 
-        return $redirectUrl . (str_contains($redirectUrl, '?') ? '&' : '?') . http_build_query(['view' => $resultViewId]);
+        return $redirectUrl.(str_contains($redirectUrl, '?') ? '&' : '?').http_build_query(['view' => $resultViewId]);
     }
 
     /**
      * Deletes a view.
      *
-     * @param  string $viewId The id of the view to be deleted.
-     * @return void
+     * @param  string  $viewId  The id of the view to be deleted.
      *
      * @throws BindingResolutionException
      */
@@ -230,8 +229,8 @@ readonly class ProjectOverviewActionHandler
     /**
      * Renames a view.
      *
-     * @param  string $viewId   Id of the view to be renamed.
-     * @param  string $viewName New name of the view.
+     * @param  string  $viewId  Id of the view to be renamed.
+     * @param  string  $viewName  New name of the view.
      * @return string|false Returns the redirect URL if successful, false if the target name already exists
      *
      * @throws BindingResolutionException
@@ -270,20 +269,20 @@ readonly class ProjectOverviewActionHandler
             ]);
         }
 
-        return $redirectUrl . (str_contains($redirectUrl, '?') ? '&' : '?') . http_build_query(['view' => $viewId]);
+        return $redirectUrl.(str_contains($redirectUrl, '?') ? '&' : '?').http_build_query(['view' => $viewId]);
     }
 
     /**
      * Generate a share token for a view and enable sharing
      *
-     * @param  string $viewId The ID of the view to share
+     * @param  string  $viewId  The ID of the view to share
      * @return string|false The share token if successful, false if view not found
      */
     public function generateShareToken(string $viewId): string|false
     {
         $userViewsObject = $this->getUserViewsObject();
 
-        if (!isset($userViewsObject[$viewId])) {
+        if (! isset($userViewsObject[$viewId])) {
             return false;
         }
 
@@ -310,7 +309,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Find a view by its share token across all users.
      *
-     * @param  string $shareToken The share token to search for
+     * @param  string  $shareToken  The share token to search for
      * @return SharedViewLookupResult|null The lookup result with view and owner info, or null if not found
      */
     public function findViewByShareToken(string $shareToken): ?SharedViewLookupResult
@@ -328,7 +327,7 @@ readonly class ProjectOverviewActionHandler
                     return new SharedViewLookupResult(
                         view: $view,
                         ownerUserId: (string) $user['id'],
-                        ownerName: trim($user['firstname'] . ' ' . $user['lastname']),
+                        ownerName: trim($user['firstname'].' '.$user['lastname']),
                     );
                 }
             }
@@ -340,7 +339,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Subscribe to a shared view (live-share). Creates a subscription reference in the subscriber's views.
      *
-     * @param  SharedViewLookupResult $lookupResult The lookup result containing the view and owner info
+     * @param  SharedViewLookupResult  $lookupResult  The lookup result containing the view and owner info
      * @return string The new subscription view ID
      */
     public function subscribeToView(SharedViewLookupResult $lookupResult): string
@@ -358,7 +357,7 @@ readonly class ProjectOverviewActionHandler
         $newViewId = uniqid('view_', true);
         $userViewsObject[$newViewId] = new UserViewDTO(
             id: $newViewId,
-            title: $lookupResult->view->title . ' (Live)',
+            title: $lookupResult->view->title.' (Live)',
             view: $lookupResult->view->view,
             shareToken: null,
             createdAt: time(),
@@ -376,7 +375,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Save a shared view as a static (non-subscription) copy.
      *
-     * @param  SharedViewLookupResult $lookupResult The lookup result containing the view and owner info
+     * @param  SharedViewLookupResult  $lookupResult  The lookup result containing the view and owner info
      * @return string The new view ID
      */
     public function saveViewAsCopy(SharedViewLookupResult $lookupResult): string
@@ -392,7 +391,7 @@ readonly class ProjectOverviewActionHandler
         $newViewId = uniqid('view_', true);
         $userViewsObject[$newViewId] = new UserViewDTO(
             id: $newViewId,
-            title: $lookupResult->view->title . ' (' . __('projectOverview.copy_suffix') . ')',
+            title: $lookupResult->view->title.' ('.__('projectOverview.copy_suffix').')',
             view: $lookupResult->view->view,
             shareToken: null,
             createdAt: time(),
@@ -420,7 +419,7 @@ readonly class ProjectOverviewActionHandler
     {
         $userViewsObject = $this->getUserViewsObject();
 
-        if (!isset($userViewsObject[$sourceViewId])) {
+        if (! isset($userViewsObject[$sourceViewId])) {
             return null;
         }
 
@@ -435,7 +434,7 @@ readonly class ProjectOverviewActionHandler
         $newViewId = uniqid('view_', true);
         $userViewsObject[$newViewId] = new UserViewDTO(
             id: $newViewId,
-            title: $source->title . ' (' . __('projectOverview.copy_suffix') . ')',
+            title: $source->title.' ('.__('projectOverview.copy_suffix').')',
             view: $source->view,
             shareToken: null,
             createdAt: time(),
@@ -455,18 +454,18 @@ readonly class ProjectOverviewActionHandler
     /**
      * Resolve a subscription by fetching the owner's current view configuration.
      *
-     * @param  UserViewDTO $subscriberView The subscriber's view containing subscription references
+     * @param  UserViewDTO  $subscriberView  The subscriber's view containing subscription references
      * @return UserViewDTO|null The owner's resolved view, or null if the owner deleted it
      */
     public function resolveSubscription(UserViewDTO $subscriberView): ?UserViewDTO
     {
-        if (!$subscriberView->isSubscription()) {
+        if (! $subscriberView->isSubscription()) {
             return null;
         }
 
         $ownerViews = $this->getUserViewsObject($subscriberView->subscribedToUserId);
 
-        if (!isset($ownerViews[$subscriberView->subscribedToViewId])) {
+        if (! isset($ownerViews[$subscriberView->subscribedToViewId])) {
             return null;
         }
 
@@ -476,8 +475,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Remove a subscription view from the current user's views.
      *
-     * @param  string $viewId The ID of the subscription view to remove
-     * @return void
+     * @param  string  $viewId  The ID of the subscription view to remove
      */
     public function removeSubscription(string $viewId): void
     {
@@ -492,7 +490,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Encodes and saves the user-views object.
      *
-     * @param  array<string, mixed> $userViewsObject Array containing view objects to be saved.
+     * @param  array<string, mixed>  $userViewsObject  Array containing view objects to be saved.
      * @return void A base64 encoded JSON string representing the array of view objects.
      */
     private function saveUserViewsObject(array $userViewsObject): void
@@ -519,18 +517,18 @@ readonly class ProjectOverviewActionHandler
     /**
      * Retrieves the user views object for a given user ID.
      *
-     * @param  ?string $userId The ID of the user whose views object is to be retrieved.
+     * @param  ?string  $userId  The ID of the user whose views object is to be retrieved.
      * @return array<string, mixed> The user's views object as an associative array. Returns an empty array if no settings exist or decoding fails.
      */
     public function getUserViewsObject(?string $userId = null): array
     {
-        if (!$userId) {
+        if (! $userId) {
             $userId = session('userdata.id');
         }
         // Retrieve user settings from user table
         $userViewsEncoded = $this->userRepository->getUserSettings($userId, 'projectoverview.view');
 
-        if (!$userViewsEncoded) {
+        if (! $userViewsEncoded) {
             return [];
         }
         // Base64 decode
@@ -551,6 +549,20 @@ readonly class ProjectOverviewActionHandler
         });
 
         return $userViews;
+    }
+
+    /**
+     * Returns the columns array to actually render in the table. An empty
+     * stored array is the canonical "show every column" state (the `__all`
+     * pill in the columns dropdown) — expand it to the full available list
+     * at render time so the table doesn't end up with zero columns.
+     *
+     * @param  array<string>  $stored  Stored columns array (may be empty).
+     * @return array<string>
+     */
+    public function effectiveColumns(array $stored): array
+    {
+        return empty($stored) ? $this->getAvailableColumns() : $stored;
     }
 
     /**
@@ -578,16 +590,16 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves the sort column and direction for a specific view.
      *
-     * @param  string $viewId        The view ID to update.
-     * @param  string $sortBy        The column name to sort by.
-     * @param  string $sortDirection The sort direction (ASC or DESC).
+     * @param  string  $viewId  The view ID to update.
+     * @param  string  $sortBy  The column name to sort by.
+     * @param  string  $sortDirection  The sort direction (ASC or DESC).
      * @return array{status: string, message?: string, httpStatus?: int}
      */
     public function saveSortOrder(string $viewId, string $sortBy, string $sortDirection): array
     {
         try {
             // Validate sort column against available columns.
-            if (!in_array($sortBy, $this->getAvailableColumns(), true)) {
+            if (! in_array($sortBy, $this->getAvailableColumns(), true)) {
                 return ['status' => 'error', 'message' => 'Invalid sort column.', 'httpStatus' => 400];
             }
 
@@ -596,7 +608,7 @@ readonly class ProjectOverviewActionHandler
 
             $userViewsObject = $this->getUserViewsObject();
 
-            if (!isset($userViewsObject[$viewId])) {
+            if (! isset($userViewsObject[$viewId])) {
                 return ['status' => 'error', 'message' => 'View not found.', 'httpStatus' => 404];
             }
 
@@ -641,7 +653,7 @@ readonly class ProjectOverviewActionHandler
     /**
      * Saves the updated tab order based on the given post data.
      *
-     * @param  array<string, mixed> $postData An associative array containing the new tab order data.
+     * @param  array<string, mixed>  $postData  An associative array containing the new tab order data.
      * @return array{status: string, message?: string, debug?: string, httpStatus?: int}
      */
     public function saveTabOrder(array $postData): array

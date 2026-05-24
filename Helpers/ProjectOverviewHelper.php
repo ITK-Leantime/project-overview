@@ -30,8 +30,7 @@ readonly class ProjectOverviewHelper
         private Tickets $ticketService,
         private UserService $userService,
         private ProjectOverviewRepository $projectOverviewRepository,
-    ) {
-    }
+    ) {}
 
     /**
      * Retrieves and processes project overview data.
@@ -50,7 +49,7 @@ readonly class ProjectOverviewHelper
         $viewId = request()->query('view');
         $allUsers = $this->userService->getAll();
 
-        usort($allUsers, fn ($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
+        usort($allUsers, fn ($a, $b) => strcmp($a['firstname'].$a['lastname'], $b['firstname'].$b['lastname']));
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'unassigned',
@@ -67,7 +66,7 @@ readonly class ProjectOverviewHelper
                 $ownerView = UserViewDTO::fromArray($ownerViews[$transientSub['ownerViewId']]);
                 $userViewObject[$transientSub['tempViewId']] = array_merge($ownerView->toArray(), [
                     'id' => $transientSub['tempViewId'],
-                    'title' => $ownerView->title . ' (Live)',
+                    'title' => $ownerView->title.' (Live)',
                     'shareToken' => null,
                     'order' => PHP_INT_MAX,
                     'isTransientSubscription' => true,
@@ -81,7 +80,7 @@ readonly class ProjectOverviewHelper
         // Determine which view to eagerly load (first view if none selected)
         $viewKeys = array_keys($userViewObject);
         $selectedViewKey = $viewId;
-        if ($selectedViewKey === null && !empty($viewKeys)) {
+        if ($selectedViewKey === null && ! empty($viewKeys)) {
             $selectedViewKey = (string) $viewKeys[0];
         }
 
@@ -136,6 +135,11 @@ readonly class ProjectOverviewHelper
                 $userViewObject[$key]['hasMore'] = $page['hasMore'];
                 $userViewObject[$key]['nextPage'] = $page['hasMore'] ? 2 : null;
                 $userViewObject[$key]['pageSize'] = $paginatedDTO->pageSize;
+                // Stored columns can be []. The partial would otherwise render
+                // zero columns; expand to the full list at render time.
+                $userViewObject[$key]['view']['columns'] = $this->actionHandler->effectiveColumns(
+                    $userViewObject[$key]['view']['columns'] ?? []
+                );
             } else {
                 $userViewObject[$key]['tickets'] = null;
                 $userViewObject[$key]['hasMore'] = false;
@@ -144,7 +148,7 @@ readonly class ProjectOverviewHelper
             }
         }
         // Flash notification for auto-removed broken subscriptions
-        if (!empty($removedSubscriptions)) {
+        if (! empty($removedSubscriptions)) {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.subscription_removed'),
                 'type' => 'info',
@@ -168,8 +172,8 @@ readonly class ProjectOverviewHelper
      * Page defaults to 1 unless POST contains `page`. Page size defaults to
      * {@see ViewDTO::DEFAULT_PAGE_SIZE} unless POST contains `pageSize`.
      *
-     * @param  array<string, mixed> $postData POST data containing filter values.
-     * @param  string|null          $viewId   Route-supplied view id; embedded into the response so the template can build the next-page sentinel URL.
+     * @param  array<string, mixed>  $postData  POST data containing filter values.
+     * @param  string|null  $viewId  Route-supplied view id; embedded into the response so the template can build the next-page sentinel URL.
      * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
      */
     public function getViewTableData(array $postData, ?string $viewId = null): array
@@ -195,7 +199,7 @@ readonly class ProjectOverviewHelper
             'userView' => [
                 'id' => $viewId ?? '',
                 'view' => [
-                    'columns' => $viewDTO->columns,
+                    'columns' => $this->actionHandler->effectiveColumns($viewDTO->columns),
                     'sortBy' => $viewDTO->sortBy,
                     'sortDirection' => $viewDTO->sortDirection,
                 ],
@@ -216,7 +220,7 @@ readonly class ProjectOverviewHelper
      * Fetches one paginated chunk of rows for a view (used by the infinite-scroll sentinel).
      * Page and pageSize come from POST (`page`, `pageSize`); both default if absent.
      *
-     * @param  array<string, mixed> $postData
+     * @param  array<string, mixed>  $postData
      * @return array{rows: array<int, mixed>, columns: array<int, string>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
      */
     public function getViewTableRows(array $postData): array
@@ -240,7 +244,7 @@ readonly class ProjectOverviewHelper
 
         return [
             'rows' => $rows,
-            'columns' => $viewDTO->columns,
+            'columns' => $this->actionHandler->effectiveColumns($viewDTO->columns),
             'statusLabels' => $statusLabels,
             'allPriorities' => $this->ticketService->getPriorityLabels(),
             'hasMore' => $result['hasMore'],
@@ -253,11 +257,6 @@ readonly class ProjectOverviewHelper
      * Returns a copy of the DTO with page/pageSize filled in (defaults applied
      * only where the original is null). Use page=1 to force a reset to the first
      * page regardless of what the caller provided.
-     *
-     * @param  ViewDTO  $dto
-     * @param  int|null $page
-     * @param  int|null $pageSize
-     * @return ViewDTO
      */
     private function applyDefaultPagination(ViewDTO $dto, ?int $page = null, ?int $pageSize = null): ViewDTO
     {
@@ -290,8 +289,8 @@ readonly class ProjectOverviewHelper
      *     psettings='all'; the latter typically resolves from cache)
      *  - per-user logged hours per ticket: 1 query for all ticketIds
      *
-     * @param  array<object>                    $tickets     Raw ticket objects from the repository.
-     * @param  array<int, array<string, mixed>> $allProjects All projects indexed by ID.
+     * @param  array<object>  $tickets  Raw ticket objects from the repository.
+     * @param  array<int, array<string, mixed>>  $allProjects  All projects indexed by ID.
      * @return array{0: array<object>, 1: array<int, mixed>} Enriched tickets and status labels.
      */
     private function enrichTickets(array $tickets, array $allProjects): array
@@ -322,7 +321,7 @@ readonly class ProjectOverviewHelper
             $ticket->projectUsers = $usersByProject[$ticket->projectId] ?? [];
             $ticket->projectMilestones = $milestonesByProject[$ticket->projectId] ?? [];
             $ticket->projectName = $allProjects[$ticket->projectId]['name'] ?? '';
-            $ticket->projectLink = '/projects/changeCurrentProject/' . $ticket->projectId;
+            $ticket->projectLink = '/projects/changeCurrentProject/'.$ticket->projectId;
 
             $userRows = $userHoursByTicket[(int) $ticket->id] ?? [];
             $ticket->userHours = $this->formatUserHoursTooltip($userRows);
@@ -345,9 +344,8 @@ readonly class ProjectOverviewHelper
      *   - 1 query for client users (when any project has psettings='clients')
      *   - 1 call to UserService::getAll() (when any project has psettings='all')
      *
-     * @param  int                              $currentUserId
-     * @param  array<int, int|string>           $projectIds
-     * @param  array<int, array<string, mixed>> $allProjects   All projects indexed by ID (must include psettings, clientId).
+     * @param  array<int, int|string>  $projectIds
+     * @param  array<int, array<string, mixed>>  $allProjects  All projects indexed by ID (must include psettings, clientId).
      * @return array<int, array<int, array<string, mixed>>> projectId => list of users
      */
     private function loadProjectUsers(int $currentUserId, array $projectIds, array $allProjects): array
@@ -383,15 +381,15 @@ readonly class ProjectOverviewHelper
 
         // Step 3: batch-fetch the data (at most three queries: relation users, client users, all users).
         $relationUsersNeeded = array_merge($relationOnlyProjectIds, ...array_values($clientProjectsByClientId));
-        $relationUsersByProject = !empty($relationUsersNeeded)
+        $relationUsersByProject = ! empty($relationUsersNeeded)
             ? $this->projectOverviewRepository->getProjectAssignedUsersByProjectIds($relationUsersNeeded)
             : [];
 
-        $clientUsersByClient = !empty($clientProjectsByClientId)
+        $clientUsersByClient = ! empty($clientProjectsByClientId)
             ? $this->projectOverviewRepository->getUsersByClientIds(array_keys($clientProjectsByClientId))
             : [];
 
-        $allUsersList = !empty($allUsersProjectIds)
+        $allUsersList = ! empty($allUsersProjectIds)
             ? $this->userService->getAll()
             : [];
 
@@ -406,7 +404,7 @@ readonly class ProjectOverviewHelper
                 $merged = $clientUsers;
                 $seenIds = array_column($merged, 'id');
                 foreach ($relationUsersByProject[$pid] ?? [] as $u) {
-                    if (!in_array($u['id'], $seenIds, true)) {
+                    if (! in_array($u['id'], $seenIds, true)) {
                         $merged[] = $u;
                         $seenIds[] = $u['id'];
                     }
@@ -426,9 +424,8 @@ readonly class ProjectOverviewHelper
      * Mirrors Leantime's psettings logic (admin/owner = all; 'all' = all logged-in;
      * 'clients' = same clientId; otherwise relation row required).
      *
-     * @param  int                              $currentUserId
-     * @param  array<int, int|string>           $candidateProjectIds
-     * @param  array<int, array<string, mixed>> $allProjects         Indexed by id (must include psettings, clientId).
+     * @param  array<int, int|string>  $candidateProjectIds
+     * @param  array<int, array<string, mixed>>  $allProjects  Indexed by id (must include psettings, clientId).
      * @return array<int, int>
      */
     private function computeAccessibleProjectIds(int $currentUserId, array $candidateProjectIds, array $allProjects): array
@@ -465,7 +462,7 @@ readonly class ProjectOverviewHelper
             $needsRelationCheck[] = (int) $pid;
         }
 
-        if (!empty($needsRelationCheck)) {
+        if (! empty($needsRelationCheck)) {
             $assigned = $this->projectOverviewRepository->getUserAssignedProjectIds($currentUserId, $needsRelationCheck);
             $accessibleProjectIds = array_merge($accessibleProjectIds, $assigned);
         }
@@ -476,8 +473,7 @@ readonly class ProjectOverviewHelper
     /**
      * Builds the tooltip string shown over the sumHours cell.
      *
-     * @param  array<int, array{firstname: string, lastname: string, hours: float}> $rows
-     * @return string
+     * @param  array<int, array{firstname: string, lastname: string, hours: float}>  $rows
      */
     private function formatUserHoursTooltip(array $rows): string
     {
@@ -487,7 +483,7 @@ readonly class ProjectOverviewHelper
 
         $lines = [];
         foreach ($rows as $row) {
-            $lines[] = trim($row['firstname'] . ' ' . $row['lastname']) . ': ' . number_format($row['hours'], 2, '.', '');
+            $lines[] = trim($row['firstname'].' '.$row['lastname']).': '.number_format($row['hours'], 2, '.', '');
         }
 
         return implode("\n", $lines);
@@ -496,7 +492,7 @@ readonly class ProjectOverviewHelper
     /**
      * Retrieves and prepares filter data for the project overview.
      *
-     * @param  array<string, string> $data An associative array containing input parameters.
+     * @param  array<string, string>  $data  An associative array containing input parameters.
      * @return ProjectOverviewFiltersDataDTO A data transfer object containing all necessary data for populating the project overview filters.
      */
     public function getProjectOverviewFiltersData(array $data): ProjectOverviewFiltersDataDTO
@@ -566,7 +562,7 @@ readonly class ProjectOverviewHelper
                 $viewDTO = $ownerView->view;
 
                 $userViewsData = array_merge($userViewsData, [
-                    'title' => $ownerView->title . ' (Live)',
+                    'title' => $ownerView->title.' (Live)',
                     'users' => $viewDTO->users,
                     'selectedColumns' => $viewDTO->columns,
                     'dateType' => $viewDTO->dateType->value,
