@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-87](https://github.com/ITK-Leantime/project-overview/pull/85)
+  * Move the project list out of the "Filters" dropdown into a dedicated "Projects" dropdown.
+  * Add search field to each filter dropdown.
 * [PR-84](https://github.com/ITK-Leantime/project-overview/pull/84)
   * Use javascript to move the list of user views into a submenu-looking structure in sidebar.
 
