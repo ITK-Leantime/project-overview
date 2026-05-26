@@ -36,6 +36,7 @@ readonly class ProjectOverviewActionHandler
      * @param  array<string, mixed> $postData      POST data containing filter values.
      * @param  string|null          $sortBy        Optional sort column override.
      * @param  string|null          $sortDirection Optional sort direction override.
+     * @return ViewDTO The parsed view configuration.
      */
     public function parseFiltersFromPost(array $postData, ?string $sortBy = null, ?string $sortDirection = null): ViewDTO
     {
@@ -204,6 +205,7 @@ readonly class ProjectOverviewActionHandler
      * Deletes a view.
      *
      * @param  string $viewId The id of the view to be deleted.
+     * @return void No return value.
      *
      * @throws BindingResolutionException
      */
@@ -478,6 +480,7 @@ readonly class ProjectOverviewActionHandler
      * Remove a subscription view from the current user's views.
      *
      * @param  string $viewId The ID of the subscription view to remove
+     * @return void No return value.
      */
     public function removeSubscription(string $viewId): void
     {

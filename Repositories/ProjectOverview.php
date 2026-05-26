@@ -192,7 +192,8 @@ class ProjectOverview
     /**
      * Returns the subset of $projectIds that the given user has a direct relation row for.
      *
-     * @param  array<int, int|string> $projectIds
+     * @param  int                    $userId     The user whose direct project relations should be returned.
+     * @param  array<int, int|string> $projectIds Candidate project ids to filter by.
      * @return array<int, int>
      */
     public function getUserAssignedProjectIds(int $userId, array $projectIds): array
