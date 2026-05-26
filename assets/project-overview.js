@@ -495,6 +495,12 @@ function initProjectOverviewFilters() {
   // CSS — so without this, users have to type blind to filter.
   const dropdownWithSearch = buildDropdownAdapterWithSearch();
 
+  // Translated pill labels. Used as `data-label` on each select2 wrapper and
+  // as the "All" sentinel for `data-length`. CSS reads both via attr() so the
+  // pseudo-element labels track the user's language.
+  const i18n = window.projectOverviewI18n || {};
+  const allLabel = i18n.pillAll || 'All';
+
   // Init date range select
   const dateRange = flatpickr('#dateRange', {
     mode: 'range',
@@ -555,9 +561,12 @@ function initProjectOverviewFilters() {
         });
     });
 
-  filterSelect.next('.select2').attr('data-length', function () {
-    return filterSelect.select2('data')?.length;
-  });
+  filterSelect
+    .next('.select2')
+    .attr('data-label', i18n.pillOtherFilters || 'Other filters')
+    .attr('data-length', function () {
+      return filterSelect.select2('data')?.length;
+    });
 
   // Init project select2. The synthetic "__all" option represents the
   // "no filter — show every project" state. It's mutually exclusive with
@@ -596,13 +605,16 @@ function initProjectOverviewFilters() {
     })
     .on('change.select2', () => {
       const vals = projectSelect.val() || [];
-      const label = vals.includes('__all') ? 'All' : vals.length;
+      const label = vals.includes('__all') ? allLabel : vals.length;
       projectSelect.next('.select2').attr('data-length', label);
     });
 
+  projectSelect
+    .next('.select2')
+    .attr('data-label', i18n.pillProjects || 'Projects');
   (function setInitialProjectLength() {
     const vals = projectSelect.val() || [];
-    const label = vals.includes('__all') ? 'All' : vals.length;
+    const label = vals.includes('__all') ? allLabel : vals.length;
     projectSelect.next('.select2').attr('data-length', label);
   })();
 
@@ -638,13 +650,16 @@ function initProjectOverviewFilters() {
     })
     .on('change.select2', () => {
       const vals = columnSelect.val() || [];
-      const label = vals.includes('__all') ? 'All' : vals.length;
+      const label = vals.includes('__all') ? allLabel : vals.length;
       columnSelect.next('.select2').attr('data-length', label);
     });
 
+  columnSelect
+    .next('.select2')
+    .attr('data-label', i18n.pillColumns || 'Columns');
   (function setInitialColumnLength() {
     const vals = columnSelect.val() || [];
-    const label = vals.includes('__all') ? 'All' : vals.length;
+    const label = vals.includes('__all') ? allLabel : vals.length;
     columnSelect.next('.select2').attr('data-length', label);
   })();
 
@@ -721,13 +736,14 @@ function initProjectOverviewFilters() {
     })
     .on('change.select2', () => {
       const vals = userSelect.val() || [];
-      const label = vals.includes('__all') ? 'All' : vals.length;
+      const label = vals.includes('__all') ? allLabel : vals.length;
       userSelect.next('.select2').attr('data-length', label);
     });
 
+  userSelect.next('.select2').attr('data-label', i18n.pillUsers || 'Users');
   (function setInitialUserLength() {
     const vals = userSelect.val() || [];
-    const label = vals.includes('__all') ? 'All' : vals.length;
+    const label = vals.includes('__all') ? allLabel : vals.length;
     userSelect.next('.select2').attr('data-length', label);
   })();
 

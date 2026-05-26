@@ -951,66 +951,9 @@ select#dateOptions {
   }
 }
 
-#filterSelect + span.select2 {
-  height: 35px !important;
-  > .selection {
-    height: inherit;
-    > .select2-selection {
-      height: inherit;
-      > .select2-selection__rendered {
-        display: none;
-      }
-    }
-  }
-  &:after {
-    content: 'Other filters (' attr(data-length) ')';
-  }
-
-  &.select2-container--open:after {
-    content: 'Other filters (' attr(data-length) ') ▾';
-  }
-}
-
-#projectSelect + span.select2 {
-  height: 35px !important;
-  > .selection {
-    height: inherit;
-    > .select2-selection {
-      height: inherit;
-      > .select2-selection__rendered {
-        display: none;
-      }
-    }
-  }
-  &:after {
-    content: 'Projects (' attr(data-length) ')';
-  }
-
-  &.select2-container--open:after {
-    content: 'Projects (' attr(data-length) ') ▾';
-  }
-}
-
-#columnSelect + span.select2 {
-  height: 35px !important;
-  > .selection {
-    height: inherit;
-    > .select2-selection {
-      height: inherit;
-      > .select2-selection__rendered {
-        display: none;
-      }
-    }
-  }
-  &:after {
-    content: 'Columns (' attr(data-length) ')';
-  }
-
-  &.select2-container--open:after {
-    content: 'Columns (' attr(data-length) ') ▾';
-  }
-}
-
+#filterSelect + span.select2,
+#projectSelect + span.select2,
+#columnSelect + span.select2,
 #userSelect + span.select2 {
   height: 35px !important;
   > .selection {
@@ -1023,11 +966,11 @@ select#dateOptions {
     }
   }
   &:after {
-    content: 'Users (' attr(data-length) ')';
+    content: attr(data-label) ' (' attr(data-length) ')';
   }
 
   &.select2-container--open:after {
-    content: 'Users (' attr(data-length) ') ▾';
+    content: attr(data-label) ' (' attr(data-length) ') ▾';
   }
 }
 
