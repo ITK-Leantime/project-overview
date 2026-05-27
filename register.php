@@ -117,17 +117,25 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
     // Sort by the same 'order' field the rest of the codebase uses.
     uasort($userViews, fn ($a, $b) => ($a['order'] ?? 0) <=> ($b['order'] ?? 0));
 
+    // Slot the views block immediately below the "Project Overview" menu link
+    // (index 21, see the comment above). 22 is the section header, the view
+    // items take 23..N. Named for readability — the indices themselves carry
+    // no semantic meaning beyond ordering within $menuStructure['personal'].
+    $baseMenuIndex = 21;
+    $viewsHeaderIndex = $baseMenuIndex + 1;
+    $firstViewItemIndex = $baseMenuIndex + 2;
+
     // Section label above the view items. The inner <span> class lets us style
     // this specific header without touching every other 'type => header' the
     // menu renders elsewhere in the app.
-    $menuStructure['personal'][22] = [
+    $menuStructure['personal'][$viewsHeaderIndex] = [
         'type' => 'header',
         'title' => '<span class="projectoverview-views-header-text">'
             . htmlspecialchars(__('projectOverview.views_section_header'), ENT_QUOTES)
             . '</span>',
     ];
 
-    $index = 23;
+    $index = $firstViewItemIndex;
     foreach ($userViews as $key => $userView) {
         $encodedKey = rawurlencode((string) $key);
         $attributes = [
