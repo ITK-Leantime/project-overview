@@ -3,6 +3,9 @@
     <input type="hidden" name="action" value="saveView" />
     <div>
         <select name="users[]" id="userSelect" multiple {{ $filtersData->isSubscription ? 'disabled' : '' }}>
+            <option value="__all" {{ empty($filtersData->users ?? []) ? 'selected' : '' }}>
+                {{ __('projectOverview.all_users') }}
+            </option>
             @foreach ($filtersData->allUsers as $user)
                 <option value="{{ $user['id'] }}"
                     {{ in_array($user['id'], $filtersData->users ?? []) ? 'selected' : '' }}>
@@ -43,17 +46,23 @@
         <input type="hidden" name="toDate" id="toDate" value="{{ $filtersData->toDate }}">
     </div>
 
+    <div class="projects">
+        <select name="projectFilters[]" id="projectSelect" multiple
+            {{ $filtersData->isSubscription ? 'disabled' : '' }}>
+            <option value="__all" {{ empty($filtersData->projectFilters ?? []) ? 'selected' : '' }}>
+                {{ __('projectOverview.all_projects') }}
+            </option>
+            @foreach ($filtersData->allProjects as $project)
+                <option value="{{ $project['id'] }}"
+                    {{ in_array($project['id'], $filtersData->projectFilters ?? []) ? 'selected' : '' }}>
+                    {{ $project['name'] }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
     <div class="filters">
         <select name="filters[]" id="filterSelect" multiple {{ $filtersData->isSubscription ? 'disabled' : '' }}>
-            <optgroup label="Projects">
-                @foreach ($filtersData->allProjects as $project)
-                    <option value="project_{{ $project['id'] }}"
-                        {{ in_array($project['id'], $filtersData->projectFilters ?? []) ? 'selected' : '' }}>
-                        {{ $project['name'] }}
-                    </option>
-                @endforeach
-            </optgroup>
-
             <optgroup label="Priority">
                 @foreach ($filtersData->allPriorities as $id => $name)
                     <option value="priority_{{ $id }}"
@@ -86,9 +95,12 @@
 
     <div class="columns-display">
         <select name="columns[]" id="columnSelect" multiple {{ $filtersData->isSubscription ? 'disabled' : '' }}>
+            <option value="__all" {{ empty($filtersData->selectedColumns) ? 'selected' : '' }}>
+                {{ __('projectOverview.all_columns') }}
+            </option>
             @foreach ($filtersData->allColumns ?? [] as $column)
                 <option value="{{ $column }}"
-                    {{ empty($filtersData->selectedColumns) || in_array($column, $filtersData->selectedColumns) ? 'selected' : '' }}>
+                    {{ !empty($filtersData->selectedColumns) && in_array($column, $filtersData->selectedColumns) ? 'selected' : '' }}>
                     {{ __('projectOverview.' . strtolower($column) . '_table_header') }}</option>
             @endforeach
         </select>
