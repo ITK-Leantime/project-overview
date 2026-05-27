@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-86](https://github.com/ITK-Leantime/project-overview/pull/86)
+  * Fix empty status dropdowns due to array_merge renumbering project-ID keys.
+  * Fix issue with length of status title exceeding dropdown max width.
 * [PR-87](https://github.com/ITK-Leantime/project-overview/pull/85)
   * Move the project list out of the "Filters" dropdown into a dedicated "Projects" dropdown.
   * Add search field to each filter dropdown.

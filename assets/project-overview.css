@@ -304,7 +304,8 @@
 
     #status-dropdown-menu,
     .priority .dropdown-menu {
-      width: 100%;
+      min-width: 100%;
+      width: max-content;
       border: 1px solid var(--itk-border-color);
       box-shadow: var(--itk-box-shadow);
     }
@@ -332,11 +333,11 @@
     }
     button[id^='status-ticket-'] + .dropdown-menu,
     button[id^='priority-ticket-'] + .dropdown-menu {
-      width: 100%;
+      min-width: 100%;
+      width: max-content;
 
       button {
         white-space: nowrap;
-        overflow: hidden;
         padding: 5px;
         margin: 0;
         &:hover {
