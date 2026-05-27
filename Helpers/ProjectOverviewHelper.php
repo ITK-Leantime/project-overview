@@ -81,7 +81,7 @@ readonly class ProjectOverviewHelper
         // Determine which view to eagerly load (first view if none selected)
         $viewKeys = array_keys($userViewObject);
         $selectedViewKey = $viewId;
-        if ($selectedViewKey === null && ! empty($viewKeys)) {
+        if ($selectedViewKey === null && !empty($viewKeys)) {
             $selectedViewKey = (string) $viewKeys[0];
         }
 
@@ -149,7 +149,7 @@ readonly class ProjectOverviewHelper
             }
         }
         // Flash notification for auto-removed broken subscriptions
-        if (! empty($removedSubscriptions)) {
+        if (!empty($removedSubscriptions)) {
             session()->flash('project_overview-flash_notification', [
                 'message' => __('projectOverview.notification.subscription_removed'),
                 'type' => 'info',
@@ -259,7 +259,10 @@ readonly class ProjectOverviewHelper
      * only where the original is null). Use page=1 to force a reset to the first
      * page regardless of what the caller provided.
      *
-     * @return ViewDTO A new DTO with page/pageSize applied.
+     * @param  ViewDTO  $dto
+     * @param  int|null $page
+     * @param  int|null $pageSize
+     * @return ViewDTO
      */
     private function applyDefaultPagination(ViewDTO $dto, ?int $page = null, ?int $pageSize = null): ViewDTO
     {
@@ -347,8 +350,8 @@ readonly class ProjectOverviewHelper
      *   - 1 query for client users (when any project has psettings='clients')
      *   - 1 call to UserService::getAll() (when any project has psettings='all')
      *
-     * @param  int                              $currentUserId Id of the user the access check is for.
-     * @param  array<int, int|string>           $projectIds    Candidate project ids.
+     * @param  int                              $currentUserId
+     * @param  array<int, int|string>           $projectIds
      * @param  array<int, array<string, mixed>> $allProjects   All projects indexed by ID (must include psettings, clientId).
      * @return array<int, array<int, array<string, mixed>>> projectId => list of users
      */
@@ -385,15 +388,15 @@ readonly class ProjectOverviewHelper
 
         // Step 3: batch-fetch the data (at most three queries: relation users, client users, all users).
         $relationUsersNeeded = array_merge($relationOnlyProjectIds, ...array_values($clientProjectsByClientId));
-        $relationUsersByProject = ! empty($relationUsersNeeded)
+        $relationUsersByProject = !empty($relationUsersNeeded)
             ? $this->projectOverviewRepository->getProjectAssignedUsersByProjectIds($relationUsersNeeded)
             : [];
 
-        $clientUsersByClient = ! empty($clientProjectsByClientId)
+        $clientUsersByClient = !empty($clientProjectsByClientId)
             ? $this->projectOverviewRepository->getUsersByClientIds(array_keys($clientProjectsByClientId))
             : [];
 
-        $allUsersList = ! empty($allUsersProjectIds)
+        $allUsersList = !empty($allUsersProjectIds)
             ? $this->userService->getAll()
             : [];
 
@@ -408,7 +411,7 @@ readonly class ProjectOverviewHelper
                 $merged = $clientUsers;
                 $seenIds = array_column($merged, 'id');
                 foreach ($relationUsersByProject[$pid] ?? [] as $u) {
-                    if (! in_array($u['id'], $seenIds, true)) {
+                    if (!in_array($u['id'], $seenIds, true)) {
                         $merged[] = $u;
                         $seenIds[] = $u['id'];
                     }
@@ -428,8 +431,8 @@ readonly class ProjectOverviewHelper
      * Mirrors Leantime's psettings logic (admin/owner = all; 'all' = all logged-in;
      * 'clients' = same clientId; otherwise relation row required).
      *
-     * @param  int                              $currentUserId       Id of the user the access check is for.
-     * @param  array<int, int|string>           $candidateProjectIds Candidate project ids.
+     * @param  int                              $currentUserId
+     * @param  array<int, int|string>           $candidateProjectIds
      * @param  array<int, array<string, mixed>> $allProjects         Indexed by id (must include psettings, clientId).
      * @return array<int, int>
      */
@@ -467,7 +470,7 @@ readonly class ProjectOverviewHelper
             $needsRelationCheck[] = (int) $pid;
         }
 
-        if (! empty($needsRelationCheck)) {
+        if (!empty($needsRelationCheck)) {
             $assigned = $this->projectOverviewRepository->getUserAssignedProjectIds($currentUserId, $needsRelationCheck);
             $accessibleProjectIds = array_merge($accessibleProjectIds, $assigned);
         }
@@ -479,7 +482,7 @@ readonly class ProjectOverviewHelper
      * Builds the tooltip string shown over the sumHours cell.
      *
      * @param  array<int, array{firstname: string, lastname: string, hours: float}> $rows
-     * @return string The formatted tooltip text (one "first last: hours" per line).
+     * @return string
      */
     private function formatUserHoursTooltip(array $rows): string
     {

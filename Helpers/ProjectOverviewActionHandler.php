@@ -36,7 +36,7 @@ readonly class ProjectOverviewActionHandler
      * @param  array<string, mixed> $postData      POST data containing filter values.
      * @param  string|null          $sortBy        Optional sort column override.
      * @param  string|null          $sortDirection Optional sort direction override.
-     * @return ViewDTO The parsed view configuration.
+     * @return ViewDTO
      */
     public function parseFiltersFromPost(array $postData, ?string $sortBy = null, ?string $sortDirection = null): ViewDTO
     {
@@ -122,7 +122,7 @@ readonly class ProjectOverviewActionHandler
         }
 
         // Check if view already exists and overwrite if requested.
-        if (! empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
+        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
 
             // Prevent overwriting a subscription — force "save as new" instead
@@ -134,7 +134,7 @@ readonly class ProjectOverviewActionHandler
         // Preserve sort fields from existing view when overwriting, otherwise use defaults.
         $sortBy = 'priority';
         $sortDirection = 'ASC';
-        if (! empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
+        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
             $sortBy = $existingView->view->sortBy ?? 'priority';
             $sortDirection = $existingView->view->sortDirection ?? 'ASC';
@@ -142,7 +142,7 @@ readonly class ProjectOverviewActionHandler
 
         $viewDTO = $this->parseFiltersFromPost($postData, $sortBy, $sortDirection);
 
-        if (! empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
+        if (!empty($existingViewId) && $overwriteView && isset($userViewsObject[$existingViewId])) {
             $existingView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
             $userViewsObject[$existingViewId] = new UserViewDTO(
                 id: $existingView->id,
@@ -172,7 +172,7 @@ readonly class ProjectOverviewActionHandler
             $explicitName = trim((string) ($postData['viewName'] ?? ''));
             if ($explicitName !== '') {
                 $newTitle = $explicitName;
-            } elseif (! empty($existingViewId) && isset($userViewsObject[$existingViewId])) {
+            } elseif (!empty($existingViewId) && isset($userViewsObject[$existingViewId])) {
                 $sourceView = UserViewDTO::fromArray($userViewsObject[$existingViewId]);
                 if ($sourceView->isSubscription()) {
                     $newTitle = $sourceView->title . ' (' . __('projectOverview.copy_suffix') . ')';
@@ -205,7 +205,7 @@ readonly class ProjectOverviewActionHandler
      * Deletes a view.
      *
      * @param  string $viewId The id of the view to be deleted.
-     * @return void No return value.
+     * @return void
      *
      * @throws BindingResolutionException
      */
@@ -286,7 +286,7 @@ readonly class ProjectOverviewActionHandler
     {
         $userViewsObject = $this->getUserViewsObject();
 
-        if (! isset($userViewsObject[$viewId])) {
+        if (!isset($userViewsObject[$viewId])) {
             return false;
         }
 
@@ -423,7 +423,7 @@ readonly class ProjectOverviewActionHandler
     {
         $userViewsObject = $this->getUserViewsObject();
 
-        if (! isset($userViewsObject[$sourceViewId])) {
+        if (!isset($userViewsObject[$sourceViewId])) {
             return null;
         }
 
@@ -463,13 +463,13 @@ readonly class ProjectOverviewActionHandler
      */
     public function resolveSubscription(UserViewDTO $subscriberView): ?UserViewDTO
     {
-        if (! $subscriberView->isSubscription()) {
+        if (!$subscriberView->isSubscription()) {
             return null;
         }
 
         $ownerViews = $this->getUserViewsObject($subscriberView->subscribedToUserId);
 
-        if (! isset($ownerViews[$subscriberView->subscribedToViewId])) {
+        if (!isset($ownerViews[$subscriberView->subscribedToViewId])) {
             return null;
         }
 
@@ -480,7 +480,7 @@ readonly class ProjectOverviewActionHandler
      * Remove a subscription view from the current user's views.
      *
      * @param  string $viewId The ID of the subscription view to remove
-     * @return void No return value.
+     * @return void
      */
     public function removeSubscription(string $viewId): void
     {
@@ -527,13 +527,13 @@ readonly class ProjectOverviewActionHandler
      */
     public function getUserViewsObject(?string $userId = null): array
     {
-        if (! $userId) {
+        if (!$userId) {
             $userId = session('userdata.id');
         }
         // Retrieve user settings from user table
         $userViewsEncoded = $this->userRepository->getUserSettings($userId, 'projectoverview.view');
 
-        if (! $userViewsEncoded) {
+        if (!$userViewsEncoded) {
             return [];
         }
         // Base64 decode
@@ -604,7 +604,7 @@ readonly class ProjectOverviewActionHandler
     {
         try {
             // Validate sort column against available columns.
-            if (! in_array($sortBy, $this->getAvailableColumns(), true)) {
+            if (!in_array($sortBy, $this->getAvailableColumns(), true)) {
                 return ['status' => 'error', 'message' => 'Invalid sort column.', 'httpStatus' => 400];
             }
 
@@ -613,7 +613,7 @@ readonly class ProjectOverviewActionHandler
 
             $userViewsObject = $this->getUserViewsObject();
 
-            if (! isset($userViewsObject[$viewId])) {
+            if (!isset($userViewsObject[$viewId])) {
                 return ['status' => 'error', 'message' => 'View not found.', 'httpStatus' => 404];
             }
 

@@ -192,8 +192,8 @@ class ProjectOverview
     /**
      * Returns the subset of $projectIds that the given user has a direct relation row for.
      *
-     * @param  int                    $userId     The user whose direct project relations should be returned.
-     * @param  array<int, int|string> $projectIds Candidate project ids to filter by.
+     * @param  int                    $userId
+     * @param  array<int, int|string> $projectIds
      * @return array<int, int>
      */
     public function getUserAssignedProjectIds(int $userId, array $projectIds): array
@@ -256,7 +256,7 @@ class ProjectOverview
             return ['rows' => [], 'hasMore' => false];
         }
 
-        $effectiveProjectIds = ! empty($viewDTO->projectFilters)
+        $effectiveProjectIds = !empty($viewDTO->projectFilters)
             ? array_values(array_intersect(
                 array_map('intval', $viewDTO->projectFilters),
                 $accessibleProjectIds
@@ -321,7 +321,7 @@ class ProjectOverview
                 }
             });
 
-        if (! empty($viewDTO->users)) {
+        if (!empty($viewDTO->users)) {
             $query->where(function ($q) use ($viewDTO) {
                 if (in_array('unassigned', $viewDTO->users)) {
                     // `editorId` is a nullable VARCHAR (see SchemaBuilder).
@@ -345,12 +345,12 @@ class ProjectOverview
         // the SQL layer instead of trusting the caller.
         $query->whereIn('ticket.projectId', $effectiveProjectIds);
 
-        if (! empty($viewDTO->priorityFilters) || ! empty($viewDTO->statusFilters)) {
+        if (!empty($viewDTO->priorityFilters) || !empty($viewDTO->statusFilters)) {
             $query->where(function ($q) use ($viewDTO) {
-                if (! empty($viewDTO->priorityFilters)) {
+                if (!empty($viewDTO->priorityFilters)) {
                     $q->orWhereIn('ticket.priority', $viewDTO->priorityFilters);
                 }
-                if (! empty($viewDTO->statusFilters)) {
+                if (!empty($viewDTO->statusFilters)) {
                     $q->orWhereIn('ticket.status', $viewDTO->statusFilters);
                 }
             });
@@ -435,7 +435,7 @@ class ProjectOverview
             $tags = explode(',', $tagString);
             foreach ($tags as $tag) {
                 $tag = trim($tag);
-                if ($tag !== '' && ! in_array($tag, $uniqueTags)) {
+                if ($tag !== '' && !in_array($tag, $uniqueTags)) {
                     $uniqueTags[] = $tag;
                 }
             }
