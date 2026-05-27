@@ -8,6 +8,11 @@
             failedToInsertRows: @json(__('projectOverview.failed_to_insert_rows')),
             sessionExpired: @json(__('projectOverview.session_expired')),
             newViewPromptName: @json(__('projectOverview.new_view_prompt_name')),
+            pillUsers: @json(__('projectOverview.pill_users')),
+            pillProjects: @json(__('projectOverview.pill_projects')),
+            pillOtherFilters: @json(__('projectOverview.pill_other_filters')),
+            pillColumns: @json(__('projectOverview.pill_columns')),
+            pillAll: @json(__('projectOverview.pill_all')),
         };
     </script>
     <?php if (isset($tpl)) {
@@ -78,6 +83,7 @@
                             <a href="#view-__new" class="tab-link" data-view-key="__new"
                                 hx-get="/ProjectOverview/ProjectOverview/loadFilters/__new" hx-target="#filtersContainer"
                                 hx-swap="innerHTML">
+                                <span class="view-new-icon" aria-hidden="true">+</span>
                                 {{ __('projectOverview.new_view_tab') }}
                             </a>
                         </li>

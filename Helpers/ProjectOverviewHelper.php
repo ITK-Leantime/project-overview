@@ -136,6 +136,11 @@ readonly class ProjectOverviewHelper
                 $userViewObject[$key]['hasMore'] = $page['hasMore'];
                 $userViewObject[$key]['nextPage'] = $page['hasMore'] ? 2 : null;
                 $userViewObject[$key]['pageSize'] = $paginatedDTO->pageSize;
+                // Stored columns can be []. The partial would otherwise render
+                // zero columns; expand to the full list at render time.
+                $userViewObject[$key]['view']['columns'] = $this->actionHandler->effectiveColumns(
+                    $userViewObject[$key]['view']['columns'] ?? []
+                );
             } else {
                 $userViewObject[$key]['tickets'] = null;
                 $userViewObject[$key]['hasMore'] = false;
@@ -195,7 +200,7 @@ readonly class ProjectOverviewHelper
             'userView' => [
                 'id' => $viewId ?? '',
                 'view' => [
-                    'columns' => $viewDTO->columns,
+                    'columns' => $this->actionHandler->effectiveColumns($viewDTO->columns),
                     'sortBy' => $viewDTO->sortBy,
                     'sortDirection' => $viewDTO->sortDirection,
                 ],
@@ -240,7 +245,7 @@ readonly class ProjectOverviewHelper
 
         return [
             'rows' => $rows,
-            'columns' => $viewDTO->columns,
+            'columns' => $this->actionHandler->effectiveColumns($viewDTO->columns),
             'statusLabels' => $statusLabels,
             'allPriorities' => $this->ticketService->getPriorityLabels(),
             'hasMore' => $result['hasMore'],

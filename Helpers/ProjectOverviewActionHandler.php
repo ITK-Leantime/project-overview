@@ -15,8 +15,6 @@ use Leantime\Plugins\ProjectOverview\Enum\DateTypeEnum;
  */
 readonly class ProjectOverviewActionHandler
 {
-    private const FILTER_PREFIX_PROJECT = 'project_';
-
     private const FILTER_PREFIX_PRIORITY = 'priority_';
 
     private const FILTER_PREFIX_STATUS = 'status_';
@@ -42,7 +40,9 @@ readonly class ProjectOverviewActionHandler
      */
     public function parseFiltersFromPost(array $postData, ?string $sortBy = null, ?string $sortDirection = null): ViewDTO
     {
-        $users = $postData['users'] ?? [];
+        // Drop the synthetic "__all" sentinel — it's purely a UI marker for
+        // "no filter, show everyone" and must never reach the SQL layer.
+        $users = array_values(array_filter((array) ($postData['users'] ?? []), fn ($u) => $u !== '__all'));
         $dateType = DateTypeEnum::tryFrom($postData['dateType'] ?? '');
         $fromDate = null;
         $toDate = null;
@@ -53,11 +53,15 @@ readonly class ProjectOverviewActionHandler
             $fromDate = $postData['fromDate'] ?? null;
             $toDate = $postData['toDate'] ?? null;
         }
-        $columns = $postData['columns'] ?? [];
+        // Drop the synthetic "__all" sentinel — saving an empty columns
+        // array is the canonical "show every column" state (the template
+        // pre-selects every header when selectedColumns is empty).
+        $columns = array_values(array_filter((array) ($postData['columns'] ?? []), fn ($c) => $c !== '__all'));
         $filters = $postData['filters'] ?? [];
+        $projectFilters = $postData['projectFilters'] ?? [];
 
         $groupedFilters = [
-            'projects' => [],
+            'projects' => array_values(array_filter(array_map('strval', (array) $projectFilters), 'ctype_digit')),
             'priorities' => [],
             'statuses' => [],
             'custom' => [],
@@ -67,7 +71,6 @@ readonly class ProjectOverviewActionHandler
             if (preg_match('/^([^_]+)_(.+)/', $filter, $matches)) {
                 [, $group, $value] = $matches;
                 $filterMap = [
-                    rtrim(self::FILTER_PREFIX_PROJECT, '_') => 'projects',
                     rtrim(self::FILTER_PREFIX_PRIORITY, '_') => 'priorities',
                     rtrim(self::FILTER_PREFIX_STATUS, '_') => 'statuses',
                     rtrim(self::FILTER_PREFIX_CUSTOM, '_') => 'custom',
@@ -551,6 +554,20 @@ readonly class ProjectOverviewActionHandler
         });
 
         return $userViews;
+    }
+
+    /**
+     * Returns the columns array to actually render in the table. An empty
+     * stored array is the canonical "show every column" state (the `__all`
+     * pill in the columns dropdown) — expand it to the full available list
+     * at render time so the table doesn't end up with zero columns.
+     *
+     * @param  array<string> $stored Stored columns array (may be empty).
+     * @return array<string>
+     */
+    public function effectiveColumns(array $stored): array
+    {
+        return empty($stored) ? $this->getAvailableColumns() : $stored;
     }
 
     /**

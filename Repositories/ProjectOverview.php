@@ -324,7 +324,15 @@ class ProjectOverview
         if (!empty($viewDTO->users)) {
             $query->where(function ($q) use ($viewDTO) {
                 if (in_array('unassigned', $viewDTO->users)) {
-                    $q->where('ticket.editorId', '=', '');
+                    // `editorId` is a nullable VARCHAR (see SchemaBuilder).
+                    // In practice unassigned tickets in this DB are stored
+                    // as '-1', but legacy / freshly-inserted rows may also
+                    // be NULL or empty string — match all three.
+                    $q->where(function ($inner) {
+                        $inner->whereNull('ticket.editorId')
+                            ->orWhere('ticket.editorId', '=', '')
+                            ->orWhere('ticket.editorId', '=', '-1');
+                    });
                 }
                 if (count(array_diff($viewDTO->users, ['unassigned'])) > 0) {
                     $q->orWhereIn('ticket.editorId', array_diff($viewDTO->users, ['unassigned']));
