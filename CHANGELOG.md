@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.3.0] - 2026-05-27
+
 * [PR-86](https://github.com/ITK-Leantime/project-overview/pull/86)
   * Fix empty status dropdowns due to array_merge renumbering project-ID keys.
   * Fix issue with length of status title exceeding dropdown max width.
@@ -248,7 +250,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.2.0...HEAD
+[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.3.0...HEAD
+[4.3.0]: https://github.com/ITK-Leantime/project-overview/compare/4.2.0...4.3.0
 [4.2.0]: https://github.com/ITK-Leantime/project-overview/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/ITK-Leantime/project-overview/compare/4.0.2...4.1.0
 [4.0.2]: https://github.com/ITK-Leantime/project-overview/compare/4.0.1...4.0.2
