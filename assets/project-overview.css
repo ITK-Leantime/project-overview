@@ -860,15 +860,45 @@ th.sort-desc .label-and-caret-wrapper::after {
    new-view tab — when the new-view tab is the only tab there are no real
    tabs to separate from, and the spacer would otherwise float it inward
    from the container edge. */
-#projectOverviewTabs
-  .ui-tabs-nav:has(> li.new-view-tab.is-only-tab)::after {
+#projectOverviewTabs .ui-tabs-nav:has(> li.new-view-tab.is-only-tab)::after {
   flex-basis: 0;
 }
 
 /* Onboarding tips inside the synthetic "new" view panel — muted styling so the
    user reads them as helper text, not as primary content. */
 .new-view-tips-section {
+  position: relative;
   padding: 24px 8px;
+}
+
+.projectoverview-new-view-tips-dismissed .new-view-tips-section {
+  display: none;
+}
+
+.new-view-tips-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--itk-color-text-secondary, #888);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+}
+
+.new-view-tips-dismiss:hover,
+.new-view-tips-dismiss:focus-visible {
+  background: var(--itk-color-gray-100, #eef0f3);
+  color: var(--itk-color-text-primary, #2c333d);
+  outline: none;
 }
 
 .new-view-tips-heading {

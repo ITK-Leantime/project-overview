@@ -39,6 +39,7 @@ $(document).ready(function () {
   initScrollToTopButton();
   initSaveChangesSubmit();
   initSidebarViewNavigation();
+  initNewViewTipsDismiss();
 
   // begin HTMX swap events
   document.body.addEventListener('htmx:beforeSettle', (e) => {
@@ -62,19 +63,30 @@ $(document).ready(function () {
       // Restore save button visibility after HTMX replaces the filters DOM
       const saveBtn = document.querySelector('.save-changes-btn');
       if (saveBtn && activeViewId) {
-        const hasChanges = !!(
-          window._viewsWithUnsavedChanges &&
-          window._viewsWithUnsavedChanges[activeViewId.value]
-        );
-        saveBtn.style.display = hasChanges ? '' : 'none';
+        saveBtn.style.display = shouldShowSaveChangesBtn(activeViewId.value)
+          ? ''
+          : 'none';
       }
 
-      // Lazy-load: if the active view panel has a placeholder, trigger a table refresh
+      // Lazy-load: if the active view panel has a placeholder, trigger a
+      // table refresh. The "__new" tab is a special case — its panel renders
+      // the help banner only on initial paint, so we also kick off a refresh
+      // when it's active and no table is mounted yet. The refresh response
+      // includes the help banner above the table (see the partial), so help
+      // remains visible and the preview slots in alongside it.
       if (activeViewId && activeViewId.value) {
         const activePanel = document.getElementById(
           'view-' + activeViewId.value
         );
-        if (activePanel && activePanel.querySelector('.view-lazy-load')) {
+        const isNewTabWithoutPreview =
+          activeViewId.value === '__new' &&
+          activePanel &&
+          !activePanel.querySelector('table');
+        if (
+          activePanel &&
+          (activePanel.querySelector('.view-lazy-load') ||
+            isNewTabWithoutPreview)
+        ) {
           const form = document.getElementById('filtersForm');
           if (form) {
             refreshViewTable(form);
@@ -192,6 +204,29 @@ function scrollActiveTabIntoView() {
   );
   if (!active) return;
   active.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+}
+
+/**
+ * Dismissal for the onboarding tips banner that lives at the top of the
+ * `__new` view panel. The banner is re-rendered server-side on every refresh
+ * of the panel (it's bundled into the table partial when viewId === '__new'),
+ * so a one-shot `display: none` would come right back. Instead we persist a
+ * flag in localStorage and apply a body-level class on every page load. CSS
+ * keys off the class to hide the banner.
+ *
+ * Delegated on document so it survives every panel innerHTML swap.
+ */
+const NEW_VIEW_TIPS_DISMISSED_KEY = 'projectOverview.newViewTipsDismissed';
+
+function initNewViewTipsDismiss() {
+  if (localStorage.getItem(NEW_VIEW_TIPS_DISMISSED_KEY) === '1') {
+    document.body.classList.add('projectoverview-new-view-tips-dismissed');
+  }
+  document.body.addEventListener('click', function (e) {
+    if (!e.target.closest('.new-view-tips-dismiss')) return;
+    localStorage.setItem(NEW_VIEW_TIPS_DISMISSED_KEY, '1');
+    document.body.classList.add('projectoverview-new-view-tips-dismissed');
+  });
 }
 
 /**
@@ -804,13 +839,11 @@ function initProjectOverviewTable() {
         const viewId = ui.newPanel.attr('id').replace('view-', '');
 
         // Sync save button and unsaved banner with the newly active view
-        const viewHasChanges = !!(
-          window._viewsWithUnsavedChanges &&
-          window._viewsWithUnsavedChanges[viewId]
-        );
         const saveBtn = document.querySelector('.save-changes-btn');
         if (saveBtn) {
-          saveBtn.style.display = viewHasChanges ? '' : 'none';
+          saveBtn.style.display = shouldShowSaveChangesBtn(viewId)
+            ? ''
+            : 'none';
         }
         const url = new URL(window.location.href);
         url.searchParams.set('view', viewId);
@@ -1768,21 +1801,33 @@ function toggleUnsavedIndicator(targetViewId, hasChanges) {
 }
 
 /**
+ * Whether the Save changes button should be visible for the given view id.
+ * Real views show the button only when they have unsaved changes; the
+ * synthetic `__new` tab always shows it — its default filter configuration
+ * is already a valid view that the user can save as-is without first
+ * perturbing a filter.
+ *
+ * @param {string} viewId
+ * @returns {boolean}
+ */
+function shouldShowSaveChangesBtn(viewId) {
+  if (viewId === '__new') return true;
+  return !!(
+    window._viewsWithUnsavedChanges && window._viewsWithUnsavedChanges[viewId]
+  );
+}
+
+/**
  * Read the active view from #selectedViewId and toggle the Save changes button
- * accordingly. The button shows only when the active view has unsaved changes;
- * the empty "new" tab is no exception — its baseline state (empty defaults) is
- * captured by `_viewInitialStates`, so any user input flips it to dirty.
+ * accordingly.
  */
 function syncSaveChangesVisibility() {
   const activeViewId = document.getElementById('selectedViewId');
   const saveBtn = document.querySelector('.save-changes-btn');
   if (!activeViewId || !saveBtn) return;
-
-  const hasChanges = !!(
-    window._viewsWithUnsavedChanges &&
-    window._viewsWithUnsavedChanges[activeViewId.value]
-  );
-  saveBtn.style.display = hasChanges ? '' : 'none';
+  saveBtn.style.display = shouldShowSaveChangesBtn(activeViewId.value)
+    ? ''
+    : 'none';
 }
 
 // Save success animation
