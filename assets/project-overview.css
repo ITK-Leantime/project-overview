@@ -856,6 +856,15 @@ th.sort-desc .label-and-caret-wrapper::after {
   pointer-events: none;
 }
 
+/* Collapse the flex `::after` spacer that separates real tabs from the
+   new-view tab — when the new-view tab is the only tab there are no real
+   tabs to separate from, and the spacer would otherwise float it inward
+   from the container edge. */
+#projectOverviewTabs
+  .ui-tabs-nav:has(> li.new-view-tab.is-only-tab)::after {
+  flex-basis: 0;
+}
+
 /* Onboarding tips inside the synthetic "new" view panel — muted styling so the
    user reads them as helper text, not as primary content. */
 .new-view-tips-section {
@@ -1201,10 +1210,14 @@ select#dateOptions {
       background: transparent;
     }
 
+    /* Spacer between real tabs and the new-view tab (order 998 puts it
+       before the new-view tab at order 999). The width is intentionally
+       small — just enough to read as deliberate separation. Collapsed to 0
+       in the only-tab empty state via the `:has()` rule above. */
     &::after {
       content: '';
       flex-shrink: 0;
-      flex-basis: 140px;
+      flex-basis: 30px;
       order: 998;
     }
 
