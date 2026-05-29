@@ -4,6 +4,8 @@
 
 * [PR-89](https://github.com/ITK-Leantime/project-overview/pull/89)
   * Fix new view page unable to visualize default configured view.
+* [PR-90](https://github.com/ITK-Leantime/project-overview/pull/90)
+  * Sort the user filter dropdown alphabetically and hide inactive users.
 
 ## [4.3.0] - 2026-05-27
 
