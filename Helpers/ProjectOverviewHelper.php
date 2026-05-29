@@ -508,7 +508,8 @@ readonly class ProjectOverviewHelper
     {
         $selectedViewId = $data['id'] ?? null;
 
-        // Get all active users
+        // Get all active users (core service has a buggy @param false annotation -- the runtime accepts bool)
+        // @phpstan-ignore-next-line
         $allUsers = $this->userService->getAll(true);
         // Get all projects
         $allProjects = $this->projectOverviewService->getAllProjects();
