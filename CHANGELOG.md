@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-89](https://github.com/ITK-Leantime/project-overview/pull/89)
+  * Fix new view page unable to visualize default configured view.
+
 ## [4.3.0] - 2026-05-27
 
 * [PR-86](https://github.com/ITK-Leantime/project-overview/pull/86)

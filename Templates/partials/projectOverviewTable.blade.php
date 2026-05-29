@@ -11,6 +11,11 @@
         ? '/ProjectOverview/ProjectOverview/loadViewTableRows/' . urlencode((string) $viewId)
         : null;
 @endphp
+{{-- On the synthetic "__new" tab, render the onboarding help above the live
+     preview table so the user sees the guidance and the result side by side. --}}
+@if ($viewId === '__new')
+    @include('projectoverview::partials.newViewHelp')
+@endif
 <table class="table table-striped" data-sort-by="{{ $viewSortBy }}"
     data-sort-dir="{{ $viewSortDir }}">
     <thead>

@@ -107,27 +107,7 @@
                         </div>
                     @endforeach
                     <div id="view-__new">
-                        <section class="new-view-tips-section">
-                            <h3 class="new-view-tips-heading">{{ __('projectOverview.tips_heading') }}</h3>
-                            <div class="new-view-tips">
-                                <div class="new-view-tip-card">
-                                    <h4>{{ __('projectOverview.tip_filters_title') }}</h4>
-                                    <p>{{ __('projectOverview.tip_filters_body') }}</p>
-                                </div>
-                                <div class="new-view-tip-card">
-                                    <h4>{{ __('projectOverview.tip_menu_title') }}</h4>
-                                    <p>{{ __('projectOverview.tip_menu_body') }}</p>
-                                </div>
-                                <div class="new-view-tip-card">
-                                    <h4>{{ __('projectOverview.tip_reorder_title') }}</h4>
-                                    <p>{{ __('projectOverview.tip_reorder_body') }}</p>
-                                </div>
-                                <div class="new-view-tip-card">
-                                    <h4>{{ __('projectOverview.tip_save_title') }}</h4>
-                                    <p>{{ __('projectOverview.tip_save_body') }}</p>
-                                </div>
-                            </div>
-                        </section>
+                        @include('projectoverview::partials.newViewHelp')
                     </div>
                 </div>
             </div>
