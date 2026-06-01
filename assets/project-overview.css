@@ -963,12 +963,15 @@ th.sort-desc .label-and-caret-wrapper::after {
   color: var(--itk-color-text-secondary, #6c7480);
 }
 
-/* Mode-aware context menu: hide items that don't apply to the current view type */
-#view-context-menu[data-mode='subscription'] .owned-only {
+#view-context-menu:not([data-mode='owned']) .share-action {
   display: none;
 }
 
-#view-context-menu[data-mode='owned'] .subscription-only {
+#view-context-menu[data-mode='transient'] .owner-actions {
+  display: none;
+}
+
+#view-context-menu:not([data-mode='transient']) .transient-actions {
   display: none;
 }
 
@@ -1495,100 +1498,6 @@ select#dateOptions {
 
   &.shown {
     display: flex !important;
-  }
-}
-
-#share-view-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  z-index: 100000;
-  align-items: center;
-  justify-content: center;
-
-  &.shown {
-    display: flex;
-  }
-
-  .share-modal-content {
-    background-color: #fff;
-    border-radius: 6px;
-    padding: 20px;
-    width: 500px;
-    max-width: 90vw;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  .share-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--itk-spacing-lg);
-
-    h3 {
-      margin: 0;
-      font-size: 14px;
-      color: #555555;
-    }
-
-    .share-modal-close {
-      all: unset;
-      cursor: pointer;
-      font-size: 18px;
-      line-height: 1;
-      color: var(--itk-color-gray-500);
-
-      &:hover {
-        color: var(--itk-color-black);
-      }
-    }
-  }
-
-  p {
-    margin: 0 0 var(--itk-spacing-lg);
-    font-size: 13px;
-    color: #555555;
-  }
-
-  .share-modal-input-group {
-    display: flex;
-    gap: 6px;
-
-    input {
-      all: unset;
-      flex: 1;
-      height: 35px;
-      border: 1px solid var(--itk-border-color);
-      border-radius: 3px;
-      padding: 0 10px;
-      font-size: 13px;
-      color: #555555;
-      background-color: var(--itk-color-gray-50);
-      box-sizing: border-box;
-    }
-
-    .share-modal-copy-btn {
-      all: unset;
-      cursor: pointer;
-      background-color: var(--itk-color-primary);
-      color: #fff;
-      height: 35px;
-      padding: 0 14px;
-      border-radius: 3px;
-      font-size: 13px;
-      white-space: nowrap;
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-
-      &:hover {
-        background-color: var(--itk-color-primary-800);
-      }
-    }
   }
 }
 

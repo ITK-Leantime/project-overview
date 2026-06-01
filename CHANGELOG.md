@@ -15,6 +15,8 @@
   * Add reset button that reverts unsaved filter changes.
 * [PR-94](https://github.com/ITK-Leantime/project-overview/pull/94)
   * Persist "+ new view" filter draft in localStorage across page reloads.
+* [PR-95](https://github.com/ITK-Leantime/project-overview/pull/95)
+  * Simplify share mechanism: copy the view URL directly instead of generating a separate share link.
 
 ## [4.3.0] - 2026-05-27
 

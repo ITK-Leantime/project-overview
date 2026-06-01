@@ -109,8 +109,8 @@ class ProjectOverview extends Controller
 
                 return $this->tpl->displayJson($result, $status);
             case 'pinSubscription':
-                $subscribeToken = $_POST['subscribeToken'] ?? '';
-                $lookupResult = $this->actionHandler->findViewByShareToken($subscribeToken);
+                $sharedViewId = $_POST['sharedViewId'] ?? '';
+                $lookupResult = $this->actionHandler->findViewById($sharedViewId);
                 if ($lookupResult) {
                     $newViewId = $this->actionHandler->subscribeToView($lookupResult);
                     session()->forget('project_overview.transient_subscription');
@@ -122,8 +122,8 @@ class ProjectOverview extends Controller
                 }
                 break;
             case 'saveTransientAsCopy':
-                $subscribeToken = $_POST['subscribeToken'] ?? '';
-                $lookupResult = $this->actionHandler->findViewByShareToken($subscribeToken);
+                $sharedViewId = $_POST['sharedViewId'] ?? '';
+                $lookupResult = $this->actionHandler->findViewById($sharedViewId);
                 if ($lookupResult) {
                     $newViewId = $this->actionHandler->saveViewAsCopy($lookupResult);
                     session()->forget('project_overview.transient_subscription');
@@ -213,23 +213,24 @@ class ProjectOverview extends Controller
      */
     public function get(): Response
     {
-        // Handle live-share subscription preview (store in session, show as transient tab)
-        if (!empty($_GET['subscribe'])) {
-            $lookupResult = $this->actionHandler->findViewByShareToken($_GET['subscribe']);
-
-            if ($lookupResult) {
-                $tempViewId = 'transient_' . md5($_GET['subscribe']);
-                session()->put('project_overview.transient_subscription', [
-                    'token' => $_GET['subscribe'],
-                    'ownerUserId' => $lookupResult->ownerUserId,
-                    'ownerName' => $lookupResult->ownerName,
-                    'ownerViewId' => $lookupResult->view->id,
-                    'tempViewId' => $tempViewId,
-                ]);
-
-                return Frontcontroller::redirect(BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query([self::PARAM_VIEW => $tempViewId]));
-            } else {
-                $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
+        // Share-by-URL: if `?view=<id>` points at a view that isn't in the
+        // current user's list, look it up globally and stage it as a transient
+        // subscription preview. The URL stays canonical so the recipient can
+        // forward it freely — anyone they paste it to hits this same path.
+        $requestedViewId = $_GET[self::PARAM_VIEW] ?? null;
+        if ($requestedViewId !== null && $requestedViewId !== '__new') {
+            $currentUserViews = $this->actionHandler->getUserViewsObject();
+            if (!isset($currentUserViews[$requestedViewId])) {
+                $lookupResult = $this->actionHandler->findViewById($requestedViewId);
+                if ($lookupResult) {
+                    session()->put('project_overview.transient_subscription', [
+                        'ownerUserId' => $lookupResult->ownerUserId,
+                        'ownerName' => $lookupResult->ownerName,
+                        'ownerViewId' => $lookupResult->view->id,
+                    ]);
+                } else {
+                    $this->tpl->setNotification(__('projectOverview.notification.view_not_found'), 'error');
+                }
             }
         }
 
@@ -237,7 +238,7 @@ class ProjectOverview extends Controller
         $transientSub = session('project_overview.transient_subscription');
         if ($transientSub) {
             $currentViewId = $_GET[self::PARAM_VIEW] ?? null;
-            if ($currentViewId !== $transientSub['tempViewId']) {
+            if ($currentViewId !== $transientSub['ownerViewId']) {
                 session()->forget('project_overview.transient_subscription');
             }
         }
@@ -261,40 +262,5 @@ class ProjectOverview extends Controller
 
         // Display template.
         return $this->tpl->display('ProjectOverview.projectOverview');
-    }
-
-    /**
-     * Generate a share token for a view
-     *
-     * @return Response
-     *
-     * @noinspection PhpUnused Called via AJAX.
-     */
-    public function generateShareLink(): Response
-    {
-        if (!AuthService::userIsAtLeast(Roles::$editor)) {
-            return $this->tpl->displayJson(['error' => 'Not Authorized'], 403);
-        }
-
-        $viewId = $_POST[self::PARAM_VIEW] ?? null;
-
-        if (empty($viewId)) {
-            return $this->tpl->displayJson(['error' => 'View ID required'], 400);
-        }
-
-        // Generate a share token for the view.
-        $shareToken = $this->actionHandler->generateShareToken($viewId);
-
-        if ($shareToken === false) {
-            return $this->tpl->displayJson(['error' => 'View not found'], 404);
-        }
-
-        $shareUrl = BASE_URL . '/ProjectOverview/ProjectOverview?' . http_build_query(['share' => $shareToken]);
-
-        return $this->tpl->displayJson([
-            'success' => true,
-            'shareUrl' => $shareUrl,
-            'shareToken' => $shareToken,
-        ]);
     }
 }

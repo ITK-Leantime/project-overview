@@ -188,10 +188,19 @@ function openSidebarContextMenu(link, anchor) {
   const contextMenu = document.getElementById('view-context-menu');
   if (!contextMenu) return;
 
-  const isSubscription =
-    link.getAttribute('data-is-subscription') === 'true' ||
+  // Transient previews get Pin / Save-as-copy; pinned subscriptions get the
+  // owner-style actions (rename, duplicate, delete) minus Copy link; owned
+  // views get everything.
+  const isTransient =
     link.getAttribute('data-is-transient-subscription') === 'true';
-  const subscribeToken = link.getAttribute('data-subscribe-token') || '';
+  const isStoredSubscription =
+    link.getAttribute('data-is-subscription') === 'true';
+  const mode = isTransient
+    ? 'transient'
+    : isStoredSubscription
+      ? 'pinned'
+      : 'owned';
+  const sharedViewId = link.getAttribute('data-shared-view-id') || '';
   const labelSpan = link.querySelector('.view-label');
   const currentName = labelSpan ? labelSpan.textContent.trim() : '';
   // #view-context-menu is position: fixed, so top/left are viewport-relative.
@@ -208,7 +217,7 @@ function openSidebarContextMenu(link, anchor) {
     ? link.parentElement.getBoundingClientRect().top
     : (anchor || link).getBoundingClientRect().top;
 
-  contextMenu.dataset.mode = isSubscription ? 'subscription' : 'owned';
+  contextMenu.dataset.mode = mode;
   contextMenu.style.left = mainContentLeft + 'px';
   contextMenu.style.top = rowTop + 'px';
   contextMenu.classList.add('shown');
@@ -221,9 +230,11 @@ function openSidebarContextMenu(link, anchor) {
   };
   setVal('input[name="viewName"]', currentName);
   setVal('input[name="view"]', viewId);
-  setVal('input[name="subscribeToken"]', subscribeToken);
+  setVal('input[name="sharedViewId"]', sharedViewId);
 
-  if (!isSubscription) {
+  // Focus the rename field whenever it's visible — that's both owned and
+  // pinned-subscription views (transient previews don't expose rename).
+  if (mode !== 'transient') {
     requestAnimationFrame(function () {
       const input = contextMenu.querySelector('input[name="viewName"]');
       if (input) input.focus();

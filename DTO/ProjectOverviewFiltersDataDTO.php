@@ -29,7 +29,7 @@ readonly class ProjectOverviewFiltersDataDTO
      * @param array<string, array<string, string>> $dateRanges              Pre-calculated date ranges for each date type option.
      * @param bool                                 $isSubscription          Whether the selected view is a live-share subscription.
      * @param bool                                 $isTransientSubscription Whether the selected view is a transient (unpinned) subscription preview.
-     * @param string|null                          $subscribeToken          The share token for pinning a transient subscription.
+     * @param string|null                          $sharedViewId            The owner's view id for pinning a transient subscription preview.
      */
     public function __construct(
         public array $allUsers,
@@ -51,7 +51,7 @@ readonly class ProjectOverviewFiltersDataDTO
         public array $dateRanges = [],
         public bool $isSubscription = false,
         public bool $isTransientSubscription = false,
-        public ?string $subscribeToken = null,
+        public ?string $sharedViewId = null,
     ) {
     }
 }

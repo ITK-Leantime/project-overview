@@ -343,15 +343,20 @@ function initProjectOverviewTable() {
     const liRect = target.parentElement.getBoundingClientRect();
     const tab = $(target).parent();
     const viewId = tab.data('target');
-    // Both stored subscriptions and live transient subscriptions need the
-    // subscription-mode menu (Pin / Save as copy).
-    const isSubscription =
-      tab.data('is-subscription') === true ||
-      tab.data('is-transient-subscription') === true;
-    const subscribeToken = tab.data('subscribe-token') || '';
+    // Transient previews get Pin / Save-as-copy; pinned subscriptions get the
+    // owner-style actions (rename, duplicate, delete) minus Copy link; owned
+    // views get everything.
+    const isTransient = tab.data('is-transient-subscription') === true;
+    const isStoredSubscription = tab.data('is-subscription') === true;
+    const mode = isTransient
+      ? 'transient'
+      : isStoredSubscription
+        ? 'pinned'
+        : 'owned';
+    const sharedViewId = tab.data('shared-view-id') || '';
     $('.settings-for-target').text(viewId);
     contextMenu
-      .attr('data-mode', isSubscription ? 'subscription' : 'owned')
+      .attr('data-mode', mode)
       .css({
         left: `${liRect.left}px`,
         top: `${triggerRect.bottom + 12}px`,
@@ -366,10 +371,12 @@ function initProjectOverviewTable() {
       .find('input[name="view"]')
       .val(viewId)
       .end()
-      .find('input[name="subscribeToken"]')
-      .val(subscribeToken);
+      .find('input[name="sharedViewId"]')
+      .val(sharedViewId);
 
-    if (!isSubscription) {
+    // Focus the rename field whenever it's visible — that's both owned and
+    // pinned-subscription views (transient previews don't expose rename).
+    if (mode !== 'transient') {
       requestAnimationFrame(() => {
         contextMenu.find('input[name="viewName"]').focus();
       });
@@ -540,67 +547,44 @@ function initProjectOverviewTable() {
     }
   });
 
-  // Open share modal from context menu
+  // Share view: copy the canonical `?view=<id>` URL to the clipboard. Any
+  // user who opens this URL hits the server-side global view lookup and
+  // sees the view as a transient preview — no separate share token needed.
   document.addEventListener('click', function (e) {
     const shareBtn = e.target.closest('button.view-share');
     if (!shareBtn) return;
-
     e.preventDefault();
+
     const viewId = document.querySelector(
       '#view-context-menu input[name="view"]'
     ).value;
-    const modal = document.getElementById('share-view-modal');
-    const input = document.getElementById('share-link-input');
+    if (!viewId) return;
 
-    input.value = 'Loading...';
-    modal.classList.add('shown');
+    const shareUrl =
+      window.location.origin +
+      '/ProjectOverview/ProjectOverview?view=' +
+      encodeURIComponent(viewId);
+
+    navigator.clipboard.writeText(shareUrl).then(
+      function () {
+        window.jQuery.growl({
+          message:
+            (window.projectOverviewI18n &&
+              window.projectOverviewI18n.shareLinkCopied) ||
+            'Link copied',
+        });
+      },
+      function () {
+        window.jQuery.growl({
+          message:
+            (window.projectOverviewI18n &&
+              window.projectOverviewI18n.shareLinkCopyFailed) ||
+            'Could not copy link',
+        });
+      }
+    );
+
     document.getElementById('view-context-menu').classList.remove('shown');
-
-    jQuery.ajax({
-      type: 'POST',
-      url: '/ProjectOverview/ProjectOverview/generateShareLink',
-      data: { view: viewId },
-      dataType: 'json',
-      success: function (response) {
-        if (response.success && response.shareToken) {
-          input.value =
-            window.location.origin +
-            '/ProjectOverview/ProjectOverview?subscribe=' +
-            response.shareToken;
-        } else {
-          input.value = 'Error generating link';
-        }
-      },
-      error: function () {
-        input.value = 'Error generating link';
-      },
-    });
-  });
-
-  // Copy share link from modal input
-  document.addEventListener('click', function (e) {
-    if (!e.target.closest('.share-modal-copy-btn')) return;
-    const input = document.getElementById('share-link-input');
-    const btn = e.target.closest('.share-modal-copy-btn');
-    const originalText = btn.textContent;
-    const copiedText = btn.dataset.copied || 'Copied';
-
-    navigator.clipboard.writeText(input.value).then(function () {
-      btn.textContent = copiedText;
-      setTimeout(function () {
-        btn.textContent = originalText;
-      }, 2000);
-    });
-  });
-
-  // Close share modal
-  document.addEventListener('click', function (e) {
-    if (e.target.closest('.share-modal-close')) {
-      document.getElementById('share-view-modal').classList.remove('shown');
-    }
-    if (e.target.id === 'share-view-modal') {
-      e.target.classList.remove('shown');
-    }
   });
 }
 

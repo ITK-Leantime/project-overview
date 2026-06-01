@@ -1037,7 +1037,7 @@ export function serializeFilterForm(form) {
   formData.delete('action');
   formData.delete('overwriteView');
   formData.delete('view');
-  formData.delete('subscribeToken');
+  formData.delete('sharedViewId');
   return new URLSearchParams(formData).toString();
 }
 
