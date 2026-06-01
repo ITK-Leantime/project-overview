@@ -191,7 +191,7 @@ function openSidebarContextMenu(link, anchor) {
   const isSubscription =
     link.getAttribute('data-is-subscription') === 'true' ||
     link.getAttribute('data-is-transient-subscription') === 'true';
-  const subscribeToken = link.getAttribute('data-subscribe-token') || '';
+  const sharedViewId = link.getAttribute('data-shared-view-id') || '';
   const labelSpan = link.querySelector('.view-label');
   const currentName = labelSpan ? labelSpan.textContent.trim() : '';
   // #view-context-menu is position: fixed, so top/left are viewport-relative.
@@ -221,7 +221,7 @@ function openSidebarContextMenu(link, anchor) {
   };
   setVal('input[name="viewName"]', currentName);
   setVal('input[name="view"]', viewId);
-  setVal('input[name="subscribeToken"]', subscribeToken);
+  setVal('input[name="sharedViewId"]', sharedViewId);
 
   if (!isSubscription) {
     requestAnimationFrame(function () {
