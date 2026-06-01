@@ -263,5 +263,4 @@ class ProjectOverview extends Controller
         // Display template.
         return $this->tpl->display('ProjectOverview.projectOverview');
     }
-
 }
