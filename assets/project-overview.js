@@ -3,8 +3,6 @@
  *
  * Subsystems that run on the project-overview page, in roughly the order they
  * appear in this file:
- *   - Filter pill init + select2 wiring (users / projects / other filters /
- *     columns) and the cross-pill mutex with the "All" sentinel.
  *   - View tabs widget (hidden in the redesigned UI, driven by sidebar clicks)
  *     including URL pushState, unsaved-changes tracking, and lazy-loading the
  *     active panel's table on activation.
@@ -12,16 +10,15 @@
  *     hours, milestone) that PATCH the API and animate save success/error.
  *   - Lazy-load sentinel for paginated row insertion.
  *
- * Sidebar view navigation has been extracted to `./sidebar.js`; the two
- * functions imported below are the only cross-module touch points. New
- * subsystems should also be extracted to their own module under `assets/`
- * and wired in from here rather than appended to this file.
+ * Filter UI (pill row + select2 wiring + dropdown enhancements + dirty
+ * tracking) has been extracted to `./filters.js`; sidebar view navigation
+ * lives in `./sidebar.js`. The imports below are the only cross-module touch
+ * points. New subsystems should also be extracted to their own module under
+ * `assets/` and wired in from here rather than appended to this file.
  */
 
 import 'select2';
 import 'select2/dist/css/select2.css';
-import flatpickr from 'flatpickr';
-import { Danish } from 'flatpickr/dist/l10n/da.js';
 import 'flatpickr/dist/flatpickr.min.css';
 import TomSelect from 'tom-select';
 import 'tom-select/dist/css/tom-select.bootstrap5.css';
@@ -30,14 +27,34 @@ import {
   initSidebarViewNavigation,
   applySidebarActiveState,
 } from './sidebar.js';
+import {
+  initFiltersToggle,
+  initProjectOverviewFilters,
+  installFilterDropdownEnhancements,
+  installFilterTabNavigation,
+  installFilterReset,
+  captureFormState,
+  restoreFormState,
+  shouldShowSaveChangesBtn,
+  shouldShowResetChangesBtn,
+  updateSaveBtnVisibility,
+  updateResetBtnVisibility,
+  seedNewViewCacheFromStorage,
+  clearNewViewFiltersStorage,
+} from './filters.js';
 
 $(document).ready(function () {
   window.frontendDateFormat = $(document).find('#frontendDateFormat').val();
+  // Seed before the first htmx:afterSettle fires for #filtersContainer, so a
+  // persisted "+ new view" draft is already in _viewCachedFormData by the
+  // time the existing restore-from-cache code runs.
+  seedNewViewCacheFromStorage();
   initFiltersToggle();
-  initProjectOverviewFilters();
+  initProjectOverviewFilters({ refreshViewTable, toggleUnsavedIndicator });
   initProjectOverviewTable();
   initScrollToTopButton();
   initSaveChangesSubmit();
+  installFilterReset({ toggleUnsavedIndicator });
   initSidebarViewNavigation();
   initNewViewTipsDismiss();
 
@@ -48,7 +65,7 @@ $(document).ready(function () {
   document.addEventListener('htmx:afterSettle', function (e) {
     e.detail.target.style.visibility = '';
     if (e.target.id === 'filtersContainer') {
-      initProjectOverviewFilters();
+      initProjectOverviewFilters({ refreshViewTable, toggleUnsavedIndicator });
 
       // Restore cached unsaved form state if returning to a dirty view
       const activeViewId = document.getElementById('selectedViewId');
@@ -60,12 +77,32 @@ $(document).ready(function () {
         restoreFormState(window._viewCachedFormData[activeViewId.value]);
       }
 
-      // Restore save button visibility after HTMX replaces the filters DOM
+      // Restore save / reset button visibility after HTMX replaces the
+      // filters DOM
       const saveBtn = document.querySelector('.save-changes-btn');
       if (saveBtn && activeViewId) {
         saveBtn.style.display = shouldShowSaveChangesBtn(activeViewId.value)
           ? ''
           : 'none';
+      }
+      const resetBtn = document.querySelector('.reset-changes-btn');
+      if (resetBtn && activeViewId) {
+        resetBtn.style.display = shouldShowResetChangesBtn(activeViewId.value)
+          ? ''
+          : 'none';
+      }
+
+      // Reset action: after the canonical filters have been swapped in,
+      // refresh the table so it reflects the restored configuration. The
+      // lazy-load fallback below would skip this case because the panel
+      // already contains a rendered table.
+      const resetPending = window._povResetPendingViewId;
+      if (resetPending && activeViewId && activeViewId.value === resetPending) {
+        window._povResetPendingViewId = null;
+        const form = document.getElementById('filtersForm');
+        if (form) {
+          refreshViewTable(form);
+        }
       }
 
       // Lazy-load: if the active view panel has a placeholder, trigger a
@@ -188,6 +225,9 @@ function initSaveChangesSubmit() {
     }
     const nameField = form.querySelector('#newViewName');
     if (nameField) nameField.value = name.trim();
+    // The draft is about to become a real saved view; drop the persisted
+    // copy so the next visit to "+ new view" starts pristine.
+    clearNewViewFiltersStorage();
   });
 }
 
@@ -229,453 +269,12 @@ function initNewViewTipsDismiss() {
   });
 }
 
-/**
- * Initializes the collapsible filters toggle with localStorage persistence.
- */
-function initFiltersToggle() {
-  const STORAGE_KEY = 'projectOverview.filtersCollapsed';
-  const toggle = document.getElementById('filtersToggle');
-  const container = document.getElementById('filtersContainer');
-  if (!toggle || !container) return;
-
-  var label = toggle.querySelector('span');
-
-  function updateLabel(collapsed) {
-    label.textContent = collapsed ? toggle.dataset.show : toggle.dataset.hide;
-  }
-
-  // Restore saved state (disable transition to prevent animation on load)
-  if (localStorage.getItem(STORAGE_KEY) === '1') {
-    container.style.transition = 'none';
-    container.classList.add('collapsed');
-    toggle.classList.add('collapsed');
-    updateLabel(true);
-    // Re-enable transition after the browser has painted
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        container.style.transition = '';
-      });
-    });
-  }
-
-  toggle.addEventListener('click', function () {
-    const isCollapsed = container.classList.toggle('collapsed');
-    toggle.classList.toggle('collapsed', isCollapsed);
-    updateLabel(isCollapsed);
-    localStorage.setItem(STORAGE_KEY, isCollapsed ? '1' : '0');
-  });
-}
-
-/**
- * Initializes the project overview filters by setting up various UI components.
- *
- * @return {void} This function does not return a value.
- */
-function initProjectOverviewFilters() {
-  // Sync save button visibility with the active tab on each filters reload (the
-  // "new" tab always shows the button; other tabs only show it when dirty).
-  syncSaveChangesVisibility();
-
-  // Build a dropdown adapter that puts a search input at the top of the open
-  // dropdown panel. Select2 v4 only renders an inline search inside the
-  // selection chip area for multi-selects, and our selection bar is hidden by
-  // CSS — so without this, users have to type blind to filter.
-  const dropdownWithSearch = buildDropdownAdapterWithSearch();
-
-  // Translated pill labels. Used as `data-label` on each select2 wrapper and
-  // as the "All" sentinel for `data-length`. CSS reads both via attr() so the
-  // pseudo-element labels track the user's language.
-  const i18n = window.projectOverviewI18n || {};
-  const allLabel = i18n.pillAll || 'All';
-
-  // Init date range select
-  const dateRange = flatpickr('#dateRange', {
-    mode: 'range',
-    dateFormat: window.frontendDateFormat,
-    allowInput: false,
-    readonly: false,
-    weekNumbers: true,
-    locale: Danish,
-    onChange: function (selectedDates) {
-      if (selectedDates && selectedDates.length === 2) {
-        const [startDate, endDate] = selectedDates;
-
-        // Format dates to d-m-Y
-        const formatDate = (date) => {
-          const day = String(date.getDate()).padStart(2, '0');
-          const month = String(date.getMonth() + 1).padStart(2, '0');
-          const year = date.getFullYear();
-          return `${day}-${month}-${year}`;
-        };
-
-        $('#fromDate').val(formatDate(startDate));
-        $('#toDate').val(formatDate(endDate));
-      }
-    },
-  });
-
-  // Init filter select2
-  const filterSelect = $('#filterSelect')
-    .select2({
-      closeOnSelect: false,
-      dropdownCssClass: 'project-overview-dropdown',
-      dropdownAdapter: dropdownWithSearch,
-      // Skip the default matcher's fallback that matches against an optgroup's
-      // own label — without this, typing "Priority"/"Status"/"Custom filters"
-      // would expand the entire group. We only want option text to match.
-      matcher: function matchOptionsOnly(params, data) {
-        if (!params.term || !params.term.trim()) return data;
-        if (data.children && data.children.length > 0) {
-          const filtered = Object.assign({}, data, { children: [] });
-          for (const child of data.children) {
-            const m = matchOptionsOnly(params, child);
-            if (m) filtered.children.push(m);
-          }
-          return filtered.children.length > 0 ? filtered : null;
-        }
-        const text = (data.text || '').toUpperCase();
-        return text.indexOf(params.term.toUpperCase()) !== -1 ? data : null;
-      },
-    })
-    .on('select2:select', () => {
-      $(this).val(null).trigger('change');
-    })
-    .on('change.select2', () => {
-      $(filterSelect)
-        .next('.select2')
-        .attr('data-length', function () {
-          return filterSelect.select2('data')?.length;
-        });
-    });
-
-  filterSelect
-    .next('.select2')
-    .attr('data-label', i18n.pillOtherFilters || 'Other filters')
-    .attr('data-length', function () {
-      return filterSelect.select2('data')?.length;
-    });
-
-  // Init project select2. The synthetic "__all" option represents the
-  // "no filter — show every project" state. It's mutually exclusive with
-  // real project selections: picking a project removes __all, picking __all
-  // (or clearing every real selection) snaps the value back to ['__all'].
-  const projectSelect = $('#projectSelect')
-    .select2({
-      closeOnSelect: false,
-      dropdownCssClass: 'project-overview-dropdown',
-      dropdownAdapter: dropdownWithSearch,
-      matcher: function (params, data) {
-        if (!params.term) return data;
-        const text = (data.text || '').toUpperCase();
-        return text.indexOf(params.term.toUpperCase()) !== -1 ? data : null;
-      },
-    })
-    .on('select2:select', function (e) {
-      const justPicked = e.params.data.id;
-      const current = projectSelect.val() || [];
-      if (justPicked === '__all') {
-        if (current.length !== 1 || current[0] !== '__all') {
-          applySelectMutex(projectSelect, ['__all']);
-        }
-      } else if (current.includes('__all')) {
-        applySelectMutex(
-          projectSelect,
-          current.filter((v) => v !== '__all')
-        );
-      }
-    })
-    .on('select2:unselect', function () {
-      const current = projectSelect.val() || [];
-      if (current.length === 0) {
-        applySelectMutex(projectSelect, ['__all']);
-      }
-    })
-    .on('change.select2', () => {
-      const vals = projectSelect.val() || [];
-      const label = vals.includes('__all') ? allLabel : vals.length;
-      projectSelect.next('.select2').attr('data-length', label);
-    });
-
-  projectSelect
-    .next('.select2')
-    .attr('data-label', i18n.pillProjects || 'Projects');
-  (function setInitialProjectLength() {
-    const vals = projectSelect.val() || [];
-    const label = vals.includes('__all') ? allLabel : vals.length;
-    projectSelect.next('.select2').attr('data-length', label);
-  })();
-
-  // Init column select2. "__all" mirrors the projects/users dropdowns:
-  // mutually exclusive with concrete column picks, default when nothing is
-  // chosen, and stripped server-side so an empty stored columns array stays
-  // canonical for "show every column".
-  const columnSelect = $('#columnSelect')
-    .select2({
-      closeOnSelect: false,
-      dropdownCssClass: 'project-overview-dropdown',
-      dropdownAdapter: dropdownWithSearch,
-    })
-    .on('select2:select', function (e) {
-      const justPicked = e.params.data.id;
-      const current = columnSelect.val() || [];
-      if (justPicked === '__all') {
-        if (current.length !== 1 || current[0] !== '__all') {
-          applySelectMutex(columnSelect, ['__all']);
-        }
-      } else if (current.includes('__all')) {
-        applySelectMutex(
-          columnSelect,
-          current.filter((v) => v !== '__all')
-        );
-      }
-    })
-    .on('select2:unselect', function () {
-      const current = columnSelect.val() || [];
-      if (current.length === 0) {
-        applySelectMutex(columnSelect, ['__all']);
-      }
-    })
-    .on('change.select2', () => {
-      const vals = columnSelect.val() || [];
-      const label = vals.includes('__all') ? allLabel : vals.length;
-      columnSelect.next('.select2').attr('data-length', label);
-    });
-
-  columnSelect
-    .next('.select2')
-    .attr('data-label', i18n.pillColumns || 'Columns');
-  (function setInitialColumnLength() {
-    const vals = columnSelect.val() || [];
-    const label = vals.includes('__all') ? allLabel : vals.length;
-    columnSelect.next('.select2').attr('data-length', label);
-  })();
-
-  // Init date range select
-  $('#dateOptions')
-    .on('change', function () {
-      const dateRangeElement = $(document).find('div.date-range-filter');
-      const dateRangeInput = $('#dateRange');
-      const selectedOption = $(this).find('option:selected');
-
-      // Get pre-calculated dates from data attributes
-      const startDate = selectedOption.data('start-date');
-      const endDate = selectedOption.data('end-date');
-
-      if (startDate && endDate) {
-        // Parse YYYY-MM-DD format to Date objects
-        const [startYear, startMonth, startDay] = startDate
-          .split('-')
-          .map(Number);
-        const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
-
-        const start = new Date(startYear, startMonth - 1, startDay);
-        const end = new Date(endYear, endMonth - 1, endDay);
-
-        dateRange.setDate([start, end]);
-        dateRange.set('clickOpens', false);
-        $(dateRangeElement).addClass('date-range-disabled');
-        dateRangeInput.prop('readonly', true);
-      } else if (selectedOption.val() === 'custom') {
-        dateRange.set('clickOpens', true);
-        $(dateRangeElement).removeClass('date-range-disabled');
-        dateRangeInput.prop('readonly', false);
-      }
-    })
-    .trigger('change');
-
-  // Init assignee select2. Like the project select, "__all" is mutually
-  // exclusive with concrete user selections — including the "unassigned"
-  // sentinel — and snaps back as the default when the list is emptied.
-  const userSelect = $('#userSelect')
-    .select2({
-      closeOnSelect: false,
-      dropdownCssClass: 'project-overview-dropdown',
-      dropdownAdapter: dropdownWithSearch,
-      matcher: function (params, data) {
-        if (!params.term) return data;
-        const keywords = params.term.split(' ');
-        const text = data.text.toUpperCase();
-        for (const keyword of keywords) {
-          if (text.indexOf(keyword.toUpperCase()) === -1) return null;
-        }
-        return data;
-      },
-    })
-    .on('select2:select', function (e) {
-      const justPicked = e.params.data.id;
-      const current = userSelect.val() || [];
-      if (justPicked === '__all') {
-        if (current.length !== 1 || current[0] !== '__all') {
-          applySelectMutex(userSelect, ['__all']);
-        }
-      } else if (current.includes('__all')) {
-        applySelectMutex(
-          userSelect,
-          current.filter((v) => v !== '__all')
-        );
-      }
-    })
-    .on('select2:unselect', function () {
-      const current = userSelect.val() || [];
-      if (current.length === 0) {
-        applySelectMutex(userSelect, ['__all']);
-      }
-    })
-    .on('change.select2', () => {
-      const vals = userSelect.val() || [];
-      const label = vals.includes('__all') ? allLabel : vals.length;
-      userSelect.next('.select2').attr('data-length', label);
-    });
-
-  userSelect.next('.select2').attr('data-label', i18n.pillUsers || 'Users');
-  (function setInitialUserLength() {
-    const vals = userSelect.val() || [];
-    const label = vals.includes('__all') ? allLabel : vals.length;
-    userSelect.next('.select2').attr('data-length', label);
-  })();
-
-  // Re-enable disabled fields on submit so their values are included in POST data
-  const filtersForm = document.getElementById('filtersForm');
-  if (filtersForm) {
-    filtersForm.addEventListener('submit', function () {
-      filtersForm
-        .querySelectorAll('select[disabled], input[disabled]')
-        .forEach(function (el) {
-          el.disabled = false;
-        });
-    });
-  }
-
-  // --- Live filter update: refresh table on filter change ---
-  if (!filtersForm || filtersForm.dataset.isSubscription === 'true') return;
-
-  // Use the form's hidden `view` field (rendered by the template for the just-
-  // loaded view) as the source of truth. The page-level #selectedViewId can
-  // still hold the previously-active view's id at this point in some HTMX
-  // swap orderings.
-  const viewField = filtersForm.querySelector('input[name="view"]');
-  const currentViewId = viewField
-    ? viewField.value
-    : document.getElementById('selectedViewId')?.value || null;
-
-  // Store the initial state for the current view, and ensure dirty tracking
-  // for this view starts clean (the form was just rendered fresh by the
-  // server, so any "dirty" mark from a previous tab session is stale).
-  if (currentViewId) {
-    if (!window._viewInitialStates) window._viewInitialStates = {};
-    window._viewInitialStates[currentViewId] = serializeFilterForm(filtersForm);
-    if (window._viewsWithUnsavedChanges) {
-      window._viewsWithUnsavedChanges[currentViewId] = false;
-    }
-  }
-
-  let filterDebounceTimer = null;
-
-  function onFilterChange() {
-    const vf = filtersForm.querySelector('input[name="view"]');
-    const activeViewId = vf
-      ? vf.value
-      : document.getElementById('selectedViewId')?.value || null;
-    const initialState =
-      activeViewId && window._viewInitialStates
-        ? window._viewInitialStates[activeViewId]
-        : null;
-    const hasChanges =
-      initialState !== undefined &&
-      initialState !== null &&
-      serializeFilterForm(filtersForm) !== initialState;
-    toggleUnsavedIndicator(activeViewId, hasChanges);
-
-    clearTimeout(filterDebounceTimer);
-    filterDebounceTimer = setTimeout(function () {
-      refreshViewTable(filtersForm);
-    }, 300);
-  }
-
-  $('#userSelect').on('change.select2', onFilterChange);
-  $('#filterSelect').on('change.select2', onFilterChange);
-  $('#projectSelect').on('change.select2', onFilterChange);
-  $('#columnSelect').on('change.select2', onFilterChange);
-  $('#dateOptions').on('change', onFilterChange);
-
-  // Extend flatpickr onChange to also trigger filter refresh
-  const fpInstance = document.getElementById('dateRange')?._flatpickr;
-  if (fpInstance) {
-    const originalOnChange = fpInstance.config.onChange;
-    fpInstance.config.onChange.push(function (selectedDates) {
-      if (selectedDates && selectedDates.length === 2) {
-        onFilterChange();
-      }
-    });
-  }
-}
-
 function initProjectOverviewTable() {
   // Init tags select for each row.
   initTagsSelects();
 
-  // Capture-phase key handling for the dropdown search input.
-  //   - Enter: select2's default Enter on multi-select is "select-only", but
-  //     we want toggle behavior matching what a mouse click does. Triggering
-  //     mouseup on the highlighted result reuses select2's own click handler,
-  //     which already implements toggle.
-  //   - Escape: select2 closes the dropdown, but in our layout something in
-  //     the post-close focus dance reopens it almost immediately. We can't
-  //     reliably stop the reopen at the keydown level (it survives even
-  //     stopImmediatePropagation from a capture-phase handler), so instead we
-  //     mark the select "suppress next open" and cancel any `select2:opening`
-  //     event that fires within a short window after Escape. The
-  //     `select2:opening` listener is delegated at document level so it
-  //     covers each fresh select2 instance after HTMX swaps.
-  $(document).on(
-    'select2:opening',
-    '#filterSelect, #projectSelect, #columnSelect, #userSelect',
-    function (e) {
-      const $select = $(this);
-      if ($select.data('_povSuppressOpen')) {
-        e.preventDefault();
-        $select.removeData('_povSuppressOpen');
-      }
-    }
-  );
-
-  $(document).on(
-    'select2:open',
-    '#filterSelect, #projectSelect, #columnSelect, #userSelect',
-    function () {
-      const $select = $(this);
-      const input = document.querySelector(
-        '.project-overview-dropdown .select2-search__field'
-      );
-      if (!input) return;
-      input.addEventListener(
-        'keydown',
-        function (e) {
-          const isEscape = e.key === 'Escape' || e.keyCode === 27;
-          const isEnter = e.key === 'Enter' || e.keyCode === 13;
-          if (!isEscape && !isEnter) return;
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          if (isEscape) {
-            $select.data('_povSuppressOpen', true);
-            $select.select2('close');
-            // Clear the suppression flag after the event loop has had a
-            // chance to fire (and be cancelled by) any spurious opening.
-            setTimeout(() => $select.removeData('_povSuppressOpen'), 200);
-            return;
-          }
-          const highlighted = document.querySelector(
-            '.project-overview-dropdown .select2-results__option--highlighted'
-          );
-          if (highlighted) {
-            $(highlighted).trigger('mouseup');
-          }
-        },
-        true
-      );
-    }
-  );
+  installFilterTabNavigation();
+  installFilterDropdownEnhancements();
 
   // Wire the lazy-load buttons on the initially-rendered active panel.
   // (Inactive tabs hold a placeholder until activated, then refreshViewTable
@@ -838,10 +437,16 @@ function initProjectOverviewTable() {
         // Update URL when tab is activated
         const viewId = ui.newPanel.attr('id').replace('view-', '');
 
-        // Sync save button and unsaved banner with the newly active view
+        // Sync save / reset buttons and unsaved banner with the newly active view
         const saveBtn = document.querySelector('.save-changes-btn');
         if (saveBtn) {
           saveBtn.style.display = shouldShowSaveChangesBtn(viewId)
+            ? ''
+            : 'none';
+        }
+        const resetBtn = document.querySelector('.reset-changes-btn');
+        if (resetBtn) {
+          resetBtn.style.display = shouldShowResetChangesBtn(viewId)
             ? ''
             : 'none';
         }
@@ -1305,143 +910,6 @@ function changeSortBy(sortBy, clickedTh) {
   }
 }
 
-// --- Live filter helpers ---
-
-/**
- * Capture all filter field values from the form for later restoration.
- *
- * @param {HTMLFormElement} form
- * @returns {object} Field values keyed by name.
- */
-/**
- * Build a select2 dropdownAdapter that renders a search input at the top of
- * the open dropdown panel. Required because select2 v4 puts the search inline
- * inside the selection bar for multi-selects, and our selection bars are
- * hidden by CSS — so without this, users have to type blind to filter.
- *
- * Select2's bundled AMD shim (almond) defers `require([...], cb)` via
- * setTimeout unless you pass `forceSync=true` as the 4th argument, so we
- * forward that flag — otherwise the callback would fire after we've already
- * returned `undefined`.
- *
- * @returns {Function} A constructor to pass as `dropdownAdapter` to select2().
- */
-function buildDropdownAdapterWithSearch() {
-  let Adapter;
-  $.fn.select2.amd.require(
-    [
-      'select2/dropdown',
-      'select2/dropdown/search',
-      'select2/dropdown/dropdownCss',
-      'select2/dropdown/attachBody',
-      'select2/utils',
-    ],
-    function (Dropdown, DropdownSearch, DropdownCss, AttachBody, Utils) {
-      // Decorator order matches select2's default chain (see dist
-      // select2.js around the `options.dropdownAdapter == null` branch):
-      // base → search → dropdownCss → attachBody. CloseOnSelect is
-      // intentionally omitted so `closeOnSelect: false` stays in effect.
-      let A = Utils.Decorate(Dropdown, DropdownSearch);
-      A = Utils.Decorate(A, DropdownCss);
-      A = Utils.Decorate(A, AttachBody);
-      Adapter = A;
-    },
-    null,
-    true
-  );
-  return Adapter;
-}
-
-/**
- * Update the underlying <select> value and re-sync the open select2 dropdown's
- * visible checkboxes. We need this because select2 v4 with `closeOnSelect:
- * false` does not redraw the open results panel when val() is changed
- * programmatically — so a mutex change (e.g. "remove __all when a real
- * option is picked") would take effect in the data but the user would still
- * see __all visually ticked.
- *
- * @param {JQuery} $select The wrapped select (must have an id attribute).
- * @param {string[]} newVals The new value array.
- */
-function applySelectMutex($select, newVals) {
-  $select.val(newVals).trigger('change');
-
-  const selectId = $select.attr('id');
-  if (!selectId) return;
-  const results = document.getElementById('select2-' + selectId + '-results');
-  if (!results) return;
-
-  const valSet = new Set(newVals.map(String));
-  const optionIdRegex = new RegExp(
-    '^select2-' + selectId + '-result-[^-]+-(.+)$'
-  );
-  results.querySelectorAll('.select2-results__option').forEach(function (li) {
-    const m = (li.id || '').match(optionIdRegex);
-    if (!m) return;
-    const isSelected = valSet.has(m[1]);
-    li.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-    li.classList.toggle('select2-results__option--selected', isSelected);
-  });
-}
-
-function captureFormState(form) {
-  return {
-    users: $('#userSelect', form).val() || [],
-    filters: $('#filterSelect', form).val() || [],
-    projects: $('#projectSelect', form).val() || [],
-    columns: $('#columnSelect', form).val() || [],
-    dateType: $('#dateOptions', form).val(),
-    fromDate: $('#fromDate', form).val(),
-    toDate: $('#toDate', form).val(),
-    dateRangeText: $('#dateRange', form).val(),
-  };
-}
-
-/**
- * Restore previously captured form state into the current filter form.
- * Triggers change events so select2/flatpickr update, and the table refreshes.
- *
- * @param {object} state The state object from captureFormState.
- */
-function restoreFormState(state) {
-  // Restore select2 multi-selects (set values without triggering change yet)
-  $('#userSelect').val(state.users).trigger('change.select2');
-  $('#filterSelect').val(state.filters).trigger('change.select2');
-  $('#projectSelect')
-    .val(state.projects || [])
-    .trigger('change.select2');
-  $('#columnSelect').val(state.columns).trigger('change.select2');
-
-  // Restore date type (triggers the dateRange toggle handler)
-  $('#dateOptions').val(state.dateType).trigger('change');
-
-  // For custom dates, restore the actual date values after the dateType handler ran
-  if (state.dateType === 'custom') {
-    $('#fromDate').val(state.fromDate);
-    $('#toDate').val(state.toDate);
-
-    const fp = document.getElementById('dateRange')?._flatpickr;
-    if (fp && state.fromDate && state.toDate) {
-      // Parse dd-mm-yyyy to Date objects
-      const parseDMY = (str) => {
-        const [d, m, y] = str.split('-').map(Number);
-        return new Date(y, m - 1, d);
-      };
-      fp.setDate([parseDMY(state.fromDate), parseDMY(state.toDate)], false);
-    }
-  }
-}
-
-function serializeFilterForm(form) {
-  const formData = new FormData(form);
-  // Exclude metadata fields that don't represent filter state
-  formData.delete('action');
-  formData.delete('overwriteView');
-  formData.delete('view');
-  formData.delete('subscribeToken');
-  return new URLSearchParams(formData).toString();
-}
-
 function refreshViewTable(form) {
   const viewId = document.getElementById('selectedViewId');
   if (!viewId || !viewId.value) return;
@@ -1797,37 +1265,9 @@ function toggleUnsavedIndicator(targetViewId, hasChanges) {
   // The save-changes button is visible when the active view has unsaved changes,
   // or whenever the synthetic "new" tab is active (it always wants to be saveable
   // once the user has interacted with it; the dirty-tracking handles the latter).
-  syncSaveChangesVisibility();
-}
-
-/**
- * Whether the Save changes button should be visible for the given view id.
- * Real views show the button only when they have unsaved changes; the
- * synthetic `__new` tab always shows it — its default filter configuration
- * is already a valid view that the user can save as-is without first
- * perturbing a filter.
- *
- * @param {string} viewId
- * @returns {boolean}
- */
-function shouldShowSaveChangesBtn(viewId) {
-  if (viewId === '__new') return true;
-  return !!(
-    window._viewsWithUnsavedChanges && window._viewsWithUnsavedChanges[viewId]
-  );
-}
-
-/**
- * Read the active view from #selectedViewId and toggle the Save changes button
- * accordingly.
- */
-function syncSaveChangesVisibility() {
-  const activeViewId = document.getElementById('selectedViewId');
-  const saveBtn = document.querySelector('.save-changes-btn');
-  if (!activeViewId || !saveBtn) return;
-  saveBtn.style.display = shouldShowSaveChangesBtn(activeViewId.value)
-    ? ''
-    : 'none';
+  // The reset-changes button mirrors dirty state without the "__new" exception.
+  updateSaveBtnVisibility();
+  updateResetBtnVisibility();
 }
 
 // Save success animation
