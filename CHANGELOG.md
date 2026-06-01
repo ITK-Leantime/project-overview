@@ -6,6 +6,9 @@
   * Fix new view page unable to visualize default configured view.
 * [PR-90](https://github.com/ITK-Leantime/project-overview/pull/90)
   * Sort the user filter dropdown alphabetically and hide inactive users.
+* [PR-91](https://github.com/ITK-Leantime/project-overview/pull/91)
+  * Add Select all / Deselect all toggle to filter dropdowns.
+  * Improve keyboard navigation in filter dropdowns.
 
 ## [4.3.0] - 2026-05-27
 
