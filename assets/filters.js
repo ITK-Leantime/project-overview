@@ -83,8 +83,8 @@ export function initProjectOverviewFilters({
 }) {
   // Sync save button visibility with the active tab on each filters reload (the
   // "new" tab always shows the button; other tabs only show it when dirty).
-  syncSaveChangesVisibility();
-  syncResetChangesVisibility();
+  updateSaveBtnVisibility();
+  updateResetBtnVisibility();
 
   // Build a dropdown adapter that puts a search input at the top of the open
   // dropdown panel. Select2 v4 only renders an inline search inside the
@@ -1077,7 +1077,7 @@ export function shouldShowResetChangesBtn(viewId) {
  * Read the active view from #selectedViewId and toggle the Save changes button
  * accordingly.
  */
-export function syncSaveChangesVisibility() {
+export function updateSaveBtnVisibility() {
   const activeViewId = document.getElementById('selectedViewId');
   const saveBtn = document.querySelector('.save-changes-btn');
   if (!activeViewId || !saveBtn) return;
@@ -1090,7 +1090,7 @@ export function syncSaveChangesVisibility() {
  * Read the active view from #selectedViewId and toggle the Reset changes
  * button accordingly.
  */
-export function syncResetChangesVisibility() {
+export function updateResetBtnVisibility() {
   const activeViewId = document.getElementById('selectedViewId');
   const resetBtn = document.querySelector('.reset-changes-btn');
   if (!activeViewId || !resetBtn) return;
