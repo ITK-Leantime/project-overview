@@ -396,6 +396,16 @@ export function initProjectOverviewFilters({
       serializeFilterForm(filtersForm) !== initialState;
     toggleUnsavedIndicator(activeViewId, hasChanges);
 
+    // Persist the "+ new view" draft to localStorage so it survives a page
+    // reload. Saved views live on the server; only `__new` needs this.
+    if (activeViewId === '__new') {
+      if (hasChanges) {
+        saveNewViewFiltersToStorage(filtersForm);
+      } else {
+        clearNewViewFiltersStorage();
+      }
+    }
+
     clearTimeout(filterDebounceTimer);
     filterDebounceTimer = setTimeout(function () {
       refreshViewTable(filtersForm);
@@ -966,6 +976,61 @@ export function restoreFormState(state) {
   }
 }
 
+/**
+ * localStorage key for the draft state of the synthetic "+ new view" tab.
+ * Filters on a saved view live on the server, but `__new` is purely
+ * client-side until the user names and saves it — without persistence, a
+ * page reload would lose the draft.
+ */
+const NEW_VIEW_FILTERS_STORAGE_KEY = 'projectOverview.newViewFilters';
+
+function readNewViewFiltersFromStorage() {
+  try {
+    const raw = localStorage.getItem(NEW_VIEW_FILTERS_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveNewViewFiltersToStorage(form) {
+  try {
+    localStorage.setItem(
+      NEW_VIEW_FILTERS_STORAGE_KEY,
+      JSON.stringify(captureFormState(form))
+    );
+  } catch (e) {
+    // localStorage may be unavailable (private mode, quota); ignore silently.
+  }
+}
+
+/**
+ * Remove any persisted draft for the "+ new view" tab. Called when the
+ * draft becomes irrelevant: the user has reset it, returned it to the
+ * pristine default, or saved it as a real named view.
+ */
+export function clearNewViewFiltersStorage() {
+  try {
+    localStorage.removeItem(NEW_VIEW_FILTERS_STORAGE_KEY);
+  } catch (e) {}
+}
+
+/**
+ * Seed the in-memory `_viewCachedFormData['__new']` slot from localStorage
+ * if a persisted draft exists. The existing htmx:afterSettle restore in the
+ * entrypoint already restores from `_viewCachedFormData` on a tab swap, so
+ * seeding lets us reuse that path on first paint after a reload.
+ *
+ * Idempotent — safe to call on every page load.
+ */
+export function seedNewViewCacheFromStorage() {
+  const stored = readNewViewFiltersFromStorage();
+  if (!stored) return;
+  if (!window._viewCachedFormData) window._viewCachedFormData = {};
+  window._viewCachedFormData['__new'] = stored;
+}
+
 export function serializeFilterForm(form) {
   const formData = new FormData(form);
   // Exclude metadata fields that don't represent filter state
@@ -1077,6 +1142,9 @@ export function installFilterReset({ toggleUnsavedIndicator }) {
     toggleUnsavedIndicator(viewId, false);
     if (window._viewInitialStates) {
       delete window._viewInitialStates[viewId];
+    }
+    if (viewId === '__new') {
+      clearNewViewFiltersStorage();
     }
 
     // Mark this swap as a reset so the entrypoint's afterSettle handler
