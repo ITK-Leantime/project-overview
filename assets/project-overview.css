@@ -721,6 +721,31 @@ th.sort-desc .label-and-caret-wrapper::after {
   outline: none;
 }
 
+#filtersForm .reset-changes-btn {
+  margin-left: 10px;
+  height: 35px;
+  align-self: flex-start;
+  color: var(--itk-color-primary);
+  font-weight: normal;
+  background-color: #fff;
+  border: 1px solid var(--itk-color-primary);
+  border-radius: 0 !important;
+  cursor: pointer;
+  padding: var(--itk-button-padding);
+  white-space: nowrap;
+  box-shadow: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+#filtersForm .reset-changes-btn:hover,
+#filtersForm .reset-changes-btn:focus-visible {
+  background-color: var(--itk-color-primary);
+  color: #fff;
+  outline: none;
+}
+
 .filters-row {
   display: block;
   min-height: 50px;

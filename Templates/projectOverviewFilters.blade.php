@@ -110,4 +110,6 @@
     <input type="hidden" name="viewName" id="newViewName" value="" />
     <button type="submit" id="saveChangesBtn" name="overwriteView" value="1" class="btn btn-success save-changes-btn"
         style="display: none;">{{ __('projectOverview.save_changes') }}</button>
+    <button type="button" id="resetChangesBtn" class="btn reset-changes-btn"
+        style="display: none;">{{ __('projectOverview.reset_changes') }}</button>
 </form>

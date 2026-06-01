@@ -9,6 +9,12 @@
 * [PR-91](https://github.com/ITK-Leantime/project-overview/pull/91)
   * Add Select all / Deselect all toggle to filter dropdowns.
   * Improve keyboard navigation in filter dropdowns.
+* [PR-92](https://github.com/ITK-Leantime/project-overview/pull/92)
+  * Extract filter JS into a separate module.
+* [PR-93](https://github.com/ITK-Leantime/project-overview/pull/93)
+  * Add reset button that reverts unsaved filter changes.
+* [PR-94](https://github.com/ITK-Leantime/project-overview/pull/94)
+  * Persist "+ new view" filter draft in localStorage across page reloads.
 
 ## [4.3.0] - 2026-05-27
 
