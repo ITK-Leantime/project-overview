@@ -13,6 +13,8 @@
             pillOtherFilters: @json(__('projectOverview.pill_other_filters')),
             pillColumns: @json(__('projectOverview.pill_columns')),
             pillAll: @json(__('projectOverview.pill_all')),
+            selectAll: @json(__('projectOverview.select_all')),
+            deselectAll: @json(__('projectOverview.deselect_all')),
         };
     </script>
     <?php if (isset($tpl)) {

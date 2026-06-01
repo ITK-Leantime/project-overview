@@ -508,8 +508,9 @@ readonly class ProjectOverviewHelper
     {
         $selectedViewId = $data['id'] ?? null;
 
-        // Get all users
-        $allUsers = $this->userService->getAll();
+        // Get all active users (core service has a buggy @param false annotation -- the runtime accepts bool)
+        // @phpstan-ignore-next-line
+        $allUsers = $this->userService->getAll(true);
         // Get all projects
         $allProjects = $this->projectOverviewService->getAllProjects();
         // Get all priorities
@@ -517,7 +518,8 @@ readonly class ProjectOverviewHelper
         // Get all status labels
         $allStatusLabels = $this->ticketService->getStatusLabels();
 
-        // Add unassigned user option
+        // Sort users alphabetically, then prepend the unassigned option so it stays on top
+        usort($allUsers, fn ($a, $b) => strcmp($a['firstname'] . $a['lastname'], $b['firstname'] . $b['lastname']));
         array_unshift($allUsers, [
             'id' => 'unassigned',
             'firstname' => 'Unassigned',
