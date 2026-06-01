@@ -39,10 +39,16 @@ import {
   shouldShowResetChangesBtn,
   updateSaveBtnVisibility,
   updateResetBtnVisibility,
+  seedNewViewCacheFromStorage,
+  clearNewViewFiltersStorage,
 } from './filters.js';
 
 $(document).ready(function () {
   window.frontendDateFormat = $(document).find('#frontendDateFormat').val();
+  // Seed before the first htmx:afterSettle fires for #filtersContainer, so a
+  // persisted "+ new view" draft is already in _viewCachedFormData by the
+  // time the existing restore-from-cache code runs.
+  seedNewViewCacheFromStorage();
   initFiltersToggle();
   initProjectOverviewFilters({ refreshViewTable, toggleUnsavedIndicator });
   initProjectOverviewTable();
@@ -219,6 +225,9 @@ function initSaveChangesSubmit() {
     }
     const nameField = form.querySelector('#newViewName');
     if (nameField) nameField.value = name.trim();
+    // The draft is about to become a real saved view; drop the persisted
+    // copy so the next visit to "+ new view" starts pristine.
+    clearNewViewFiltersStorage();
   });
 }
 
