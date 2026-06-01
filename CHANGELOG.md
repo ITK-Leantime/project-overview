@@ -11,6 +11,8 @@
   * Improve keyboard navigation in filter dropdowns.
 * [PR-92](https://github.com/ITK-Leantime/project-overview/pull/92)
   * Extract filter JS into a separate module.
+* [PR-93](https://github.com/ITK-Leantime/project-overview/pull/93)
+  * Add reset button that reverts unsaved filter changes.
 
 ## [4.3.0] - 2026-05-27
 
