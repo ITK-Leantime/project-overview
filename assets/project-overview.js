@@ -614,6 +614,8 @@ function initProjectOverviewTable() {
   // Init tags select for each row.
   initTagsSelects();
 
+  installFilterTabNavigation();
+
   // Capture-phase key handling for the dropdown search input.
   //   - Enter: select2's default Enter on multi-select is "select-only", but
   //     we want toggle behavior matching what a mouse click does. Triggering
@@ -644,36 +646,22 @@ function initProjectOverviewTable() {
     '#filterSelect, #projectSelect, #columnSelect, #userSelect',
     function () {
       const $select = $(this);
-      const input = document.querySelector(
-        '.project-overview-dropdown .select2-search__field'
-      );
-      if (!input) return;
-      input.addEventListener(
-        'keydown',
-        function (e) {
-          const isEscape = e.key === 'Escape' || e.keyCode === 27;
-          const isEnter = e.key === 'Enter' || e.keyCode === 13;
-          if (!isEscape && !isEnter) return;
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          if (isEscape) {
-            $select.data('_povSuppressOpen', true);
-            $select.select2('close');
-            // Clear the suppression flag after the event loop has had a
-            // chance to fire (and be cancelled by) any spurious opening.
-            setTimeout(() => $select.removeData('_povSuppressOpen'), 200);
-            return;
-          }
-          const highlighted = document.querySelector(
-            '.project-overview-dropdown .select2-results__option--highlighted'
-          );
-          if (highlighted) {
-            $(highlighted).trigger('mouseup');
-          }
-        },
-        true
-      );
+      const dropdown = document.querySelector('.project-overview-dropdown');
+      const input = dropdown?.querySelector('.select2-search__field');
+      if (!input || !dropdown) return;
+
+      // Add the bulk toggle button for the three multi-select filters that use
+      // the __all sentinel (Other filters has optgroups and no __all, so skip).
+      const supportsBulkToggle = [
+        '#userSelect',
+        '#projectSelect',
+        '#columnSelect',
+      ].includes('#' + ($select.attr('id') || ''));
+      if (supportsBulkToggle) {
+        installBulkToggleButton(dropdown, $select);
+      }
+
+      installDropdownKeyboardNav(dropdown, $select, input);
     }
   );
 
@@ -1382,6 +1370,368 @@ function applySelectMutex($select, newVals) {
     li.setAttribute('aria-selected', isSelected ? 'true' : 'false');
     li.classList.toggle('select2-results__option--selected', isSelected);
   });
+}
+
+/**
+ * Return the IDs of every concrete option in the <select>, excluding the
+ * synthetic "__all" sentinel. Used by the bulk toggle to compute the
+ * "everything ticked" state without depending on what select2 currently
+ * renders (the user may have filtered the visible list via search).
+ *
+ * @param {JQuery} $select The wrapped multi-select.
+ * @returns {string[]} Concrete option values.
+ */
+function getConcreteOptionIds($select) {
+  return $select
+    .find('option')
+    .map(function () {
+      return this.value;
+    })
+    .get()
+    .filter((v) => v !== '__all');
+}
+
+/**
+ * "All selected" for the bulk toggle = every concrete option is ticked.
+ * The __all sentinel is treated as "no concrete picks" — visually nothing in
+ * the list looks ticked — so the button reads "Select all" in that state.
+ *
+ * @param {string[]} values Current select value (array form).
+ * @param {string[]} concreteIds All non-__all option IDs.
+ * @returns {boolean}
+ */
+function allConcreteSelected(values, concreteIds) {
+  if (!values || !values.length) return false;
+  if (values.includes('__all')) return false;
+  if (concreteIds.length === 0) return false;
+  const set = new Set(values.map(String));
+  return concreteIds.every((id) => set.has(String(id)));
+}
+
+/**
+ * Insert a Select-all/Deselect-all toggle button into the open dropdown
+ * panel and wire it to flip between "every concrete option ticked" and
+ * "only __all ticked". The button label tracks the underlying select's
+ * value via change.select2 so manual ticks keep it in sync; the listener
+ * is bound on the dropdown element, so it's garbage-collected with the
+ * panel when select2 closes.
+ *
+ * @param {HTMLElement} dropdown The .project-overview-dropdown panel root.
+ * @param {JQuery} $select The wrapped multi-select being opened.
+ */
+function installBulkToggleButton(dropdown, $select) {
+  const i18n = window.projectOverviewI18n || {};
+  const selectAllLabel = i18n.selectAll || 'Select all';
+  const deselectAllLabel = i18n.deselectAll || 'Deselect all';
+  const concreteIds = getConcreteOptionIds($select);
+
+  // select2 keeps the dropdown DOM around between opens (it just
+  // attaches/detaches via the AttachBody adapter), so we'd append a fresh
+  // button on every reopen. Replace any existing one before appending.
+  dropdown
+    .querySelectorAll('.project-overview-dropdown__toggle-all')
+    .forEach((el) => el.remove());
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'project-overview-dropdown__toggle-all';
+
+  // Place the button inline inside the search row so it shares horizontal
+  // space with the input. The container gets a flex layout via CSS.
+  const searchContainer = dropdown.querySelector('.select2-search--dropdown');
+  if (searchContainer) {
+    searchContainer.classList.add('select2-search--with-toggle-all');
+    searchContainer.appendChild(button);
+  } else {
+    dropdown.insertBefore(button, dropdown.firstChild);
+  }
+
+  function syncLabel() {
+    const vals = $select.val() || [];
+    button.textContent = allConcreteSelected(vals, concreteIds)
+      ? deselectAllLabel
+      : selectAllLabel;
+  }
+  syncLabel();
+
+  button.addEventListener('click', function (e) {
+    e.preventDefault();
+    const vals = $select.val() || [];
+    if (allConcreteSelected(vals, concreteIds)) {
+      applySelectMutex($select, ['__all']);
+    } else {
+      applySelectMutex($select, concreteIds);
+    }
+    syncLabel();
+    // Return focus to the search input so the user can continue to
+    // navigate the dropdown via keyboard after clicking the button.
+    const input = dropdown.querySelector('.select2-search__field');
+    if (input) input.focus();
+  });
+
+  // Clear any leftover listeners from a previous open (same dropdown DOM is
+  // reused, but each open creates a new syncLabel closure).
+  $select.off('change.povBulkToggle');
+  $select.on('change.povBulkToggle', syncLabel);
+}
+
+/**
+ * Wire keyboard navigation inside the open dropdown:
+ *   - Search input: Enter clicks the Select-all/Deselect-all button when
+ *     one is present, Escape closes the dropdown, ArrowDown hands focus to
+ *     the first selectable option.
+ *   - Options: ArrowDown/ArrowUp move focus between options. ArrowUp on the
+ *     first option returns focus to the search input. Space toggles the
+ *     focused option. Escape closes the dropdown.
+ *
+ * Moving DOM focus onto the <li> is what lets Space toggle selection without
+ * conflicting with typing a space character in the search field.
+ *
+ * @param {HTMLElement} dropdown The .project-overview-dropdown panel root.
+ * @param {JQuery} $select The wrapped multi-select being opened.
+ * @param {HTMLElement} input The search input inside the dropdown.
+ */
+function installDropdownKeyboardNav(dropdown, $select, input) {
+  // select2 reuses the same dropdown DOM (and the same search input /
+  // results container) across reopens of the same select — without this
+  // guard each open would stack another keydown listener.
+  if (dropdown.dataset.povKeyboardWired === 'true') return;
+  dropdown.dataset.povKeyboardWired = 'true';
+
+  const resultsContainer = dropdown.querySelector('.select2-results__options');
+
+  function focusableOptions() {
+    if (!resultsContainer) return [];
+    return Array.from(
+      resultsContainer.querySelectorAll(
+        '.select2-results__option[aria-selected]'
+      )
+    );
+  }
+
+  function clearHighlight() {
+    if (!resultsContainer) return;
+    resultsContainer
+      .querySelectorAll('.select2-results__option--highlighted')
+      .forEach((li) =>
+        li.classList.remove('select2-results__option--highlighted')
+      );
+  }
+
+  function focusOption(li) {
+    if (!li) return;
+    li.setAttribute('tabindex', '-1');
+    clearHighlight();
+    li.classList.add('select2-results__option--highlighted');
+    li.focus();
+    if (typeof li.scrollIntoView === 'function') {
+      li.scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function returnFocusToSearch() {
+    input.focus();
+    clearHighlight();
+    // select2 re-applies --highlighted (commonly to the first selected
+    // option) on its own focus/results listeners that run after ours. A
+    // short-lived MutationObserver strips it as it gets re-added; it
+    // disconnects on the next user interaction or after a safety timeout.
+    if (!resultsContainer) return;
+    const observer = new MutationObserver(clearHighlight);
+    observer.observe(resultsContainer, {
+      attributes: true,
+      attributeFilter: ['class'],
+      subtree: true,
+    });
+    const stop = () => observer.disconnect();
+    input.addEventListener('input', stop, { once: true });
+    input.addEventListener('keydown', stop, { once: true });
+    setTimeout(stop, 500);
+  }
+
+  function closeDropdown() {
+    $select.data('_povSuppressOpen', true);
+    $select.select2('close');
+    setTimeout(() => $select.removeData('_povSuppressOpen'), 200);
+  }
+
+  input.addEventListener(
+    'keydown',
+    function (e) {
+      const isEscape = e.key === 'Escape' || e.keyCode === 27;
+      const isEnter = e.key === 'Enter' || e.keyCode === 13;
+      const isDown = e.key === 'ArrowDown' || e.keyCode === 40;
+      if (!isEscape && !isEnter && !isDown) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if (isEscape) {
+        closeDropdown();
+        return;
+      }
+      if (isEnter) {
+        // From the search input, Enter triggers the Select-all/Deselect-all
+        // button when one is present. For dropdowns without a toggle button
+        // (Other filters), Enter does nothing — selection is via Space on a
+        // focused option after ArrowDown.
+        const toggle = dropdown.querySelector(
+          '.project-overview-dropdown__toggle-all'
+        );
+        if (toggle) toggle.click();
+        return;
+      }
+      // ArrowDown: hand focus to the first selectable option so SPACE can be
+      // used to toggle selection without inserting a space in the search box.
+      const opts = focusableOptions();
+      if (opts.length) focusOption(opts[0]);
+    },
+    true
+  );
+
+  if (!resultsContainer) return;
+  resultsContainer.addEventListener(
+    'keydown',
+    function (e) {
+      const target = e.target.closest('.select2-results__option');
+      if (!target) return;
+      const isDown = e.key === 'ArrowDown' || e.keyCode === 40;
+      const isUp = e.key === 'ArrowUp' || e.keyCode === 38;
+      const isSpace = e.key === ' ' || e.keyCode === 32;
+      const isEscape = e.key === 'Escape' || e.keyCode === 27;
+      if (!isDown && !isUp && !isSpace && !isEscape) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (isEscape) {
+        closeDropdown();
+        return;
+      }
+      if (isSpace) {
+        $(target).trigger('mouseup');
+        return;
+      }
+      const opts = focusableOptions();
+      const idx = opts.indexOf(target);
+      if (isDown) {
+        const next = opts[idx + 1];
+        if (next) focusOption(next);
+        return;
+      }
+      // ArrowUp: previous option, or back to the search input from the top.
+      if (idx <= 0) {
+        returnFocusToSearch();
+        return;
+      }
+      focusOption(opts[idx - 1]);
+    },
+    true
+  );
+}
+
+/**
+ * Tab / Shift+Tab between filter dropdowns: closes the currently open
+ * filter (if any) and opens the next/previous one. Native selects can't
+ * be opened programmatically, so the entry for `#dateOptions` just gets
+ * focus. Disabled filters are skipped.
+ *
+ * Idempotent — uses a global flag so repeated HTMX swaps that re-init the
+ * table won't stack multiple listeners.
+ */
+function installFilterTabNavigation() {
+  if (window._povFilterTabWired) return;
+  window._povFilterTabWired = true;
+
+  const filterList = [
+    { id: '#userSelect', type: 'select2' },
+    { id: '#dateOptions', type: 'native' },
+    { id: '#dateRange', type: 'flatpickr' },
+    { id: '#projectSelect', type: 'select2' },
+    { id: '#filterSelect', type: 'select2' },
+    { id: '#columnSelect', type: 'select2' },
+  ];
+
+  function isOpen(f) {
+    if (f.type === 'select2') {
+      return !!$(f.id).data('select2')?.isOpen?.();
+    }
+    if (f.type === 'flatpickr') {
+      return !!document.getElementById('dateRange')?._flatpickr?.isOpen;
+    }
+    return false;
+  }
+
+  function isDisabled(f) {
+    const $el = $(f.id);
+    return !$el.length || $el.is(':disabled');
+  }
+
+  function currentIndex() {
+    for (let i = 0; i < filterList.length; i++) {
+      if (isOpen(filterList[i])) return i;
+    }
+    // No dropdown open — fall back to the focused filter proxy.
+    const active = document.activeElement;
+    if (!active) return -1;
+    for (let i = 0; i < filterList.length; i++) {
+      const $el = $(filterList[i].id);
+      if (!$el.length) continue;
+      const proxy =
+        filterList[i].type === 'select2' ? $el.next('.select2')[0] : $el[0];
+      if (proxy && (proxy === active || proxy.contains(active))) return i;
+    }
+    return -1;
+  }
+
+  function closeFilter(f) {
+    if (f.type === 'select2') $(f.id).select2('close');
+    else if (f.type === 'flatpickr') {
+      document.getElementById('dateRange')?._flatpickr?.close();
+    }
+  }
+
+  function openFilter(f) {
+    if (f.type === 'select2') {
+      $(f.id).select2('open');
+      return;
+    }
+    if (f.type === 'flatpickr') {
+      const el = document.getElementById('dateRange');
+      if (!el) return;
+      el.focus();
+      // Honor the existing "only opens for custom date type" rule.
+      if (el._flatpickr?.config?.clickOpens) el._flatpickr.open();
+      return;
+    }
+    // Native <select> can't be opened programmatically — just focus it.
+    document.querySelector(f.id)?.focus();
+  }
+
+  document.addEventListener(
+    'keydown',
+    function (e) {
+      if (e.key !== 'Tab') return;
+      const idx = currentIndex();
+      if (idx === -1) return;
+      const dir = e.shiftKey ? -1 : 1;
+      let nextIdx = idx + dir;
+      while (
+        nextIdx >= 0 &&
+        nextIdx < filterList.length &&
+        isDisabled(filterList[nextIdx])
+      ) {
+        nextIdx += dir;
+      }
+      if (nextIdx < 0 || nextIdx >= filterList.length) {
+        // No filter on that side — let native Tab leave the filter row.
+        closeFilter(filterList[idx]);
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      closeFilter(filterList[idx]);
+      openFilter(filterList[nextIdx]);
+    },
+    true
+  );
 }
 
 function captureFormState(form) {
