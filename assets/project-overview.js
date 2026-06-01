@@ -343,15 +343,20 @@ function initProjectOverviewTable() {
     const liRect = target.parentElement.getBoundingClientRect();
     const tab = $(target).parent();
     const viewId = tab.data('target');
-    // Both stored subscriptions and live transient subscriptions need the
-    // subscription-mode menu (Pin / Save as copy).
-    const isSubscription =
-      tab.data('is-subscription') === true ||
-      tab.data('is-transient-subscription') === true;
+    // Transient previews get Pin / Save-as-copy; pinned subscriptions get the
+    // owner-style actions (rename, duplicate, delete) minus Copy link; owned
+    // views get everything.
+    const isTransient = tab.data('is-transient-subscription') === true;
+    const isStoredSubscription = tab.data('is-subscription') === true;
+    const mode = isTransient
+      ? 'transient'
+      : isStoredSubscription
+        ? 'pinned'
+        : 'owned';
     const sharedViewId = tab.data('shared-view-id') || '';
     $('.settings-for-target').text(viewId);
     contextMenu
-      .attr('data-mode', isSubscription ? 'subscription' : 'owned')
+      .attr('data-mode', mode)
       .css({
         left: `${liRect.left}px`,
         top: `${triggerRect.bottom + 12}px`,
@@ -369,7 +374,9 @@ function initProjectOverviewTable() {
       .find('input[name="sharedViewId"]')
       .val(sharedViewId);
 
-    if (!isSubscription) {
+    // Focus the rename field whenever it's visible — that's both owned and
+    // pinned-subscription views (transient previews don't expose rename).
+    if (mode !== 'transient') {
       requestAnimationFrame(() => {
         contextMenu.find('input[name="viewName"]').focus();
       });

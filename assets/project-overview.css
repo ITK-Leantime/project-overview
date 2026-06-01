@@ -963,12 +963,15 @@ th.sort-desc .label-and-caret-wrapper::after {
   color: var(--itk-color-text-secondary, #6c7480);
 }
 
-/* Mode-aware context menu: hide items that don't apply to the current view type */
-#view-context-menu[data-mode='subscription'] .owned-only {
+#view-context-menu:not([data-mode='owned']) .share-action {
   display: none;
 }
 
-#view-context-menu[data-mode='owned'] .subscription-only {
+#view-context-menu[data-mode='transient'] .owner-actions {
+  display: none;
+}
+
+#view-context-menu:not([data-mode='transient']) .transient-actions {
   display: none;
 }
 

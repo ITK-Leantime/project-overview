@@ -123,7 +123,7 @@
                 <div class="context-menu-header">
                     {{ __('projectOverview.view_settings') }} <span id="contextMenuTitle"></span>
                 </div>
-                <div class="context-menu-section rename-section owned-only">
+                <div class="context-menu-section rename-section owner-actions">
                     <label for="viewNameInput">{{ __('projectOverview.edit_view_name') }}</label>
                     <div class="rename-input-group">
                         <input name="viewName" id="viewNameInput" type="text" />
@@ -133,32 +133,32 @@
                     </div>
                 </div>
                 <ul class="context-menu-actions">
-                    <li class="owned-only">
+                    <li class="share-action">
                         <button type="button" class="view-share">
                             <i class="fa fa-share-alt"></i>
                             {{ __('projectOverview.share_view') }}
                         </button>
                     </li>
-                    <li class="owned-only">
+                    <li class="owner-actions">
                         <button type="submit" name="action" value="duplicateView" class="view-duplicate">
                             <i class="fa fa-copy"></i>
                             {{ __('projectOverview.duplicate_view') }}
                         </button>
                     </li>
-                    <li class="owned-only">
+                    <li class="owner-actions">
                         <button type="submit" name="action" value="deleteView" class="view-delete"
                             onclick="return confirm('{{ __('projectOverview.delete_view_confirm') }}')">
                             <i class="fa fa-trash"></i>
                             {{ __('projectOverview.delete_view') }}
                         </button>
                     </li>
-                    <li class="subscription-only">
+                    <li class="transient-actions">
                         <button type="submit" name="action" value="pinSubscription" class="view-pin">
                             <i class="fa fa-thumbtack"></i>
                             {{ __('projectOverview.pin_to_my_views') }}
                         </button>
                     </li>
-                    <li class="subscription-only">
+                    <li class="transient-actions">
                         <button type="submit" name="action" value="saveTransientAsCopy" class="view-copy">
                             <i class="fa fa-copy"></i>
                             {{ __('projectOverview.save_as_copy') }}

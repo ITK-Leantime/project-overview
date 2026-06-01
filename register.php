@@ -147,7 +147,10 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
         ];
         if (!empty($userView['isTransientSubscription'])) {
             $attributes['data-is-transient-subscription'] = 'true';
-        } elseif (!empty($userView['isSubscription'])) {
+        } elseif (!empty($userView['subscribedToUserId'])) {
+            // Raw views from getUserViewsObject() don't carry the
+            // helper-derived `isSubscription` flag; check the underlying
+            // owner-pointer field directly.
             $attributes['data-is-subscription'] = 'true';
         }
         if (!empty($userView['sharedViewId'])) {
