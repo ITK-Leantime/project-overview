@@ -32,10 +32,13 @@ import {
   initProjectOverviewFilters,
   installFilterDropdownEnhancements,
   installFilterTabNavigation,
+  installFilterReset,
   captureFormState,
   restoreFormState,
   shouldShowSaveChangesBtn,
+  shouldShowResetChangesBtn,
   syncSaveChangesVisibility,
+  syncResetChangesVisibility,
 } from './filters.js';
 
 $(document).ready(function () {
@@ -45,6 +48,7 @@ $(document).ready(function () {
   initProjectOverviewTable();
   initScrollToTopButton();
   initSaveChangesSubmit();
+  installFilterReset({ toggleUnsavedIndicator });
   initSidebarViewNavigation();
   initNewViewTipsDismiss();
 
@@ -67,12 +71,32 @@ $(document).ready(function () {
         restoreFormState(window._viewCachedFormData[activeViewId.value]);
       }
 
-      // Restore save button visibility after HTMX replaces the filters DOM
+      // Restore save / reset button visibility after HTMX replaces the
+      // filters DOM
       const saveBtn = document.querySelector('.save-changes-btn');
       if (saveBtn && activeViewId) {
         saveBtn.style.display = shouldShowSaveChangesBtn(activeViewId.value)
           ? ''
           : 'none';
+      }
+      const resetBtn = document.querySelector('.reset-changes-btn');
+      if (resetBtn && activeViewId) {
+        resetBtn.style.display = shouldShowResetChangesBtn(activeViewId.value)
+          ? ''
+          : 'none';
+      }
+
+      // Reset action: after the canonical filters have been swapped in,
+      // refresh the table so it reflects the restored configuration. The
+      // lazy-load fallback below would skip this case because the panel
+      // already contains a rendered table.
+      const resetPending = window._povResetPendingViewId;
+      if (resetPending && activeViewId && activeViewId.value === resetPending) {
+        window._povResetPendingViewId = null;
+        const form = document.getElementById('filtersForm');
+        if (form) {
+          refreshViewTable(form);
+        }
       }
 
       // Lazy-load: if the active view panel has a placeholder, trigger a
@@ -404,10 +428,16 @@ function initProjectOverviewTable() {
         // Update URL when tab is activated
         const viewId = ui.newPanel.attr('id').replace('view-', '');
 
-        // Sync save button and unsaved banner with the newly active view
+        // Sync save / reset buttons and unsaved banner with the newly active view
         const saveBtn = document.querySelector('.save-changes-btn');
         if (saveBtn) {
           saveBtn.style.display = shouldShowSaveChangesBtn(viewId)
+            ? ''
+            : 'none';
+        }
+        const resetBtn = document.querySelector('.reset-changes-btn');
+        if (resetBtn) {
+          resetBtn.style.display = shouldShowResetChangesBtn(viewId)
             ? ''
             : 'none';
         }
@@ -1226,7 +1256,9 @@ function toggleUnsavedIndicator(targetViewId, hasChanges) {
   // The save-changes button is visible when the active view has unsaved changes,
   // or whenever the synthetic "new" tab is active (it always wants to be saveable
   // once the user has interacted with it; the dirty-tracking handles the latter).
+  // The reset-changes button mirrors dirty state without the "__new" exception.
   syncSaveChangesVisibility();
+  syncResetChangesVisibility();
 }
 
 // Save success animation
