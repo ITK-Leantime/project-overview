@@ -13,7 +13,6 @@ readonly class UserViewDTO
      * @param string      $id                 Unique identifier for the view
      * @param string      $title              User-friendly title of the view
      * @param ViewDTO     $view               The view configuration
-     * @param string|null $shareToken         Token for sharing this view (optional)
      * @param int|null    $createdAt          Unix timestamp when view was created
      * @param int         $order              Display order of the view (lower numbers appear first)
      * @param string|null $subscribedToUserId The view owner's user ID (for live-share subscriptions)
@@ -24,7 +23,6 @@ readonly class UserViewDTO
         public string $id,
         public string $title,
         public ViewDTO $view,
-        public ?string $shareToken = null,
         public ?int $createdAt = null,
         public int $order = 0,
         public ?string $subscribedToUserId = null,
@@ -67,7 +65,6 @@ readonly class UserViewDTO
                 'sortBy' => $this->view->sortBy,
                 'sortDirection' => $this->view->sortDirection,
             ],
-            'shareToken' => $this->shareToken,
             'createdAt' => $this->createdAt,
             'order' => $this->order,
             'subscribedToUserId' => $this->subscribedToUserId,
@@ -112,7 +109,6 @@ readonly class UserViewDTO
                 sortBy: $viewData['sortBy'] ?? 'priority',
                 sortDirection: $viewData['sortDirection'] ?? 'ASC'
             ),
-            shareToken: $data['shareToken'] ?? null,
             createdAt: $data['createdAt'] ?? null,
             order: $data['order'] ?? 0,
             subscribedToUserId: $data['subscribedToUserId'] ?? null,

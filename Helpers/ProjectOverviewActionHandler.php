@@ -148,7 +148,6 @@ readonly class ProjectOverviewActionHandler
                 id: $existingView->id,
                 title: $existingView->title,
                 view: $viewDTO,
-                shareToken: $existingView->shareToken,
                 createdAt: $existingView->createdAt,
                 order: $existingView->order
             );
@@ -185,7 +184,6 @@ readonly class ProjectOverviewActionHandler
                 id: $newViewId,
                 title: $newTitle,
                 view: $viewDTO,
-                shareToken: null,
                 createdAt: time(),
                 order: $maxOrder + 1
             );
@@ -255,7 +253,6 @@ readonly class ProjectOverviewActionHandler
                 id: $existingView->id,
                 title: $viewName,
                 view: $existingView->view,
-                shareToken: $existingView->shareToken,
                 createdAt: $existingView->createdAt,
                 order: $existingView->order
             );
@@ -277,64 +274,38 @@ readonly class ProjectOverviewActionHandler
     }
 
     /**
-     * Generate a share token for a view and enable sharing
+     * Find a view by its id across all users. Used to resolve a `?view=<id>`
+     * URL that points to a view owned by another user — that's the entire
+     * "share a view" flow: the recipient opens the same view URL the owner
+     * sees, and the global lookup brings the view in as a transient preview
+     * tab.
      *
-     * @param  string $viewId The ID of the view to share
-     * @return string|false The share token if successful, false if view not found
-     */
-    public function generateShareToken(string $viewId): string|false
-    {
-        $userViewsObject = $this->getUserViewsObject();
-
-        if (!isset($userViewsObject[$viewId])) {
-            return false;
-        }
-
-        $existingView = UserViewDTO::fromArray($userViewsObject[$viewId]);
-
-        // Generate a unique share token if one doesn't exist
-        $shareToken = $existingView->shareToken ?? bin2hex(random_bytes(16));
-
-        // Update the view with the share token
-        $userViewsObject[$viewId] = new UserViewDTO(
-            id: $existingView->id,
-            title: $existingView->title,
-            view: $existingView->view,
-            shareToken: $shareToken,
-            createdAt: $existingView->createdAt,
-            order: $existingView->order
-        );
-
-        $this->saveUserViewsObject($userViewsObject);
-
-        return $shareToken;
-    }
-
-    /**
-     * Find a view by its share token across all users.
-     *
-     * @param  string $shareToken The share token to search for
+     * @param  string $viewId The view id to search for
      * @return SharedViewLookupResult|null The lookup result with view and owner info, or null if not found
      */
-    public function findViewByShareToken(string $shareToken): ?SharedViewLookupResult
+    public function findViewById(string $viewId): ?SharedViewLookupResult
     {
-        // Get all users
         $allUsers = $this->userService->getAll();
 
-        // Loop users, get views and try to find a match.
         foreach ($allUsers as $user) {
             $userViews = $this->getUserViewsObject($user['id']);
 
-            foreach ($userViews as $viewData) {
-                $view = UserViewDTO::fromArray($viewData);
-                if ($view->shareToken === $shareToken) {
-                    return new SharedViewLookupResult(
-                        view: $view,
-                        ownerUserId: (string) $user['id'],
-                        ownerName: trim($user['firstname'] . ' ' . $user['lastname']),
-                    );
-                }
+            if (!isset($userViews[$viewId])) {
+                continue;
             }
+            $view = UserViewDTO::fromArray($userViews[$viewId]);
+            if ($view->isSubscription()) {
+                // Subscriptions aren't independently shareable — they
+                // already point to someone else's view, so let the canonical
+                // owner's view ID be the share entrypoint.
+                continue;
+            }
+
+            return new SharedViewLookupResult(
+                view: $view,
+                ownerUserId: (string) $user['id'],
+                ownerName: trim($user['firstname'] . ' ' . $user['lastname']),
+            );
         }
 
         return null;
@@ -363,7 +334,6 @@ readonly class ProjectOverviewActionHandler
             id: $newViewId,
             title: $lookupResult->view->title . ' (Live)',
             view: $lookupResult->view->view,
-            shareToken: null,
             createdAt: time(),
             order: $maxOrder + 1,
             subscribedToUserId: $lookupResult->ownerUserId,
@@ -397,7 +367,6 @@ readonly class ProjectOverviewActionHandler
             id: $newViewId,
             title: $lookupResult->view->title . ' (' . __('projectOverview.copy_suffix') . ')',
             view: $lookupResult->view->view,
-            shareToken: null,
             createdAt: time(),
             order: $maxOrder + 1,
         );
@@ -440,7 +409,6 @@ readonly class ProjectOverviewActionHandler
             id: $newViewId,
             title: $source->title . ' (' . __('projectOverview.copy_suffix') . ')',
             view: $source->view,
-            shareToken: null,
             createdAt: time(),
             order: $maxOrder + 1,
         );
@@ -639,7 +607,6 @@ readonly class ProjectOverviewActionHandler
                 id: $existingView->id,
                 title: $existingView->title,
                 view: $updatedViewDTO,
-                shareToken: $existingView->shareToken,
                 createdAt: $existingView->createdAt,
                 order: $existingView->order,
                 subscribedToUserId: $existingView->subscribedToUserId,
@@ -694,7 +661,6 @@ readonly class ProjectOverviewActionHandler
                         id: $existingView->id,
                         title: $existingView->title,
                         view: $existingView->view,
-                        shareToken: $existingView->shareToken,
                         createdAt: $existingView->createdAt,
                         order: $index
                     );

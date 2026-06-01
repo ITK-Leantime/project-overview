@@ -59,19 +59,21 @@ readonly class ProjectOverviewHelper
         $ownerViewsCache = [];
         $removedSubscriptions = [];
 
-        // Inject transient subscription from session if present
+        // Inject transient subscription from session if present. The tab is
+        // keyed by the owner's view id directly so the recipient's URL stays
+        // canonical (`?view=<ownerViewId>`) — anyone they forward the URL to
+        // hits the same global lookup and sees the same preview.
         $transientSub = session('project_overview.transient_subscription');
         if ($transientSub) {
             $ownerViews = $this->actionHandler->getUserViewsObject($transientSub['ownerUserId']);
             if (isset($ownerViews[$transientSub['ownerViewId']])) {
                 $ownerView = UserViewDTO::fromArray($ownerViews[$transientSub['ownerViewId']]);
-                $userViewObject[$transientSub['tempViewId']] = array_merge($ownerView->toArray(), [
-                    'id' => $transientSub['tempViewId'],
+                $userViewObject[$transientSub['ownerViewId']] = array_merge($ownerView->toArray(), [
+                    'id' => $transientSub['ownerViewId'],
                     'title' => $ownerView->title . ' (Live)',
-                    'shareToken' => null,
                     'order' => PHP_INT_MAX,
                     'isTransientSubscription' => true,
-                    'subscribeToken' => $transientSub['token'],
+                    'sharedViewId' => $transientSub['ownerViewId'],
                     'subscribedFromName' => $transientSub['ownerName'],
                     'isSubscription' => true,
                 ]);
@@ -551,7 +553,7 @@ readonly class ProjectOverviewHelper
         // Override with user view data if available
         $isSubscription = false;
         $isTransientSubscription = false;
-        $subscribeToken = null;
+        $sharedViewId = null;
 
         // The synthetic "new" tab uses defaults only — no persistence, no lookup.
         if ($selectedViewId === '__new') {
@@ -561,10 +563,10 @@ readonly class ProjectOverviewHelper
 
         // Check if selected view is a transient subscription from session
         $transientSub = session('project_overview.transient_subscription');
-        if ($selectedViewId !== null && $transientSub && $selectedViewId === $transientSub['tempViewId']) {
+        if ($selectedViewId !== null && $transientSub && $selectedViewId === $transientSub['ownerViewId']) {
             $isSubscription = true;
             $isTransientSubscription = true;
-            $subscribeToken = $transientSub['token'];
+            $sharedViewId = $transientSub['ownerViewId'];
 
             // Resolve the owner's view
             $ownerViews = $this->actionHandler->getUserViewsObject($transientSub['ownerUserId']);
@@ -644,7 +646,7 @@ readonly class ProjectOverviewHelper
             dateRanges: $dateRanges,
             isSubscription: $isSubscription,
             isTransientSubscription: $isTransientSubscription,
-            subscribeToken: $subscribeToken,
+            sharedViewId: $sharedViewId,
         );
     }
 }

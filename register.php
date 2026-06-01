@@ -100,14 +100,14 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
     // Mirror the helper's transient-subscription injection so a previewed
     // shared view is reachable from the sidebar, not only from the main page.
     $transientSub = session('project_overview.transient_subscription');
-    if ($transientSub && isset($transientSub['ownerUserId'], $transientSub['ownerViewId'], $transientSub['tempViewId'])) {
+    if ($transientSub && isset($transientSub['ownerUserId'], $transientSub['ownerViewId'])) {
         $ownerViews = $actionHandler->getUserViewsObject($transientSub['ownerUserId']);
         if (isset($ownerViews[$transientSub['ownerViewId']])) {
-            $userViews[$transientSub['tempViewId']] = array_merge($ownerViews[$transientSub['ownerViewId']], [
-                'id' => $transientSub['tempViewId'],
+            $userViews[$transientSub['ownerViewId']] = array_merge($ownerViews[$transientSub['ownerViewId']], [
+                'id' => $transientSub['ownerViewId'],
                 'title' => ($ownerViews[$transientSub['ownerViewId']]['title'] ?? 'View') . ' (Live)',
                 'isTransientSubscription' => true,
-                'subscribeToken' => $transientSub['token'] ?? null,
+                'sharedViewId' => $transientSub['ownerViewId'],
                 'subscribedFromName' => $transientSub['ownerName'] ?? '',
                 'order' => PHP_INT_MAX,
             ]);
@@ -150,8 +150,8 @@ function addProjectOverviewMenuPoint(array $menuStructure): array
         } elseif (!empty($userView['isSubscription'])) {
             $attributes['data-is-subscription'] = 'true';
         }
-        if (!empty($userView['subscribeToken'])) {
-            $attributes['data-subscribe-token'] = $userView['subscribeToken'];
+        if (!empty($userView['sharedViewId'])) {
+            $attributes['data-shared-view-id'] = $userView['sharedViewId'];
         }
 
         $menuStructure['personal'][$index++] = [
