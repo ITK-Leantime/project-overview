@@ -37,8 +37,8 @@ import {
   restoreFormState,
   shouldShowSaveChangesBtn,
   shouldShowResetChangesBtn,
-  syncSaveChangesVisibility,
-  syncResetChangesVisibility,
+  updateSaveBtnVisibility,
+  updateResetBtnVisibility,
 } from './filters.js';
 
 $(document).ready(function () {
@@ -1257,8 +1257,8 @@ function toggleUnsavedIndicator(targetViewId, hasChanges) {
   // or whenever the synthetic "new" tab is active (it always wants to be saveable
   // once the user has interacted with it; the dirty-tracking handles the latter).
   // The reset-changes button mirrors dirty state without the "__new" exception.
-  syncSaveChangesVisibility();
-  syncResetChangesVisibility();
+  updateSaveBtnVisibility();
+  updateResetBtnVisibility();
 }
 
 // Save success animation
