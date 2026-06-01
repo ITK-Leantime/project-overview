@@ -32,19 +32,29 @@ import {
   initProjectOverviewFilters,
   installFilterDropdownEnhancements,
   installFilterTabNavigation,
+  installFilterReset,
   captureFormState,
   restoreFormState,
   shouldShowSaveChangesBtn,
-  syncSaveChangesVisibility,
+  shouldShowResetChangesBtn,
+  updateSaveBtnVisibility,
+  updateResetBtnVisibility,
+  seedNewViewCacheFromStorage,
+  clearNewViewFiltersStorage,
 } from './filters.js';
 
 $(document).ready(function () {
   window.frontendDateFormat = $(document).find('#frontendDateFormat').val();
+  // Seed before the first htmx:afterSettle fires for #filtersContainer, so a
+  // persisted "+ new view" draft is already in _viewCachedFormData by the
+  // time the existing restore-from-cache code runs.
+  seedNewViewCacheFromStorage();
   initFiltersToggle();
   initProjectOverviewFilters({ refreshViewTable, toggleUnsavedIndicator });
   initProjectOverviewTable();
   initScrollToTopButton();
   initSaveChangesSubmit();
+  installFilterReset({ toggleUnsavedIndicator });
   initSidebarViewNavigation();
   initNewViewTipsDismiss();
 
@@ -67,12 +77,32 @@ $(document).ready(function () {
         restoreFormState(window._viewCachedFormData[activeViewId.value]);
       }
 
-      // Restore save button visibility after HTMX replaces the filters DOM
+      // Restore save / reset button visibility after HTMX replaces the
+      // filters DOM
       const saveBtn = document.querySelector('.save-changes-btn');
       if (saveBtn && activeViewId) {
         saveBtn.style.display = shouldShowSaveChangesBtn(activeViewId.value)
           ? ''
           : 'none';
+      }
+      const resetBtn = document.querySelector('.reset-changes-btn');
+      if (resetBtn && activeViewId) {
+        resetBtn.style.display = shouldShowResetChangesBtn(activeViewId.value)
+          ? ''
+          : 'none';
+      }
+
+      // Reset action: after the canonical filters have been swapped in,
+      // refresh the table so it reflects the restored configuration. The
+      // lazy-load fallback below would skip this case because the panel
+      // already contains a rendered table.
+      const resetPending = window._povResetPendingViewId;
+      if (resetPending && activeViewId && activeViewId.value === resetPending) {
+        window._povResetPendingViewId = null;
+        const form = document.getElementById('filtersForm');
+        if (form) {
+          refreshViewTable(form);
+        }
       }
 
       // Lazy-load: if the active view panel has a placeholder, trigger a
@@ -195,6 +225,9 @@ function initSaveChangesSubmit() {
     }
     const nameField = form.querySelector('#newViewName');
     if (nameField) nameField.value = name.trim();
+    // The draft is about to become a real saved view; drop the persisted
+    // copy so the next visit to "+ new view" starts pristine.
+    clearNewViewFiltersStorage();
   });
 }
 
@@ -404,10 +437,16 @@ function initProjectOverviewTable() {
         // Update URL when tab is activated
         const viewId = ui.newPanel.attr('id').replace('view-', '');
 
-        // Sync save button and unsaved banner with the newly active view
+        // Sync save / reset buttons and unsaved banner with the newly active view
         const saveBtn = document.querySelector('.save-changes-btn');
         if (saveBtn) {
           saveBtn.style.display = shouldShowSaveChangesBtn(viewId)
+            ? ''
+            : 'none';
+        }
+        const resetBtn = document.querySelector('.reset-changes-btn');
+        if (resetBtn) {
+          resetBtn.style.display = shouldShowResetChangesBtn(viewId)
             ? ''
             : 'none';
         }
@@ -1226,7 +1265,9 @@ function toggleUnsavedIndicator(targetViewId, hasChanges) {
   // The save-changes button is visible when the active view has unsaved changes,
   // or whenever the synthetic "new" tab is active (it always wants to be saveable
   // once the user has interacted with it; the dirty-tracking handles the latter).
-  syncSaveChangesVisibility();
+  // The reset-changes button mirrors dirty state without the "__new" exception.
+  updateSaveBtnVisibility();
+  updateResetBtnVisibility();
 }
 
 // Save success animation

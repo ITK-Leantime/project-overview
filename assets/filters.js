@@ -83,7 +83,8 @@ export function initProjectOverviewFilters({
 }) {
   // Sync save button visibility with the active tab on each filters reload (the
   // "new" tab always shows the button; other tabs only show it when dirty).
-  syncSaveChangesVisibility();
+  updateSaveBtnVisibility();
+  updateResetBtnVisibility();
 
   // Build a dropdown adapter that puts a search input at the top of the open
   // dropdown panel. Select2 v4 only renders an inline search inside the
@@ -394,6 +395,16 @@ export function initProjectOverviewFilters({
       initialState !== null &&
       serializeFilterForm(filtersForm) !== initialState;
     toggleUnsavedIndicator(activeViewId, hasChanges);
+
+    // Persist the "+ new view" draft to localStorage so it survives a page
+    // reload. Saved views live on the server; only `__new` needs this.
+    if (activeViewId === '__new') {
+      if (hasChanges) {
+        saveNewViewFiltersToStorage(filtersForm);
+      } else {
+        clearNewViewFiltersStorage();
+      }
+    }
 
     clearTimeout(filterDebounceTimer);
     filterDebounceTimer = setTimeout(function () {
@@ -965,6 +976,61 @@ export function restoreFormState(state) {
   }
 }
 
+/**
+ * localStorage key for the draft state of the synthetic "+ new view" tab.
+ * Filters on a saved view live on the server, but `__new` is purely
+ * client-side until the user names and saves it — without persistence, a
+ * page reload would lose the draft.
+ */
+const NEW_VIEW_FILTERS_STORAGE_KEY = 'projectOverview.newViewFilters';
+
+function readNewViewFiltersFromStorage() {
+  try {
+    const raw = localStorage.getItem(NEW_VIEW_FILTERS_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveNewViewFiltersToStorage(form) {
+  try {
+    localStorage.setItem(
+      NEW_VIEW_FILTERS_STORAGE_KEY,
+      JSON.stringify(captureFormState(form))
+    );
+  } catch (e) {
+    // localStorage may be unavailable (private mode, quota); ignore silently.
+  }
+}
+
+/**
+ * Remove any persisted draft for the "+ new view" tab. Called when the
+ * draft becomes irrelevant: the user has reset it, returned it to the
+ * pristine default, or saved it as a real named view.
+ */
+export function clearNewViewFiltersStorage() {
+  try {
+    localStorage.removeItem(NEW_VIEW_FILTERS_STORAGE_KEY);
+  } catch (e) {}
+}
+
+/**
+ * Seed the in-memory `_viewCachedFormData['__new']` slot from localStorage
+ * if a persisted draft exists. The existing htmx:afterSettle restore in the
+ * entrypoint already restores from `_viewCachedFormData` on a tab swap, so
+ * seeding lets us reuse that path on first paint after a reload.
+ *
+ * Idempotent — safe to call on every page load.
+ */
+export function seedNewViewCacheFromStorage() {
+  const stored = readNewViewFiltersFromStorage();
+  if (!stored) return;
+  if (!window._viewCachedFormData) window._viewCachedFormData = {};
+  window._viewCachedFormData['__new'] = stored;
+}
+
 export function serializeFilterForm(form) {
   const formData = new FormData(form);
   // Exclude metadata fields that don't represent filter state
@@ -993,14 +1059,111 @@ export function shouldShowSaveChangesBtn(viewId) {
 }
 
 /**
+ * Whether the Reset changes button should be visible for the given view id.
+ * Unlike the Save button, Reset is only meaningful when the user has
+ * perturbed the form — even on the synthetic `__new` tab — because resetting
+ * an already-pristine state would be a no-op.
+ *
+ * @param {string} viewId
+ * @returns {boolean}
+ */
+export function shouldShowResetChangesBtn(viewId) {
+  return !!(
+    window._viewsWithUnsavedChanges && window._viewsWithUnsavedChanges[viewId]
+  );
+}
+
+/**
  * Read the active view from #selectedViewId and toggle the Save changes button
  * accordingly.
  */
-export function syncSaveChangesVisibility() {
+export function updateSaveBtnVisibility() {
   const activeViewId = document.getElementById('selectedViewId');
   const saveBtn = document.querySelector('.save-changes-btn');
   if (!activeViewId || !saveBtn) return;
   saveBtn.style.display = shouldShowSaveChangesBtn(activeViewId.value)
     ? ''
     : 'none';
+}
+
+/**
+ * Read the active view from #selectedViewId and toggle the Reset changes
+ * button accordingly.
+ */
+export function updateResetBtnVisibility() {
+  const activeViewId = document.getElementById('selectedViewId');
+  const resetBtn = document.querySelector('.reset-changes-btn');
+  if (!activeViewId || !resetBtn) return;
+  resetBtn.style.display = shouldShowResetChangesBtn(activeViewId.value)
+    ? ''
+    : 'none';
+}
+
+/**
+ * Wire the document-level click handler for the Reset changes button.
+ * Delegated on document so a single listener covers the button across HTMX
+ * swaps of the filters partial. Idempotent via a global flag.
+ *
+ * On click: clear the active view's dirty indicator (tab/sidebar badges,
+ * cached form data) and trigger HTMX to re-fetch the canonical filters
+ * partial for that view. For a saved view this restores the server-stored
+ * configuration; for `__new` it restores the default initial configuration.
+ * The `htmx:afterSettle` handler in the entrypoint then refreshes the table
+ * to match the freshly-loaded filters.
+ *
+ * @param {object} callbacks
+ * @param {(viewId: string|null, hasChanges: boolean) => void} callbacks.toggleUnsavedIndicator
+ *   Clear the per-view dirty indicator before triggering the HTMX swap so
+ *   the tab/sidebar badges flip immediately rather than after the network
+ *   round-trip.
+ */
+export function installFilterReset({ toggleUnsavedIndicator }) {
+  if (window._povFilterResetWired) return;
+  window._povFilterResetWired = true;
+
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.reset-changes-btn');
+    if (!btn) return;
+    e.preventDefault();
+
+    const form = document.getElementById('filtersForm');
+    const viewField = form?.querySelector('input[name="view"]');
+    const activeViewIdInput = document.getElementById('selectedViewId');
+    const viewId =
+      (viewField && viewField.value) ||
+      (activeViewIdInput && activeViewIdInput.value) ||
+      null;
+    if (!viewId) return;
+
+    // Clear the dirty indicator (tab badge, sidebar badge, cached form data,
+    // save/reset button visibility) before the swap so the UI updates
+    // immediately. _viewInitialStates is also dropped so the post-swap
+    // `initProjectOverviewFilters` re-captures it from the canonical form.
+    toggleUnsavedIndicator(viewId, false);
+    if (window._viewInitialStates) {
+      delete window._viewInitialStates[viewId];
+    }
+    if (viewId === '__new') {
+      clearNewViewFiltersStorage();
+    }
+
+    // Mark this swap as a reset so the entrypoint's afterSettle handler
+    // also refreshes the table (the canonical filters may differ from what
+    // the table currently shows).
+    window._povResetPendingViewId = viewId;
+
+    const container = document.getElementById('filtersContainer');
+    if (!container) return;
+    // Use htmx.ajax() rather than htmx.trigger(container, 'load') — the
+    // `hx-trigger="load"` on #filtersContainer is one-shot and only fires
+    // when the element is first inserted into the DOM, so a programmatic
+    // re-trigger wouldn't issue the request. htmx.ajax() bypasses the
+    // trigger configuration and issues the swap directly.
+    htmx.ajax(
+      'GET',
+      '/ProjectOverview/ProjectOverview/loadFilters/' +
+        encodeURIComponent(viewId),
+      { target: '#filtersContainer', swap: 'innerHTML' }
+    );
+  });
 }
