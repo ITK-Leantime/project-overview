@@ -17,6 +17,8 @@
   * Persist "+ new view" filter draft in localStorage across page reloads.
 * [PR-95](https://github.com/ITK-Leantime/project-overview/pull/95)
   * Simplify share mechanism: copy the view URL directly instead of generating a separate share link.
+* [PR-96](https://github.com/ITK-Leantime/project-overview/pull/96)
+  * Fix "Done" status filter always returning zero rows.
 
 ## [4.3.0] - 2026-05-27
 
