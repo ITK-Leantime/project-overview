@@ -4,23 +4,29 @@
 
 ## [4.4.2] - 2026-06-10
 
-* [PR-89](https://github.com/ITK-Leantime/project-overview/pull/89)
-  * Fix new view page unable to visualize default configured view.
-* [PR-90](https://github.com/ITK-Leantime/project-overview/pull/90)
-  * Sort the user filter dropdown alphabetically and hide inactive users.
-* [PR-91](https://github.com/ITK-Leantime/project-overview/pull/91)
-  * Add Select all / Deselect all toggle to filter dropdowns.
-  * Improve keyboard navigation in filter dropdowns.
-* [PR-92](https://github.com/ITK-Leantime/project-overview/pull/92)
-  * Extract filter JS into a separate module.
-* [PR-93](https://github.com/ITK-Leantime/project-overview/pull/93)
-  * Add reset button that reverts unsaved filter changes.
+* [PR-96](https://github.com/ITK-Leantime/project-overview/pull/96)
+    * Fix "Done" status filter always returning zero rows.
+
+## [4.4.1] - 2026-06-04
+
+* [PR-95](https://github.com/ITK-Leantime/project-overview/pull/95)
+    * Simplify share mechanism: copy the view URL directly instead of generating a separate share link.
+
+## [4.4.0] - 2026-06-04
+
 * [PR-94](https://github.com/ITK-Leantime/project-overview/pull/94)
   * Persist "+ new view" filter draft in localStorage across page reloads.
-* [PR-95](https://github.com/ITK-Leantime/project-overview/pull/95)
-  * Simplify share mechanism: copy the view URL directly instead of generating a separate share link.
-* [PR-96](https://github.com/ITK-Leantime/project-overview/pull/96)
-  * Fix "Done" status filter always returning zero rows.
+* [PR-93](https://github.com/ITK-Leantime/project-overview/pull/93)
+    * Add reset button that reverts unsaved filter changes.
+* [PR-92](https://github.com/ITK-Leantime/project-overview/pull/92)
+    * Extract filter JS into a separate module.
+* [PR-91](https://github.com/ITK-Leantime/project-overview/pull/91)
+    * Add Select all / Deselect all toggle to filter dropdowns.
+    * Improve keyboard navigation in filter dropdowns.
+* [PR-90](https://github.com/ITK-Leantime/project-overview/pull/90)
+    * Sort the user filter dropdown alphabetically and hide inactive users.
+* [PR-89](https://github.com/ITK-Leantime/project-overview/pull/89)
+    * Fix new view page unable to visualize default configured view.
 
 ## [4.3.0] - 2026-05-27
 
@@ -271,7 +277,9 @@
   * Language support, very copy pasted but with links to sources
 
 [Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.4.2...HEAD
-[4.4.2]: https://github.com/ITK-Leantime/project-overview/compare/4.3.0...4.4.2
+[4.4.2]: https://github.com/ITK-Leantime/project-overview/compare/4.4.1...4.4.2
+[4.4.1]: https://github.com/ITK-Leantime/project-overview/compare/4.4.0...4.4.1
+[4.4.0]: https://github.com/ITK-Leantime/project-overview/compare/4.3.0...4.4.0
 [4.3.0]: https://github.com/ITK-Leantime/project-overview/compare/4.2.0...4.3.0
 [4.2.0]: https://github.com/ITK-Leantime/project-overview/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/ITK-Leantime/project-overview/compare/4.0.2...4.1.0
