@@ -270,6 +270,15 @@ class ProjectOverview
         $fromDate = $viewDTO->fromDate ?? null;
         $toDate = $viewDTO->toDate ?? null;
 
+        // Done/archived statuses use ids <= 0 in the seed (0 = done, -1 = archived).
+        // Hide them by default, but honor an explicit user choice when one of those
+        // ids appears in statusFilters — otherwise the Done filter would always
+        // return zero rows.
+        $hasDoneStatusFilter = !empty(array_filter(
+            $viewDTO->statusFilters,
+            fn ($id) => (int) $id <= 0
+        ));
+
         $query = $this->query()
             ->from('zp_tickets AS ticket')
             ->select([
@@ -298,28 +307,32 @@ class ProjectOverview
             ->leftJoin('zp_user AS t1', 'ticket.userId', '=', 't1.id')
             ->leftJoin('zp_user AS t2', 'ticket.editorId', '=', 't2.id')
             ->leftJoin('zp_tickets AS parent', 'ticket.dependingTicketId', '=', 'parent.id')
-            ->where('ticket.type', '<>', 'milestone')
-            ->where('ticket.status', '>', '0')
-            ->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
-                // Date ranges are already calculated in the Service layer and passed via DTO
-                if ($fromDate && $toDate) {
-                    $startDate = CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $fromDate)->startOfDay();
-                    $endDate = CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $toDate)->endOfDay();
-                    $query->where('ticket.dateToFinish', '>', $startDate)
-                        ->where('ticket.dateToFinish', '<', $endDate);
-                }
+            ->where('ticket.type', '<>', 'milestone');
 
-                if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
-                    $query->orWhereBetween('ticket.dateToFinish', [
-                        CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, '2023-03-14')->endOfDay(),
-                        $toDate ? CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $toDate) : CarbonImmutable::now(),
-                    ]);
-                }
+        if (!$hasDoneStatusFilter) {
+            $query->where('ticket.status', '>', '0');
+        }
 
-                if (in_array('empty-due-date', $viewDTO->customFilters ?? [])) {
-                    $query->orWhere('ticket.dateToFinish', '=', '0000-00-00 00:00:00');
-                }
-            });
+        $query->where(function ($query) use ($fromDate, $toDate, $viewDTO) {
+            // Date ranges are already calculated in the Service layer and passed via DTO
+            if ($fromDate && $toDate) {
+                $startDate = CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $fromDate)->startOfDay();
+                $endDate = CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $toDate)->endOfDay();
+                $query->where('ticket.dateToFinish', '>', $startDate)
+                    ->where('ticket.dateToFinish', '<', $endDate);
+            }
+
+            if (in_array('overdue-tickets', $viewDTO->customFilters ?? [])) {
+                $query->orWhereBetween('ticket.dateToFinish', [
+                    CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, '2023-03-14')->endOfDay(),
+                    $toDate ? CarbonImmutable::createFromFormat(ProjectOverviewService::BACKEND_DATE_FORMAT, $toDate) : CarbonImmutable::now(),
+                ]);
+            }
+
+            if (in_array('empty-due-date', $viewDTO->customFilters ?? [])) {
+                $query->orWhere('ticket.dateToFinish', '=', '0000-00-00 00:00:00');
+            }
+        });
 
         if (!empty($viewDTO->users)) {
             $query->where(function ($q) use ($viewDTO) {
