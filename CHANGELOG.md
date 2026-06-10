@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.4.2] - 2026-06-10
+
 * [PR-89](https://github.com/ITK-Leantime/project-overview/pull/89)
   * Fix new view page unable to visualize default configured view.
 * [PR-90](https://github.com/ITK-Leantime/project-overview/pull/90)
@@ -268,7 +270,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.3.0...HEAD
+[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.4.2...HEAD
+[4.4.2]: https://github.com/ITK-Leantime/project-overview/compare/4.3.0...4.4.2
 [4.3.0]: https://github.com/ITK-Leantime/project-overview/compare/4.2.0...4.3.0
 [4.2.0]: https://github.com/ITK-Leantime/project-overview/compare/4.1.0...4.2.0
 [4.1.0]: https://github.com/ITK-Leantime/project-overview/compare/4.0.2...4.1.0
