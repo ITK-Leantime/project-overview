@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-98](https://github.com/ITK-Leantime/project-overview/pull/98)
+  * Combine Priority and Status filters with AND instead of OR.
+
 ## [4.4.2] - 2026-06-10
 
 * [PR-96](https://github.com/ITK-Leantime/project-overview/pull/96)
