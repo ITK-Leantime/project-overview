@@ -93,7 +93,7 @@ class ProjectOverview
      * @param  array<int, int> $accessibleProjectIds Project ids the current user may see.
      *                                               Forwarded to the repository, which enforces
      *                                               project-access at the SQL layer.
-     * @return array{rows: array<int, mixed>, hasMore: bool}
+     * @return array{rows: array<int, mixed>, hasMore: bool, total: int}
      */
     public function getViewTasks(ViewDTO $viewDTO, array $accessibleProjectIds): array
     {

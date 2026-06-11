@@ -138,6 +138,10 @@ readonly class ProjectOverviewHelper
                 $userViewObject[$key]['hasMore'] = $page['hasMore'];
                 $userViewObject[$key]['nextPage'] = $page['hasMore'] ? 2 : null;
                 $userViewObject[$key]['pageSize'] = $paginatedDTO->pageSize;
+                // Without these the template's "Viser X af Y" falls back to
+                // count($rows) and renders "Viser alle x" on first paint.
+                $userViewObject[$key]['total'] = $page['total'];
+                $userViewObject[$key]['loaded'] = count($viewTickets);
                 // Stored columns can be []. The partial would otherwise render
                 // zero columns; expand to the full list at render time.
                 $userViewObject[$key]['view']['columns'] = $this->actionHandler->effectiveColumns(
@@ -177,7 +181,7 @@ readonly class ProjectOverviewHelper
      *
      * @param  array<string, mixed> $postData POST data containing filter values.
      * @param  string|null          $viewId   Route-supplied view id; embedded into the response so the template can build the next-page sentinel URL.
-     * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
+     * @return array{userView: array<string, mixed>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int, total: int, loaded: int}
      */
     public function getViewTableData(array $postData, ?string $viewId = null): array
     {
@@ -197,6 +201,7 @@ readonly class ProjectOverviewHelper
 
         $page = $this->projectOverviewService->getViewTasks($viewDTO, $accessibleIds);
         [$viewTickets, $statusLabels] = $this->enrichTickets($page['rows'], $allProjects);
+        $loaded = count($viewTickets);
 
         return [
             'userView' => [
@@ -210,12 +215,16 @@ readonly class ProjectOverviewHelper
                 'hasMore' => $page['hasMore'],
                 'nextPage' => $page['hasMore'] ? $viewDTO->page + 1 : null,
                 'pageSize' => $viewDTO->pageSize,
+                'total' => $page['total'],
+                'loaded' => $loaded,
             ],
             'statusLabels' => $statusLabels,
             'allPriorities' => $this->ticketService->getPriorityLabels(),
             'hasMore' => $page['hasMore'],
             'nextPage' => $page['hasMore'] ? $viewDTO->page + 1 : null,
             'pageSize' => $viewDTO->pageSize,
+            'total' => $page['total'],
+            'loaded' => $loaded,
         ];
     }
 
@@ -224,7 +233,7 @@ readonly class ProjectOverviewHelper
      * Page and pageSize come from POST (`page`, `pageSize`); both default if absent.
      *
      * @param  array<string, mixed> $postData
-     * @return array{rows: array<int, mixed>, columns: array<int, string>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int}
+     * @return array{rows: array<int, mixed>, columns: array<int, string>, statusLabels: array<int, mixed>, allPriorities: array<int, string>, hasMore: bool, nextPage: int|null, pageSize: int, total: int, loadedThisPage: int}
      */
     public function getViewTableRows(array $postData): array
     {
@@ -253,6 +262,8 @@ readonly class ProjectOverviewHelper
             'hasMore' => $result['hasMore'],
             'nextPage' => $result['hasMore'] ? $viewDTO->page + 1 : null,
             'pageSize' => $viewDTO->pageSize,
+            'total' => $result['total'],
+            'loadedThisPage' => count($rows),
         ];
     }
 

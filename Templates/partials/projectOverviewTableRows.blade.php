@@ -230,10 +230,16 @@
     </tr>
 @endforeach
 
+@php
+    $totalForFooter = isset($total) ? (int) $total : null;
+    $loadedThisPage = isset($loadedThisPage) ? (int) $loadedThisPage : count($rows ?? []);
+@endphp
 @if (!empty($nextPageUrl) && !empty($nextPage))
     <tr class="lazy-row-sentinel"
         data-next-url="{{ $nextPageUrl }}"
         data-next-page="{{ $nextPage }}"
+        @if ($totalForFooter !== null) data-total="{{ $totalForFooter }}" @endif
+        data-loaded-this-page="{{ $loadedThisPage }}"
         data-state="ready">
         <td colspan="{{ $columnCount }}">
             <div class="lazy-row-status lazy-row-ready">
@@ -241,6 +247,9 @@
                     <i class="fa fa-chevron-down" aria-hidden="true"></i>
                     {{ __('projectOverview.load_more_rows') }}
                 </button>
+                @if ($totalForFooter !== null)
+                    <span class="lazy-row-count" data-role="lazy-row-count"></span>
+                @endif
             </div>
             <div class="lazy-row-status lazy-row-loading" hidden>
                 <span class="lazy-row-spinner" aria-hidden="true"></span>
@@ -254,11 +263,19 @@
         </td>
     </tr>
 @elseif (!empty($rows) && ($isContinuation ?? false))
-    <tr class="lazy-row-end-marker">
+    <tr class="lazy-row-end-marker"
+        @if ($totalForFooter !== null) data-total="{{ $totalForFooter }}" @endif
+        data-loaded-this-page="{{ $loadedThisPage }}">
         <td colspan="{{ $columnCount }}">
             <div class="lazy-row-end">
                 <span class="lazy-row-end-line" aria-hidden="true"></span>
-                <span class="lazy-row-end-text">{{ __('projectOverview.end_of_list') }}</span>
+                <span class="lazy-row-end-text">
+                    @if ($totalForFooter !== null)
+                        {{ strtr(__('projectOverview.result_count_all'), ['{total}' => $totalForFooter]) }}
+                    @else
+                        {{ __('projectOverview.end_of_list') }}
+                    @endif
+                </span>
                 <span class="lazy-row-end-line" aria-hidden="true"></span>
             </div>
         </td>

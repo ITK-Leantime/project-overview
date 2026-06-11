@@ -17,6 +17,9 @@
             deselectAll: @json(__('projectOverview.deselect_all')),
             shareLinkCopied: @json(__('projectOverview.share_link_copied')),
             shareLinkCopyFailed: @json(__('projectOverview.share_link_copy_failed')),
+            resultCountNone: @json(__('projectOverview.result_count_none')),
+            resultCountAll: @json(__('projectOverview.result_count_all')),
+            resultCountPartial: @json(__('projectOverview.result_count_partial')),
         };
     </script>
     <?php if (isset($tpl)) {
