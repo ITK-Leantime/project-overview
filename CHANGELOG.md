@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.5.0] - 2026-06-11
+
 * [PR-99](https://github.com/ITK-Leantime/project-overview/pull/99)
   * Show "Showing X of Y" above each view's table and next to the load-more button.
 * [PR-98](https://github.com/ITK-Leantime/project-overview/pull/98)
@@ -281,7 +283,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.4.2...HEAD
+[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.5.0...HEAD
+[4.5.0]: https://github.com/ITK-Leantime/project-overview/compare/4.4.2...4.5.0
 [4.4.2]: https://github.com/ITK-Leantime/project-overview/compare/4.4.1...4.4.2
 [4.4.1]: https://github.com/ITK-Leantime/project-overview/compare/4.4.0...4.4.1
 [4.4.0]: https://github.com/ITK-Leantime/project-overview/compare/4.3.0...4.4.0
