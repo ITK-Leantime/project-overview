@@ -198,6 +198,8 @@ class ProjectOverview extends Controller
         $this->tpl->assign('columnCount', max(1, count($rowData['columns'])));
         $this->tpl->assign('nextPageUrl', $nextPageUrl);
         $this->tpl->assign('nextPage', $rowData['nextPage']);
+        $this->tpl->assign('total', $rowData['total']);
+        $this->tpl->assign('loadedThisPage', $rowData['loadedThisPage']);
         $this->tpl->assign('isContinuation', true);
 
         return $this->tpl->displayPartial('projectoverview::partials.projectOverviewTableRows');
