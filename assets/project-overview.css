@@ -1659,6 +1659,20 @@ select#dateOptions {
   white-space: nowrap;
 }
 
+.result-count {
+  text-align: right;
+  font-size: 0.85em;
+  color: #6c757d;
+  padding: 6px 4px 4px;
+}
+
+.lazy-row-count {
+  margin-left: 12px;
+  font-size: 0.85em;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
 .error-message {
   cursor: default;
   display: flex;

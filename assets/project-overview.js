@@ -283,6 +283,9 @@ function initProjectOverviewTable() {
     if (panel.querySelector('.lazy-row-sentinel')) {
       attachLazyLoad(panel);
     }
+    if (panel.querySelector('.result-count')) {
+      updateResultCount(panel);
+    }
   });
 
   const contextMenu = $('#view-context-menu');
@@ -960,6 +963,7 @@ function refreshViewTable(form) {
         tippy(activePanel.querySelectorAll('[data-tippy-content]'));
       }
       attachLazyLoad(activePanel);
+      updateResultCount(activePanel);
     })
     .catch(function (err) {
       if (err.name === 'AbortError') return;
@@ -1148,6 +1152,9 @@ function loadNextLazyPage(panel, sentinel) {
 
         // Re-attach to the new sentinel (no-op when this was the last page).
         attachLazyLoad(panel);
+        // Refresh the top-of-table "Showing X of Y" counter using the data
+        // carried on the new sentinel / end-marker row.
+        updateResultCount(panel);
       } catch (spliceErr) {
         console.error('[ProjectOverview] Lazy-load splice failed:', spliceErr);
         const live = panel.querySelector('.lazy-row-sentinel');
@@ -1192,6 +1199,55 @@ function loadNextLazyPage(panel, sentinel) {
         panel._lazyController = null;
       }
     });
+}
+
+/**
+ * Refresh the "Showing X of Y" counter at the top of a panel's table and
+ * inside its lazy-row sentinel. Called after each lazy-load splice; also
+ * called for the initial render via the top counter's server-rendered HTML
+ * (this function then just keeps it in sync as more pages arrive).
+ *
+ * @param {HTMLElement} panel
+ */
+function updateResultCount(panel) {
+  const i18n = window.projectOverviewI18n || {};
+  const counter = panel.querySelector('.result-count');
+  if (!counter) return;
+
+  const total = parseInt(counter.dataset.total, 10);
+  if (!Number.isFinite(total)) return;
+
+  // Count visible data rows (exclude lazy-row footer rows).
+  const tbody = panel.querySelector('table tbody');
+  const loaded = tbody
+    ? Array.from(tbody.children).filter(
+        (row) =>
+          !row.classList.contains('lazy-row-sentinel') &&
+          !row.classList.contains('lazy-row-end-marker')
+      ).length
+    : 0;
+
+  counter.dataset.loaded = String(loaded);
+
+  let text;
+  if (total === 0) {
+    text = i18n.resultCountNone || 'No results';
+  } else if (loaded >= total) {
+    text = (i18n.resultCountAll || 'Showing all {total}').replace(
+      '{total}',
+      String(total)
+    );
+  } else {
+    text = (i18n.resultCountPartial || 'Showing {loaded} of {total}')
+      .replace('{loaded}', String(loaded))
+      .replace('{total}', String(total));
+  }
+  counter.textContent = text;
+
+  // Mirror the count next to the load-more button so the contextual cue is
+  // visible without scrolling back up.
+  const sentinelCount = panel.querySelector('[data-role="lazy-row-count"]');
+  if (sentinelCount) sentinelCount.textContent = text;
 }
 
 function setSentinelState(sentinel, visible) {

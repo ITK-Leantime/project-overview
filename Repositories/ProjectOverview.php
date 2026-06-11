@@ -248,12 +248,12 @@ class ProjectOverview
      *
      * @param  ViewDTO         $viewDTO              The data transfer object containing filter criteria.
      * @param  array<int, int> $accessibleProjectIds Project ids the current user can access.
-     * @return array{rows: array<int, mixed>, hasMore: bool}
+     * @return array{rows: array<int, mixed>, hasMore: bool, total: int}
      */
     public function getViewTasks(ViewDTO $viewDTO, array $accessibleProjectIds): array
     {
         if (empty($accessibleProjectIds)) {
-            return ['rows' => [], 'hasMore' => false];
+            return ['rows' => [], 'hasMore' => false, 'total' => 0];
         }
 
         $effectiveProjectIds = !empty($viewDTO->projectFilters)
@@ -264,7 +264,7 @@ class ProjectOverview
             : $accessibleProjectIds;
 
         if (empty($effectiveProjectIds)) {
-            return ['rows' => [], 'hasMore' => false];
+            return ['rows' => [], 'hasMore' => false, 'total' => 0];
         }
 
         $fromDate = $viewDTO->fromDate ?? null;
@@ -386,6 +386,12 @@ class ProjectOverview
         $sortColumn = $allowedSortColumns[$viewDTO->sortBy] ?? 'ticket.priority';
         $sortDirection = strtoupper($viewDTO->sortDirection) === 'DESC' ? 'DESC' : 'ASC';
 
+        // Snapshot the total before sort/pagination so the "Showing X of Y"
+        // counter reflects every matching row. Clone is critical — count()
+        // would otherwise compile against the same builder and pollute the
+        // bindings shared with the row query.
+        $total = (int) (clone $query)->count();
+
         // sumHours is composed in PHP from per-user logged-hours (see helper), not
         // selected here. Only when the user explicitly sorts by Logged do we add
         // the timesheet aggregation join. The inner aggregate is always scoped
@@ -420,10 +426,10 @@ class ProjectOverview
                 $rows = array_slice($rows, 0, $pageSize);
             }
 
-            return ['rows' => $rows, 'hasMore' => $hasMore];
+            return ['rows' => $rows, 'hasMore' => $hasMore, 'total' => $total];
         }
 
-        return ['rows' => $query->get()->toArray(), 'hasMore' => false];
+        return ['rows' => $query->get()->toArray(), 'hasMore' => false, 'total' => $total];
     }
 
     /**
