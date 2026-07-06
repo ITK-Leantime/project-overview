@@ -43,7 +43,7 @@
       "@code-analysis/phpstan"
     ],
     "code-analysis/phpstan": [
-      "phpstan analyse"
+      "phpstan analyse --memory-limit=1G"
     ],
     "coding-standards-apply": [
       "@coding-standards-apply/phpcbf"
