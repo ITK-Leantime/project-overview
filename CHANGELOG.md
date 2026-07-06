@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+* [PR-101](https://github.com/ITK-Leantime/project-overview/pull/101)
+  * Normalize Taskfile and complete the Laravel audit ignore list.
+
 ## [4.5.0] - 2026-06-11
 
 * [PR-99](https://github.com/ITK-Leantime/project-overview/pull/99)
