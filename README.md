@@ -74,9 +74,9 @@ docker run --rm --volume "$PWD:/md" itkdev/markdownlint '**/*.md' --fix
 #### Check with shellcheck
 
 ```shell name=shell-check
-docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/create-release
-docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/deploy
-docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck bin/local.create-release
+docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck --external-sources --source-path=SCRIPTDIR bin/create-release
+docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck --external-sources --source-path=SCRIPTDIR bin/deploy
+docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck --external-sources --source-path=SCRIPTDIR bin/local.create-release
 ```
 
 ### Code analysis
