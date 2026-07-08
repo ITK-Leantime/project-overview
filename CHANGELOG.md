@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [4.6.0] - 2026-07-08
+
 * [PR-102](https://github.com/ITK-Leantime/project-overview/pull/102)
   * Fix inline ticket edits returning 404: use the JSON-RPC API instead of the removed REST endpoint.
 * [PR-101](https://github.com/ITK-Leantime/project-overview/pull/101)
@@ -288,7 +290,8 @@
   * Menu entry in register.php
   * Language support, very copy pasted but with links to sources
 
-[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.5.0...HEAD
+[Unreleased]: https://github.com/ITK-Leantime/project-overview/compare/4.6.0...HEAD
+[4.6.0]: https://github.com/ITK-Leantime/project-overview/compare/4.5.0...4.6.0
 [4.5.0]: https://github.com/ITK-Leantime/project-overview/compare/4.4.2...4.5.0
 [4.4.2]: https://github.com/ITK-Leantime/project-overview/compare/4.4.1...4.4.2
 [4.4.1]: https://github.com/ITK-Leantime/project-overview/compare/4.4.0...4.4.1
