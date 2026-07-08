@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+* [PR-102](https://github.com/ITK-Leantime/project-overview/pull/102)
+  * Fix inline ticket edits returning 404: use the JSON-RPC API instead of the removed REST endpoint.
 * [PR-101](https://github.com/ITK-Leantime/project-overview/pull/101)
   * Normalize Taskfile and complete the Laravel audit ignore list.
 
