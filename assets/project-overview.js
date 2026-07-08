@@ -638,21 +638,15 @@ function initTagsSelects() {
 
 function changeStatus(ticketId, newStatusId, newClass, newLabel) {
   if (newStatusId !== undefined && ticketId) {
-    jQuery
-      .ajax({
-        type: 'PATCH',
-        url: leantime.appUrl + '/api/tickets',
-        data: {
-          id: ticketId,
+    leantime
+      .rpc('Tickets.Tickets.patchTicket', {
+        id: ticketId,
+        values: {
           status: newStatusId,
         },
       })
-      .done(() => {
-        // In this way, the UI does not reflect the actual data, which is not good.
-        // But if I instead create a get-request it returns 200 and an otherwise empty
-        // response. So this is what I chose to do, and is also what is done in
-        // in other places (I am looking at you ticketcontroller.js).
-
+      .then(() => {
+        // Optimistically update the UI; patchTicket only returns a bool.
         // Update ALL buttons with this ID (same ticket can appear in multiple views)
         document
           .querySelectorAll(`#status-ticket-${ticketId}`)
@@ -667,6 +661,9 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
               label.textContent = newLabel;
             }
           });
+      })
+      .catch((err) => {
+        console.error('[ProjectOverview] Failed to update status', err);
       });
   }
 }
@@ -674,21 +671,15 @@ function changeStatus(ticketId, newStatusId, newClass, newLabel) {
 // change priority ajax
 function changePriority(ticketId, newPriorityId, newLabel) {
   if (newPriorityId && ticketId) {
-    jQuery
-      .ajax({
-        type: 'PATCH',
-        url: leantime.appUrl + '/api/tickets',
-        data: {
-          id: ticketId,
+    leantime
+      .rpc('Tickets.Tickets.patchTicket', {
+        id: ticketId,
+        values: {
           priority: newPriorityId,
         },
       })
-      .done(() => {
-        // In this way, the UI does not reflect the actual data, which is not good.
-        // But if I instead create a get-request it returns 200 and an otherwise empty
-        // response. So this is what I chose to do, and is also what is done in
-        // in other places (I am looking at you ticketcontroller.js).
-
+      .then(() => {
+        // Optimistically update the UI; patchTicket only returns a bool.
         // Update ALL buttons with this ID (same ticket can appear in multiple views)
         document
           .querySelectorAll(`#priority-ticket-${ticketId}`)
@@ -703,6 +694,9 @@ function changePriority(ticketId, newPriorityId, newLabel) {
               label.textContent = newLabel;
             }
           });
+      })
+      .catch((err) => {
+        console.error('[ProjectOverview] Failed to update priority', err);
       });
   }
 }
@@ -716,19 +710,17 @@ function changeDueDate(event, ticketId, newDueDate) {
       leantime.dateHelper.getFormatFromSettings('dateformat', 'jquery'),
       new Date(newDueDate)
     );
-    jQuery
-      .ajax({
-        type: 'PATCH',
-        url: leantime.appUrl + '/api/tickets',
-        data: {
-          id: ticketId,
+    leantime
+      .rpc('Tickets.Tickets.patchTicket', {
+        id: ticketId,
+        values: {
           dateToFinish: dueDate,
         },
       })
       .then(() => {
         saveSuccess(parentElement);
       })
-      .fail(() => {
+      .catch(() => {
         saveError(parentElement);
       });
   }
@@ -739,19 +731,17 @@ function changeAssignedUser(event, ticketId, userId) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (userId && ticketId) {
-    jQuery
-      .ajax({
-        type: 'PATCH',
-        url: leantime.appUrl + '/api/tickets',
-        data: {
-          id: ticketId,
+    leantime
+      .rpc('Tickets.Tickets.patchTicket', {
+        id: ticketId,
+        values: {
           editorId: userId,
         },
       })
       .then(() => {
         saveSuccess(parentElement);
       })
-      .fail(() => {
+      .catch(() => {
         saveError(parentElement);
       });
   }
@@ -762,19 +752,17 @@ function changePlanHours(event, ticketId, newPlanHours) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (newPlanHours && ticketId) {
-    jQuery
-      .ajax({
-        type: 'PATCH',
-        url: leantime.appUrl + '/api/tickets',
-        data: {
-          id: ticketId,
+    leantime
+      .rpc('Tickets.Tickets.patchTicket', {
+        id: ticketId,
+        values: {
           planHours: newPlanHours,
         },
       })
       .then(() => {
         saveSuccess(parentElement);
       })
-      .fail(() => {
+      .catch(() => {
         saveError(parentElement);
       });
   }
@@ -785,19 +773,17 @@ function changeHoursRemaining(event, ticketId, newHoursRemaining) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (newHoursRemaining && ticketId) {
-    jQuery
-      .ajax({
-        type: 'PATCH',
-        url: leantime.appUrl + '/api/tickets',
-        data: {
-          id: ticketId,
+    leantime
+      .rpc('Tickets.Tickets.patchTicket', {
+        id: ticketId,
+        values: {
           hourRemaining: newHoursRemaining,
         },
       })
       .then(() => {
         saveSuccess(parentElement);
       })
-      .fail(() => {
+      .catch(() => {
         saveError(parentElement);
       });
   }
@@ -807,19 +793,17 @@ function changeHoursRemaining(event, ticketId, newHoursRemaining) {
 function changeMilestone(event, ticketId, newMilestoneId) {
   const parentElement = jQuery(event.target).closest('td');
   if (newMilestoneId && ticketId) {
-    jQuery
-      .ajax({
-        type: 'PATCH',
-        url: leantime.appUrl + '/api/tickets',
-        data: {
-          id: ticketId,
+    leantime
+      .rpc('Tickets.Tickets.patchTicket', {
+        id: ticketId,
+        values: {
           milestoneid: newMilestoneId,
         },
       })
       .then(() => {
         saveSuccess(parentElement);
       })
-      .fail(() => {
+      .catch(() => {
         saveError(parentElement);
       });
   }
@@ -830,19 +814,17 @@ function changeTags(event, ticketId, newTags) {
   const parentElement = jQuery(event.target).closest('td');
 
   if (ticketId) {
-    jQuery
-      .ajax({
-        type: 'PATCH',
-        url: leantime.appUrl + '/api/tickets',
-        data: {
-          id: ticketId,
+    leantime
+      .rpc('Tickets.Tickets.patchTicket', {
+        id: ticketId,
+        values: {
           tags: newTags || '',
         },
       })
       .then(() => {
         saveSuccess(parentElement);
       })
-      .fail(() => {
+      .catch(() => {
         saveError(parentElement);
       });
   }
