@@ -1,31 +1,72 @@
-version: '3'
+version: "3"
 
 vars:
-  PHP_IMAGE: itkdev/php8.3-fpm:latest
+  # https://taskfile.dev/reference/templating/
+  DOCKER_COMPOSE: '{{.TASK_DOCKER_COMPOSE | default "docker compose"}}'
 
 tasks:
   default:
-    desc: "List available tasks"
+    desc: List available tasks
     cmds:
       - task --list
     silent: true
 
-  coding-standards:check:
-    desc: "Run all coding-standards checks (phpcs, blade, prettier, markdown, shellcheck)"
+  compose:
+    desc: Run a docker compose command, e.g. task compose -- run --rm php composer install
     cmds:
-      - docker run --interactive --rm --volume {{.PWD}}:/app {{.PHP_IMAGE}} composer coding-standards-check
-      - docker run --rm --volume {{.PWD}}:/app -w /app shufo/blade-formatter:1.11.11 Templates/*.blade.php --check-formatted
-      - docker run --rm --volume {{.PWD}}:/work tmknom/prettier:latest --check assets
-      - docker run --rm --volume {{.PWD}}:/md itkdev/markdownlint '**/*.md'
-      # -x follows the `# shellcheck source=…` directives baked into the scripts; -P bin adds bin/ to the source search path.
-      - docker run --rm --volume {{.PWD}}:/app --workdir /app peterdavehello/shellcheck shellcheck -P bin -x bin/create-release bin/deploy bin/local.create-release
+      - "{{.DOCKER_COMPOSE}} {{.CLI_ARGS}}"
 
-  coding-standards:fix:
-    desc: "Apply all coding-standards fixes (phpcbf, blade, prettier, markdown)"
+  composer:install:
+    desc: Install PHP dependencies
     cmds:
-      # phpcbf exits 1 when it has fixed issues, which is success — keep going.
-      - cmd: docker run --interactive --rm --volume {{.PWD}}:/app {{.PHP_IMAGE}} composer coding-standards-apply
-        ignore_error: true
-      - docker run --rm --volume {{.PWD}}:/app -w /app shufo/blade-formatter:1.11.11 Templates/*.blade.php --write
-      - docker run --rm --volume {{.PWD}}:/work tmknom/prettier:latest --write assets
-      - docker run --rm --volume {{.PWD}}:/md itkdev/markdownlint '**/*.md' --fix
+      - docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer install
+
+  composer:normalize:
+    desc: Normalize composer.json
+    cmds:
+      - docker run --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer normalize
+
+  install:
+    desc: Install Node.js dependencies
+    cmds:
+      - task: compose
+        vars:
+          CLI_ARGS: run --rm php npm install
+
+  dev:
+    desc: Build assets and watch for changes
+    cmds:
+      - task: compose
+        vars:
+          CLI_ARGS: run --rm php npm run dev
+
+  build:
+    desc: Build assets
+    cmds:
+      - task: compose
+        vars:
+          CLI_ARGS: run --rm php npm run build
+
+  code-analysis:
+    desc: Run static analysis (phpstan)
+    cmds:
+      - docker run --interactive --rm --volume ${PWD}:/app --env PHP_MEMORY_LIMIT=256M itkdev/php8.3-fpm:latest composer code-analysis
+
+  coding-standards:check:
+    desc: Run all coding standards checks
+    cmds:
+      - docker run --rm --volume "$PWD:/app" -w /app shufo/blade-formatter:1.11.11 Templates/*.blade.php --check-formatted
+      - docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer coding-standards-check
+      - docker run --rm -v "$(pwd):/work" tmknom/prettier:latest --check assets
+      - docker run --rm --volume "$PWD:/md" itkdev/markdownlint '**/*.md'
+      - docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck --external-sources --source-path=SCRIPTDIR bin/create-release
+      - docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck --external-sources --source-path=SCRIPTDIR bin/deploy
+      - docker run --rm --volume "$PWD:/app" --workdir /app peterdavehello/shellcheck shellcheck --external-sources --source-path=SCRIPTDIR bin/local.create-release
+
+  coding-standards:apply:
+    desc: Apply all coding standards fixes
+    cmds:
+      - docker run --rm --volume "$PWD:/app" -w /app shufo/blade-formatter:1.11.11 Templates/*.blade.php --write
+      - docker run --interactive --rm --volume ${PWD}:/app itkdev/php8.3-fpm:latest composer coding-standards-apply
+      - docker run --rm -v "$(pwd):/work" tmknom/prettier:latest --write assets
+      - docker run --rm --volume "$PWD:/md" itkdev/markdownlint '**/*.md' --fix
